@@ -823,49 +823,6 @@
             }
         }
     </style>
-
-    <!-- Firebase v9 SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, get, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
-
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
-            authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
-            projectId: "clinic-bdf92",
-            storageBucket: "clinic-bdf92.firebasestorage.app",
-            messagingSenderId: "302452317883",
-            appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
-            measurementId: "G-XZXEVNMVRS"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const auth = getAuth(app);
-        const analytics = getAnalytics(app);
-
-        // Make Firebase services globally available
-        window.firebase = {
-            database,
-            auth,
-            ref,
-            set,
-            get,
-            onValue,
-            serverTimestamp,
-            signInWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged
-        };
-
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initializeApp);
-    </script>
 </head>
 <body>
     <!-- Loading Indicator -->
@@ -1035,8 +992,8 @@
             <h2>Admin Login</h2>
             <form onsubmit="adminLogin(event)">
                 <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="adminUsername" required placeholder="admin@physio-clinic.com">
+                    <label>Username:</label>
+                    <input type="text" id="adminUsername" required>
                 </div>
                 <div class="form-group">
                     <label>Password:</label>
@@ -1052,10 +1009,7 @@
         <div class="admin-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2>Admin Panel</h2>
-                <div>
-                    <button onclick="adminLogout()" class="btn-admin">Logout</button>
-                    <button onclick="closeAdminPanel()" class="btn-danger">Close</button>
-                </div>
+                <button onclick="closeAdminPanel()" class="btn-danger">Close</button>
             </div>
 
             <!-- Basic Info Form -->
@@ -1139,6 +1093,41 @@
             <button onclick="saveAllData()" class="btn-admin">Save All Changes</button>
         </div>
     </div>
+
+    <!-- Firebase JavaScript SDK -->
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
+            authDomain: "clinic-bdf92.firebaseapp.com",
+            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
+            projectId: "clinic-bdf92",
+            storageBucket: "clinic-bdf92.firebasestorage.app",
+            messagingSenderId: "302452317883",
+            appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
+            measurementId: "G-XZXEVNMVRS"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Make Firebase functions globally available
+        window.db = db;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.setDoc = setDoc;
+        window.onSnapshot = onSnapshot;
+        
+        // Initialize the app after Firebase is ready
+        initializeApp();
+    </script>
 
     <script>
         // WhatsApp Configuration
@@ -1242,26 +1231,44 @@
             }
         };
 
+        // Admin credentials
+        const adminCredentials = {
+            username: "PhysioArpan",
+            password: "PtApu@9932TM"
+        };
+
         let lastScrollTop = 0;
         let currentPage = 'home';
-        let isAdminLoggedIn = false;
+        let updateCheckInterval;
+        let unsubscribeSnapshot;
 
         // Initialize the website
         function initializeApp() {
-            showLoading(true);
-            loadDataFromFirebase()
-                .then(() => {
+            document.addEventListener('DOMContentLoaded', async function() {
+                showLoading(true);
+                await loadDataFromFirebase();
+                renderAllViews();
+                updateImages();
+                setupScrollHandler();
+                setupRealTimeUpdates();
+                showLoading(false);
+            });
+
+            // If DOM is already loaded
+            if (document.readyState === 'loading') {
+                // Do nothing, event listener will handle it
+            } else {
+                // DOM already loaded
+                (async function() {
+                    showLoading(true);
+                    await loadDataFromFirebase();
                     renderAllViews();
                     updateImages();
                     setupScrollHandler();
                     setupRealTimeUpdates();
-                    setupAuthListener();
                     showLoading(false);
-                })
-                .catch(error => {
-                    console.error('Initialization error:', error);
-                    showLoading(false);
-                });
+                })();
+            }
         }
 
         // Loading indicator
@@ -1274,13 +1281,14 @@
 
         // **FIREBASE INTEGRATION FUNCTIONS**
         
-        // Load data from Firebase Realtime Database
+        // Load data from Firebase Firestore
         async function loadDataFromFirebase() {
             try {
-                const snapshot = await window.firebase.get(window.firebase.ref(window.firebase.database, 'clinic_settings'));
-                
-                if (snapshot.exists()) {
-                    clinicData = snapshot.val();
+                const docRef = window.doc(window.db, 'clinic', 'data');
+                const docSnap = await window.getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    clinicData = docSnap.data().content;
                     console.log('Data loaded from Firebase successfully');
                 } else {
                     // If no data exists, create initial record
@@ -1289,18 +1297,21 @@
                 }
             } catch (error) {
                 console.error('Error loading data from Firebase:', error);
+                // Fallback to localStorage if Firebase fails
                 loadFromLocalStorage();
             }
         }
 
-        // Save data to Firebase Realtime Database
+        // Save data to Firebase Firestore
         async function saveDataToFirebase() {
             try {
-                await window.firebase.set(window.firebase.ref(window.firebase.database, 'clinic_settings'), {
-                    ...clinicData,
-                    lastUpdated: window.firebase.serverTimestamp()
+                const docRef = window.doc(window.db, 'clinic', 'data');
+                await window.setDoc(docRef, {
+                    content: clinicData,
+                    updatedAt: new Date().toISOString()
                 });
-                
+
+                // Also save to localStorage as backup
                 saveToLocalStorage();
                 console.log('Data saved to Firebase successfully');
                 return true;
@@ -1311,93 +1322,52 @@
             }
         }
 
+        // Set up real-time updates from Firebase
+        function setupRealTimeUpdates() {
+            try {
+                const docRef = window.doc(window.db, 'clinic', 'data');
+                unsubscribeSnapshot = window.onSnapshot(docRef, (doc) => {
+                    if (doc.exists()) {
+                        const newData = doc.data().content;
+                        if (JSON.stringify(newData) !== JSON.stringify(clinicData)) {
+                            clinicData = newData;
+                            renderAllViews();
+                            updateImages();
+                            showUpdateIndicator();
+                            console.log('Real-time update received from Firebase');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting up real-time updates:', error);
+            }
+        }
+
         // Fallback localStorage functions
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('clinicData', JSON.stringify(clinicData));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
         function loadFromLocalStorage() {
-            const savedData = localStorage.getItem('physioClinicData');
-            if (savedData) {
-                try {
+            try {
+                const savedData = localStorage.getItem('clinicData');
+                if (savedData) {
                     clinicData = JSON.parse(savedData);
                     console.log('Data loaded from localStorage as fallback');
-                } catch (error) {
-                    console.error('Error parsing localStorage data:', error);
                 }
-            }
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('physioClinicData', JSON.stringify(clinicData));
-        }
-
-        // **REAL-TIME UPDATES WITH FIREBASE**
-        function setupRealTimeUpdates() {
-            // Firebase Realtime Database listener
-            window.firebase.onValue(window.firebase.ref(window.firebase.database, 'clinic_settings'), (snapshot) => {
-                if (snapshot.exists()) {
-                    const newData = snapshot.val();
-                    // Remove the lastUpdated field for comparison
-                    const { lastUpdated, ...newDataForComparison } = newData;
-                    const { lastUpdated: oldLastUpdated, ...currentDataForComparison } = clinicData;
-                    
-                    // Check if data actually changed
-                    if (JSON.stringify(newDataForComparison) !== JSON.stringify(currentDataForComparison)) {
-                        clinicData = newDataForComparison;
-                        renderAllViews();
-                        updateImages();
-                        showUpdateIndicator('Content updated from another device');
-                    }
-                }
-            }, (error) => {
-                console.error('Real-time listener error:', error);
-            });
-        }
-
-        // **AUTHENTICATION FUNCTIONS**
-        function setupAuthListener() {
-            window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
-                isAdminLoggedIn = !!user;
-                if (user) {
-                    console.log('Admin is signed in:', user.email);
-                } else {
-                    console.log('Admin is signed out');
-                }
-            });
-        }
-
-        // Admin login function
-        async function adminLogin(event) {
-            event.preventDefault();
-            const email = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            try {
-                showLoading(true);
-                await window.firebase.signInWithEmailAndPassword(window.firebase.auth, email, password);
-                closeAdminLogin();
-                openAdminPanel();
-                showUpdateIndicator('Admin logged in successfully');
             } catch (error) {
-                alert('Invalid login credentials');
-                console.error('Login error:', error);
-            } finally {
-                showLoading(false);
+                console.error('Error loading from localStorage:', error);
             }
         }
 
-        // Admin logout function
-        function adminLogout() {
-            window.firebase.signOut(window.firebase.auth).then(() => {
-                closeAdminPanel();
-                showUpdateIndicator('Logged out successfully');
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        }
-
-        // Update indicator
-        function showUpdateIndicator(message) {
+        // Show update indicator
+        function showUpdateIndicator() {
             const indicator = document.getElementById('updateIndicator');
             if (indicator) {
-                indicator.textContent = message;
                 indicator.classList.add('show');
                 setTimeout(() => {
                     indicator.classList.remove('show');
@@ -1405,59 +1375,135 @@
             }
         }
 
-        // **UI RENDERING FUNCTIONS**
+        // Menu toggle functionality
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+        }
+
+        // Page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            
+            // Show the selected page
+            const selectedPage = document.getElementById(pageId);
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+            }
+            
+            currentPage = pageId;
+            
+            // Close menu if open
+            const menu = document.getElementById('menu');
+            menu.classList.remove('active');
+            
+            // Update URL without page reload
+            const newUrl = pageId === 'home' ? '/' : `/#${pageId}`;
+            history.pushState({ page: pageId }, '', newUrl);
+        }
+
+        // Scroll handler for header hide/show
+        function setupScrollHandler() {
+            const header = document.getElementById('header');
+            
+            window.addEventListener('scroll', function() {
+                const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
+                    // Scrolling down & past 100px
+                    header.classList.add('hidden');
+                } else {
+                    // Scrolling up
+                    header.classList.remove('hidden');
+                }
+                
+                lastScrollTop = currentScrollTop;
+            });
+        }
+
+        // Render all views
         function renderAllViews() {
-            renderBasicInfo();
+            updateBasicInfo();
             renderDoctors();
             renderServices();
             renderProducts();
-            renderAdminForms();
+            populateAdminForms();
         }
 
-        function renderBasicInfo() {
-            // Update all basic info elements
-            const elements = {
-                'clinicName': clinicData.basic.name,
-                'heroTitle': clinicData.basic.name,
-                'heroTagline': clinicData.basic.tagline,
-                'phoneNumber': clinicData.basic.phone,
-                'footerPhone': clinicData.basic.phone
-            };
+        // Update basic information
+        function updateBasicInfo() {
+            const clinicNameEl = document.getElementById('clinicName');
+            const heroTitleEl = document.getElementById('heroTitle');
+            const heroTaglineEl = document.getElementById('heroTagline');
+            const phoneNumberEl = document.getElementById('phoneNumber');
+            const locationLinkEl = document.getElementById('locationLink');
+            const footerPhoneEl = document.getElementById('footerPhone');
+            const footerLocationEl = document.getElementById('footerLocation');
 
-            Object.entries(elements).forEach(([id, value]) => {
-                const element = document.getElementById(id);
-                if (element) element.textContent = value;
-            });
+            if (clinicNameEl) clinicNameEl.textContent = clinicData.basic.name;
+            if (heroTitleEl) heroTitleEl.textContent = clinicData.basic.name;
+            if (heroTaglineEl) heroTaglineEl.textContent = clinicData.basic.tagline;
+            if (phoneNumberEl) phoneNumberEl.textContent = clinicData.basic.phone;
+            if (locationLinkEl) locationLinkEl.href = clinicData.basic.location;
+            if (footerPhoneEl) footerPhoneEl.textContent = clinicData.basic.phone;
+            if (footerLocationEl) footerLocationEl.href = clinicData.basic.location;
 
-            // Update location links
-            const locationLinks = ['locationLink', 'footerLocation'];
-            locationLinks.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.href = clinicData.basic.location;
-            });
+            // Update page title
+            document.title = clinicData.basic.name;
         }
 
+        // Update images
+        function updateImages() {
+            // Logo
+            const logoContainer = document.getElementById('logoContainer');
+            if (logoContainer && clinicData.basic.logoImage) {
+                logoContainer.innerHTML = `<img src="${clinicData.basic.logoImage}" alt="Logo" style="height: 40px; width: auto;">`;
+            } else if (logoContainer) {
+                logoContainer.innerHTML = `<div class="logo-text">${clinicData.basic.name}</div>`;
+            }
+
+            // Hero banner
+            const heroBannerImage = document.getElementById('heroBannerImage');
+            if (heroBannerImage && clinicData.basic.heroBannerImage) {
+                heroBannerImage.src = clinicData.basic.heroBannerImage;
+                heroBannerImage.style.display = 'block';
+            } else if (heroBannerImage) {
+                heroBannerImage.style.display = 'none';
+            }
+
+            // Services banner
+            const servicesBannerImage = document.getElementById('servicesBannerImage');
+            if (servicesBannerImage && clinicData.basic.servicesBannerImage) {
+                servicesBannerImage.src = clinicData.basic.servicesBannerImage;
+                servicesBannerImage.style.display = 'block';
+            } else if (servicesBannerImage) {
+                servicesBannerImage.style.display = 'none';
+            }
+        }
+
+        // Render doctors
         function renderDoctors() {
-            // Render doctors grid for home page
             const doctorsGrid = document.getElementById('doctorsGrid');
+            const doctorsList = document.getElementById('doctorsList');
+
             if (doctorsGrid) {
                 doctorsGrid.innerHTML = clinicData.doctors.map(doctor => `
-                    <div class="doctor-card" onclick="showDoctorDetails(${doctor.id})">
+                    <div class="doctor-card" onclick="openDoctorModal(${doctor.id})">
                         <div class="doctor-avatar">
                             ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
                         </div>
                         <div class="doctor-info">
                             <h3>${doctor.name}</h3>
                             <p>${doctor.qualification}</p>
-                            <div class="doctor-fees">${doctor.fees}</div>
-                            <button class="btn-book" onclick="event.stopPropagation(); bookDoctorAppointment('${doctor.name}')">Book Now</button>
+                            <p class="doctor-fees">${doctor.fees}</p>
+                            <a href="#" class="btn-book" onclick="event.stopPropagation(); bookDoctor('${doctor.name}')">Book Now</a>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // Render doctors list for doctors page
-            const doctorsList = document.getElementById('doctorsList');
             if (doctorsList) {
                 doctorsList.innerHTML = clinicData.doctors.map(doctor => `
                     <div class="doctor-card doctor-card-horizontal">
@@ -1468,153 +1514,311 @@
                             <h3>${doctor.name}</h3>
                             <p>${doctor.qualification}</p>
                             <p>${doctor.description}</p>
-                            <div class="doctor-fees">${doctor.fees}</div>
-                            <button class="btn-book" onclick="bookDoctorAppointment('${doctor.name}')">Book Appointment</button>
+                            <p class="doctor-fees">${doctor.fees}</p>
+                            <a href="#" class="btn-book" onclick="bookDoctor('${doctor.name}')">Book Appointment</a>
                         </div>
                     </div>
                 `).join('');
             }
         }
 
+        // Render services
         function renderServices() {
-            // Render services grid for home page
             const servicesGrid = document.getElementById('servicesGrid');
-            if (servicesGrid) {
-                servicesGrid.innerHTML = clinicData.services.map(service => `
-                    <div class="service-card">
-                        <h3>${service.name}</h3>
-                        <p>${service.description}</p>
-                        <div class="service-price">Starting from ${service.price}</div>
-                        <button class="btn-service" onclick="bookServiceAppointment('${service.name}')">Book Service</button>
-                    </div>
-                `).join('');
-            }
-
-            // Render services list for services page
             const servicesList = document.getElementById('servicesList');
+
+            const renderServiceCard = (service, isDetailed = false) => `
+                <div class="service-card">
+                    <h3>${service.name}</h3>
+                    <p>${service.description}</p>
+                    <p class="service-price">${service.price}</p>
+                    ${isDetailed && service.subServices && service.subServices.length > 0 ? `
+                        <div class="sub-services">
+                            <h4>Available Services:</h4>
+                            ${service.subServices.map(subService => `
+                                <div class="sub-service-item">
+                                    <span class="sub-service-name">${subService.name}</span>
+                                    <span class="sub-service-price">${subService.price}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <a href="#" class="btn-service" onclick="bookService('${service.name}')">Book Service</a>
+                </div>
+            `;
+
+            if (servicesGrid) {
+                servicesGrid.innerHTML = clinicData.services.map(service => renderServiceCard(service, false)).join('');
+            }
+
             if (servicesList) {
-                servicesList.innerHTML = clinicData.services.map(service => `
-                    <div class="service-card">
-                        <h3>${service.name}</h3>
-                        <p>${service.description}</p>
-                        <div class="service-price">Starting from ${service.price}</div>
-                        ${service.subServices ? `
-                            <div class="sub-services">
-                                <h4>Available Services:</h4>
-                                ${service.subServices.map(subService => `
-                                    <div class="sub-service-item">
-                                        <span class="sub-service-name">${subService.name}</span>
-                                        <span class="sub-service-price">${subService.price}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        <button class="btn-service" onclick="bookServiceAppointment('${service.name}')">Book Service</button>
-                    </div>
-                `).join('');
+                servicesList.innerHTML = clinicData.services.map(service => renderServiceCard(service, true)).join('');
             }
         }
 
+        // Render products
         function renderProducts() {
-            // Render products grid for home page
             const productsGrid = document.getElementById('productsGrid');
-            if (productsGrid) {
-                productsGrid.innerHTML = clinicData.products.map(product => `
-                    <div class="product-card">
-                        <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🏥'}
-                        </div>
-                        <div class="product-info">
-                            <h3>${product.name}</h3>
-                            <p>${product.description}</p>
-                            <div class="product-price">${product.price}</div>
-                            <button class="btn-service" onclick="purchaseProduct('${product.name}')">Buy Now</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // Render products list for products page
             const productsList = document.getElementById('productsList');
-            if (productsList) {
-                productsList.innerHTML = clinicData.products.map(product => `
-                    <div class="product-card">
-                        <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🏥'}
-                        </div>
-                        <div class="product-info">
-                            <h3>${product.name}</h3>
-                            <p>${product.description}</p>
-                            <div class="product-price">${product.price}</div>
-                            <button class="btn-service" onclick="purchaseProduct('${product.name}')">Buy Now</button>
-                        </div>
+
+            const renderProductCard = (product) => `
+                <div class="product-card">
+                    <div class="product-image">
+                        ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🏥'}
                     </div>
-                `).join('');
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p class="product-price">${product.price}</p>
+                        <a href="#" class="btn-book" onclick="buyProduct('${product.name}')">Buy Now</a>
+                    </div>
+                </div>
+            `;
+
+            if (productsGrid) {
+                productsGrid.innerHTML = clinicData.products.map(renderProductCard).join('');
+            }
+
+            if (productsList) {
+                productsList.innerHTML = clinicData.products.map(renderProductCard).join('');
             }
         }
 
-        function updateImages() {
-            // Update logo
-            if (clinicData.basic.logoImage) {
-                const logoContainer = document.getElementById('logoContainer');
-                if (logoContainer) {
-                    logoContainer.innerHTML = `<img src="${clinicData.basic.logoImage}" alt="Logo">`;
-                }
+        // WhatsApp booking functions
+        function bookAppointment() {
+            const message = encodeURIComponent(clinicData.messages.appointment);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+        }
+
+        function bookDoctor(doctorName) {
+            const message = clinicData.messages.doctorBooking.replace('{doctorName}', doctorName);
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
+        }
+
+        function bookService(serviceName) {
+            const message = clinicData.messages.serviceBooking.replace('{serviceName}', serviceName);
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
+        }
+
+        function buyProduct(productName) {
+            const message = clinicData.messages.productPurchase.replace('{productName}', productName);
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
+        }
+
+        // Doctor modal functions
+        function openDoctorModal(doctorId) {
+            const doctor = clinicData.doctors.find(d => d.id === doctorId);
+            if (!doctor) return;
+
+            const doctorDetails = document.getElementById('doctorDetails');
+            if (doctorDetails) {
+                doctorDetails.innerHTML = `
+                    <div style="text-align: center;">
+                        <div class="doctor-avatar" style="margin: 0 auto 2rem; width: 150px; height: 150px; font-size: 4rem;">
+                            ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
+                        </div>
+                        <h2>${doctor.name}</h2>
+                        <p style="font-size: 1.2rem; color: #666; margin: 1rem 0;">${doctor.qualification}</p>
+                        <p style="margin: 2rem 0;">${doctor.description}</p>
+                        <p style="font-size: 1.5rem; font-weight: bold; color: #2c7873; margin: 2rem 0;">${doctor.fees}</p>
+                        <a href="#" class="btn-book" onclick="bookDoctor('${doctor.name}'); closeDoctorModal();">Book Appointment</a>
+                    </div>
+                `;
             }
 
-            // Update hero banner
-            if (clinicData.basic.heroBannerImage) {
-                const heroBannerImage = document.getElementById('heroBannerImage');
-                if (heroBannerImage) {
-                    heroBannerImage.src = clinicData.basic.heroBannerImage;
-                    heroBannerImage.style.display = 'block';
-                }
+            const modal = document.getElementById('doctorModal');
+            if (modal) {
+                modal.style.display = 'block';
             }
+        }
 
-            // Update services banner
-            if (clinicData.basic.servicesBannerImage) {
-                const servicesBannerImage = document.getElementById('servicesBannerImage');
-                if (servicesBannerImage) {
-                    servicesBannerImage.src = clinicData.basic.servicesBannerImage;
-                    servicesBannerImage.style.display = 'block';
+        function closeDoctorModal() {
+            const modal = document.getElementById('doctorModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Admin functions
+        function openAdminLogin() {
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeAdminLogin() {
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // Clear form
+            const usernameEl = document.getElementById('adminUsername');
+            const passwordEl = document.getElementById('adminPassword');
+            if (usernameEl) usernameEl.value = '';
+            if (passwordEl) passwordEl.value = '';
+        }
+
+        function adminLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                closeAdminLogin();
+                openAdminPanel();
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        function openAdminPanel() {
+            populateAdminForms();
+            const panel = document.getElementById('adminPanel');
+            if (panel) {
+                panel.style.display = 'block';
+            }
+        }
+
+        function closeAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            if (panel) {
+                panel.style.display = 'none';
+            }
+            
+            // Clean up any listeners if needed
+            if (unsubscribeSnapshot) {
+                try {
+                    // Note: In a real app, you might want to restart the listener
+                    // For now, we'll keep it running
+                } catch (error) {
+                    console.error('Error managing snapshot listener:', error);
                 }
             }
         }
 
-        // **ADMIN PANEL FUNCTIONS**
-        function renderAdminForms() {
-            // Populate admin form fields
-            const adminFields = {
-                'adminClinicName': clinicData.basic.name,
-                'adminTagline': clinicData.basic.tagline,
-                'adminPhone': clinicData.basic.phone,
-                'adminLocation': clinicData.basic.location,
-                'logoImageUrl': clinicData.basic.logoImage,
-                'heroBannerUrl': clinicData.basic.heroBannerImage,
-                'servicesBannerUrl': clinicData.basic.servicesBannerImage,
-                'appointmentMessage': clinicData.messages.appointment,
-                'doctorBookingMessage': clinicData.messages.doctorBooking,
-                'serviceBookingMessage': clinicData.messages.serviceBooking,
-                'productPurchaseMessage': clinicData.messages.productPurchase
+        // Populate admin forms
+        function populateAdminForms() {
+            // Basic info
+            const elements = {
+                adminClinicName: clinicData.basic.name,
+                adminTagline: clinicData.basic.tagline,
+                adminPhone: clinicData.basic.phone,
+                adminLocation: clinicData.basic.location,
+                logoImageUrl: clinicData.basic.logoImage,
+                heroBannerUrl: clinicData.basic.heroBannerImage,
+                servicesBannerUrl: clinicData.basic.servicesBannerImage,
+                appointmentMessage: clinicData.messages.appointment,
+                doctorBookingMessage: clinicData.messages.doctorBooking,
+                serviceBookingMessage: clinicData.messages.serviceBooking,
+                productPurchaseMessage: clinicData.messages.productPurchase
             };
 
-            Object.entries(adminFields).forEach(([id, value]) => {
+            for (const [id, value] of Object.entries(elements)) {
                 const element = document.getElementById(id);
-                if (element) element.value = value;
-            });
+                if (element) {
+                    element.value = value;
+                }
+            }
 
-            renderDoctorsManagement();
-            renderServicesManagement();
-            renderProductsManagement();
+            // Update image previews
+            updateImagePreview('logoImageUrl', 'logoPreview');
+            updateImagePreview('heroBannerUrl', 'heroBannerPreview');
+            updateImagePreview('servicesBannerUrl', 'servicesBannerPreview');
+
+            // Populate management sections
+            populateDoctorsManagement();
+            populateServicesManagement();
+            populateProductsManagement();
         }
 
-        function renderDoctorsManagement() {
+        // Image preview function
+        function updateImagePreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            
+            if (input && preview) {
+                if (input.value) {
+                    preview.src = input.value;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                }
+            }
+        }
+
+        // Admin update functions
+        function updateBasicInfoAdmin() {
+            const clinicNameEl = document.getElementById('adminClinicName');
+            const taglineEl = document.getElementById('adminTagline');
+            const phoneEl = document.getElementById('adminPhone');
+            const locationEl = document.getElementById('adminLocation');
+
+            if (clinicNameEl) clinicData.basic.name = clinicNameEl.value;
+            if (taglineEl) clinicData.basic.tagline = taglineEl.value;
+            if (phoneEl) clinicData.basic.phone = phoneEl.value;
+            if (locationEl) clinicData.basic.location = locationEl.value;
+
+            updateBasicInfo();
+            saveDataToFirebase();
+        }
+
+        function updateLogo() {
+            const logoUrlEl = document.getElementById('logoImageUrl');
+            if (logoUrlEl) {
+                clinicData.basic.logoImage = logoUrlEl.value;
+                updateImagePreview('logoImageUrl', 'logoPreview');
+                updateImages();
+                saveDataToFirebase();
+            }
+        }
+
+        function updateHeroBanner() {
+            const heroBannerUrlEl = document.getElementById('heroBannerUrl');
+            if (heroBannerUrlEl) {
+                clinicData.basic.heroBannerImage = heroBannerUrlEl.value;
+                updateImagePreview('heroBannerUrl', 'heroBannerPreview');
+                updateImages();
+                saveDataToFirebase();
+            }
+        }
+
+        function updateServicesBanner() {
+            const servicesBannerUrlEl = document.getElementById('servicesBannerUrl');
+            if (servicesBannerUrlEl) {
+                clinicData.basic.servicesBannerImage = servicesBannerUrlEl.value;
+                updateImagePreview('servicesBannerUrl', 'servicesBannerPreview');
+                updateImages();
+                saveDataToFirebase();
+            }
+        }
+
+        function updateMessages() {
+            const appointmentEl = document.getElementById('appointmentMessage');
+            const doctorBookingEl = document.getElementById('doctorBookingMessage');
+            const serviceBookingEl = document.getElementById('serviceBookingMessage');
+            const productPurchaseEl = document.getElementById('productPurchaseMessage');
+
+            if (appointmentEl) clinicData.messages.appointment = appointmentEl.value;
+            if (doctorBookingEl) clinicData.messages.doctorBooking = doctorBookingEl.value;
+            if (serviceBookingEl) clinicData.messages.serviceBooking = serviceBookingEl.value;
+            if (productPurchaseEl) clinicData.messages.productPurchase = productPurchaseEl.value;
+
+            saveDataToFirebase();
+        }
+
+        // Management functions
+        function populateDoctorsManagement() {
             const container = document.getElementById('doctorsManagement');
             if (!container) return;
 
-            container.innerHTML = clinicData.doctors.map((doctor, index) => `
-                <div class="sub-service-management">
-                    <h4>Doctor ${index + 1}</h4>
+            container.innerHTML = clinicData.doctors.map(doctor => `
+                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
                     <div class="form-group">
                         <label>Name:</label>
                         <input type="text" value="${doctor.name}" onchange="updateDoctor(${doctor.id}, 'name', this.value)">
@@ -1633,20 +1837,19 @@
                     </div>
                     <div class="form-group">
                         <label>Image URL:</label>
-                        <input type="url" value="${doctor.image}" onchange="updateDoctor(${doctor.id}, 'image', this.value)">
+                        <input type="url" value="${doctor.image || ''}" onchange="updateDoctor(${doctor.id}, 'image', this.value)">
                     </div>
-                    <button onclick="removeDoctor(${doctor.id})" class="btn-admin btn-danger">Remove Doctor</button>
+                    <button onclick="removeDoctor(${doctor.id})" class="btn-danger">Remove Doctor</button>
                 </div>
             `).join('');
         }
 
-        function renderServicesManagement() {
+        function populateServicesManagement() {
             const container = document.getElementById('servicesManagement');
             if (!container) return;
 
-            container.innerHTML = clinicData.services.map((service, index) => `
-                <div class="sub-service-management">
-                    <h4>Service ${index + 1}</h4>
+            container.innerHTML = clinicData.services.map(service => `
+                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
                     <div class="form-group">
                         <label>Name:</label>
                         <input type="text" value="${service.name}" onchange="updateService(${service.id}, 'name', this.value)">
@@ -1659,22 +1862,32 @@
                         <label>Price:</label>
                         <input type="text" value="${service.price}" onchange="updateService(${service.id}, 'price', this.value)">
                     </div>
-                    <div class="form-group">
-                        <label>Sub-Services (JSON format):</label>
-                        <textarea onchange="updateService(${service.id}, 'subServices', JSON.parse(this.value))" placeholder='[{"name":"Service Name","price":"₹100"}]'>${JSON.stringify(service.subServices || [], null, 2)}</textarea>
+                    <div class="sub-service-management">
+                        <h4>Sub-services:</h4>
+                        <div id="subServices_${service.id}">
+                            ${service.subServices ? service.subServices.map((sub, index) => `
+                                <div style="display: flex; gap: 1rem; margin: 0.5rem 0; align-items: center;">
+                                    <input type="text" placeholder="Service name" value="${sub.name}" 
+                                           onchange="updateSubService(${service.id}, ${index}, 'name', this.value)" style="flex: 1;">
+                                    <input type="text" placeholder="Price" value="${sub.price}" 
+                                           onchange="updateSubService(${service.id}, ${index}, 'price', this.value)" style="flex: 1;">
+                                    <button onclick="removeSubService(${service.id}, ${index})" class="btn-danger" style="padding: 0.5rem;">×</button>
+                                </div>
+                            `).join('') : ''}
+                        </div>
+                        <button onclick="addSubService(${service.id})" class="btn-admin">Add Sub-service</button>
                     </div>
-                    <button onclick="removeService(${service.id})" class="btn-admin btn-danger">Remove Service</button>
+                    <button onclick="removeService(${service.id})" class="btn-danger">Remove Service</button>
                 </div>
             `).join('');
         }
 
-        function renderProductsManagement() {
+        function populateProductsManagement() {
             const container = document.getElementById('productsManagement');
             if (!container) return;
 
-            container.innerHTML = clinicData.products.map((product, index) => `
-                <div class="sub-service-management">
-                    <h4>Product ${index + 1}</h4>
+            container.innerHTML = clinicData.products.map(product => `
+                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
                     <div class="form-group">
                         <label>Name:</label>
                         <input type="text" value="${product.name}" onchange="updateProduct(${product.id}, 'name', this.value)">
@@ -1689,311 +1902,195 @@
                     </div>
                     <div class="form-group">
                         <label>Image URL:</label>
-                        <input type="url" value="${product.image}" onchange="updateProduct(${product.id}, 'image', this.value)">
+                        <input type="url" value="${product.image || ''}" onchange="updateProduct(${product.id}, 'image', this.value)">
                     </div>
-                    <button onclick="removeProduct(${product.id})" class="btn-admin btn-danger">Remove Product</button>
+                    <button onclick="removeProduct(${product.id})" class="btn-danger">Remove Product</button>
                 </div>
             `).join('');
         }
 
-        // **DATA UPDATE FUNCTIONS**
-        async function updateBasicInfoAdmin() {
-            clinicData.basic.name = document.getElementById('adminClinicName').value;
-            clinicData.basic.tagline = document.getElementById('adminTagline').value;
-            clinicData.basic.phone = document.getElementById('adminPhone').value;
-            clinicData.basic.location = document.getElementById('adminLocation').value;
-            
-            await saveDataToFirebase();
-            renderBasicInfo();
-        }
-
-        async function updateLogo() {
-            const url = document.getElementById('logoImageUrl').value;
-            clinicData.basic.logoImage = url;
-            
-            // Show preview
-            const preview = document.getElementById('logoPreview');
-            if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-            
-            await saveDataToFirebase();
-            updateImages();
-        }
-
-        async function updateHeroBanner() {
-            const url = document.getElementById('heroBannerUrl').value;
-            clinicData.basic.heroBannerImage = url;
-            
-            // Show preview
-            const preview = document.getElementById('heroBannerPreview');
-            if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-            
-            await saveDataToFirebase();
-            updateImages();
-        }
-
-        async function updateServicesBanner() {
-            const url = document.getElementById('servicesBannerUrl').value;
-            clinicData.basic.servicesBannerImage = url;
-            
-            // Show preview
-            const preview = document.getElementById('servicesBannerPreview');
-            if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-            
-            await saveDataToFirebase();
-            updateImages();
-        }
-
-        async function updateMessages() {
-            clinicData.messages.appointment = document.getElementById('appointmentMessage').value;
-            clinicData.messages.doctorBooking = document.getElementById('doctorBookingMessage').value;
-            clinicData.messages.serviceBooking = document.getElementById('serviceBookingMessage').value;
-            clinicData.messages.productPurchase = document.getElementById('productPurchaseMessage').value;
-            
-            await saveDataToFirebase();
-        }
-
-        async function updateDoctor(id, field, value) {
-            const doctor = clinicData.doctors.find(d => d.id === id);
-            if (doctor) {
-                doctor[field] = value;
-                await saveDataToFirebase();
-                renderDoctors();
-            }
-        }
-
-        async function updateService(id, field, value) {
-            const service = clinicData.services.find(s => s.id === id);
-            if (service) {
-                service[field] = value;
-                await saveDataToFirebase();
-                renderServices();
-            }
-        }
-
-        async function updateProduct(id, field, value) {
-            const product = clinicData.products.find(p => p.id === id);
-            if (product) {
-                product[field] = value;
-                await saveDataToFirebase();
-                renderProducts();
-            }
-        }
-
-        async function addDoctor() {
-            const newId = Math.max(...clinicData.doctors.map(d => d.id)) + 1;
-            clinicData.doctors.push({
-                id: newId,
+        // CRUD operations for doctors
+        function addDoctor() {
+            const newDoctor = {
+                id: Date.now(),
                 name: "New Doctor",
                 qualification: "BPT",
                 fees: "₹500",
-                description: "New doctor description.",
+                description: "Experienced healthcare professional.",
                 image: ""
-            });
+            };
             
-            await saveDataToFirebase();
-            renderDoctorsManagement();
+            clinicData.doctors.push(newDoctor);
+            populateDoctorsManagement();
             renderDoctors();
+            saveDataToFirebase();
         }
 
-        async function addService() {
-            const newId = Math.max(...clinicData.services.map(s => s.id)) + 1;
-            clinicData.services.push({
-                id: newId,
-                name: "New Service",
-                description: "New service description.",
-                price: "₹300",
-                subServices: []
-            });
-            
-            await saveDataToFirebase();
-            renderServicesManagement();
-            renderServices();
+        function updateDoctor(id, field, value) {
+            const doctor = clinicData.doctors.find(d => d.id === id);
+            if (doctor) {
+                doctor[field] = value;
+                renderDoctors();
+                saveDataToFirebase();
+            }
         }
 
-        async function addProduct() {
-            const newId = Math.max(...clinicData.products.map(p => p.id)) + 1;
-            clinicData.products.push({
-                id: newId,
-                name: "New Product",
-                description: "New product description.",
-                price: "₹500",
-                image: ""
-            });
-            
-            await saveDataToFirebase();
-            renderProductsManagement();
-            renderProducts();
-        }
-
-        async function removeDoctor(id) {
+        function removeDoctor(id) {
             if (confirm('Are you sure you want to remove this doctor?')) {
                 clinicData.doctors = clinicData.doctors.filter(d => d.id !== id);
-                await saveDataToFirebase();
-                renderDoctorsManagement();
+                populateDoctorsManagement();
                 renderDoctors();
+                saveDataToFirebase();
             }
         }
 
-        async function removeService(id) {
+        // CRUD operations for services
+        function addService() {
+            const newService = {
+                id: Date.now(),
+                name: "New Service",
+                description: "Description of the new service.",
+                price: "₹400",
+                subServices: []
+            };
+            
+            clinicData.services.push(newService);
+            populateServicesManagement();
+            renderServices();
+            saveDataToFirebase();
+        }
+
+        function updateService(id, field, value) {
+            const service = clinicData.services.find(s => s.id === id);
+            if (service) {
+                service[field] = value;
+                renderServices();
+                saveDataToFirebase();
+            }
+        }
+
+        function removeService(id) {
             if (confirm('Are you sure you want to remove this service?')) {
                 clinicData.services = clinicData.services.filter(s => s.id !== id);
-                await saveDataToFirebase();
-                renderServicesManagement();
+                populateServicesManagement();
                 renderServices();
+                saveDataToFirebase();
             }
         }
 
-        async function removeProduct(id) {
+        function addSubService(serviceId) {
+            const service = clinicData.services.find(s => s.id === serviceId);
+            if (service) {
+                if (!service.subServices) {
+                    service.subServices = [];
+                }
+                service.subServices.push({ name: "New Sub-service", price: "₹200" });
+                populateServicesManagement();
+                renderServices();
+                saveDataToFirebase();
+            }
+        }
+
+        function updateSubService(serviceId, subIndex, field, value) {
+            const service = clinicData.services.find(s => s.id === serviceId);
+            if (service && service.subServices && service.subServices[subIndex]) {
+                service.subServices[subIndex][field] = value;
+                renderServices();
+                saveDataToFirebase();
+            }
+        }
+
+        function removeSubService(serviceId, subIndex) {
+            const service = clinicData.services.find(s => s.id === serviceId);
+            if (service && service.subServices) {
+                service.subServices.splice(subIndex, 1);
+                populateServicesManagement();
+                renderServices();
+                saveDataToFirebase();
+            }
+        }
+
+        // CRUD operations for products
+        function addProduct() {
+            const newProduct = {
+                id: Date.now(),
+                name: "New Product",
+                description: "Description of the new product.",
+                price: "₹800",
+                image: ""
+            };
+            
+            clinicData.products.push(newProduct);
+            populateProductsManagement();
+            renderProducts();
+            saveDataToFirebase();
+        }
+
+        function updateProduct(id, field, value) {
+            const product = clinicData.products.find(p => p.id === id);
+            if (product) {
+                product[field] = value;
+                renderProducts();
+                saveDataToFirebase();
+            }
+        }
+
+        function removeProduct(id) {
             if (confirm('Are you sure you want to remove this product?')) {
                 clinicData.products = clinicData.products.filter(p => p.id !== id);
-                await saveDataToFirebase();
-                renderProductsManagement();
+                populateProductsManagement();
                 renderProducts();
+                saveDataToFirebase();
             }
         }
 
-        async function saveAllData() {
-            showLoading(true);
-            const success = await saveDataToFirebase();
-            if (success) {
-                alert('All changes saved successfully!');
-                showUpdateIndicator('All data saved');
-            } else {
-                alert('Error saving data. Please try again.');
-            }
-            showLoading(false);
-        }
-
-        // **UI INTERACTION FUNCTIONS**
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            menu.classList.toggle('active');
-        }
-
-        function showPage(pageId) {
-            // Hide all pages
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.remove('active'));
-            
-            // Show selected page
-            const targetPage = document.getElementById(pageId);
-            if (targetPage) {
-                targetPage.classList.add('active');
-                currentPage = pageId;
-            }
-        }
-
-        function setupScrollHandler() {
-            window.addEventListener('scroll', function() {
-                const header = document.getElementById('header');
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    header.classList.add('hidden');
+        // Save all data
+        function saveAllData() {
+            saveDataToFirebase().then(success => {
+                if (success) {
+                    alert('All changes saved successfully!');
                 } else {
-                    header.classList.remove('hidden');
+                    alert('Error saving data. Please try again.');
                 }
-                lastScrollTop = scrollTop;
             });
         }
 
-        function openAdminLogin() {
-            document.getElementById('adminLoginModal').style.display = 'block';
-        }
-
-        function closeAdminLogin() {
-            document.getElementById('adminLoginModal').style.display = 'none';
-        }
-
-        function openAdminPanel() {
-            if (isAdminLoggedIn) {
-                document.getElementById('adminPanel').style.display = 'block';
-                renderAdminForms();
+        // Handle browser back/forward
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.page) {
+                showPage(event.state.page);
             } else {
-                alert('Please login first');
+                showPage('home');
             }
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-
-        function showDoctorDetails(doctorId) {
-            const doctor = clinicData.doctors.find(d => d.id === doctorId);
-            if (!doctor) return;
-
-            const modal = document.getElementById('doctorModal');
-            const details = document.getElementById('doctorDetails');
-            
-            details.innerHTML = `
-                <div style="text-align: center;">
-                    <div class="doctor-avatar" style="margin: 0 auto 1rem;">
-                        ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
-                    </div>
-                    <h2>${doctor.name}</h2>
-                    <p><strong>${doctor.qualification}</strong></p>
-                    <p>${doctor.description}</p>
-                    <div class="doctor-fees" style="margin: 1rem 0;">${doctor.fees}</div>
-                    <button class="btn-book" onclick="bookDoctorAppointment('${doctor.name}'); closeDoctorModal();">Book Appointment</button>
-                </div>
-            `;
-            
-            modal.style.display = 'block';
-        }
-
-        function closeDoctorModal() {
-            document.getElementById('doctorModal').style.display = 'none';
-        }
-
-        // **WHATSAPP INTEGRATION FUNCTIONS**
-        function bookAppointment() {
-            const message = encodeURIComponent(clinicData.messages.appointment);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-        }
-
-        function bookDoctorAppointment(doctorName) {
-            const message = clinicData.messages.doctorBooking.replace('{doctorName}', doctorName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
-
-        function bookServiceAppointment(serviceName) {
-            const message = clinicData.messages.serviceBooking.replace('{serviceName}', serviceName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
-
-        function purchaseProduct(productName) {
-            const message = clinicData.messages.productPurchase.replace('{productName}', productName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
+        });
 
         // Close modals when clicking outside
-        window.onclick = function(event) {
-            const modals = ['doctorModal', 'adminLoginModal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
+        window.addEventListener('click', function(event) {
+            const doctorModal = document.getElementById('doctorModal');
+            const adminLoginModal = document.getElementById('adminLoginModal');
+            
+            if (event.target === doctorModal) {
+                closeDoctorModal();
+            }
+            if (event.target === adminLoginModal) {
+                closeAdminLogin();
+            }
+        });
+
+        // Initialize URL routing
+        window.addEventListener('load', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash && document.getElementById(hash)) {
+                showPage(hash);
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (unsubscribeSnapshot) {
+                unsubscribeSnapshot();
+            }
+        });
     </script>
 </body>
 </html>
