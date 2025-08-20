@@ -1,2096 +1,1186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physio - The Therapeutic Moves</title>
-    <style>
-        /* Keep all your existing CSS styles exactly the same */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Header Styles */
-        header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        header.hidden {
-            transform: translateY(-100%);
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.8rem 2rem;
-            height: 60px;
-        }
-
-        .logo {
-            height: 40px;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo img {
-            height: 100%;
-            width: auto;
-        }
-
-        .logo-text {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #2c7873;
-        }
-
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-
-        .hamburger span {
-            width: 22px;
-            height: 2.5px;
-            background: #333;
-            margin: 2.5px 0;
-            transition: 0.3s;
-        }
-
-        .menu {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 300px;
-            height: 100vh;
-            background: #fff;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-            transition: right 0.3s;
-            padding: 2rem;
-            z-index: 1001;
-        }
-
-        .menu.active {
-            right: 0;
-        }
-
-        .menu-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 2rem;
-            cursor: pointer;
-        }
-
-        .menu ul {
-            list-style: none;
-            margin-top: 3rem;
-        }
-
-        .menu li {
-            margin: 1.5rem 0;
-        }
-
-        .menu a {
-            text-decoration: none;
-            color: #333;
-            font-size: 1.1rem;
-            display: block;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        .menu a:hover {
-            color: #2c7873;
-        }
-
-        /* Page Container */
-        .page {
-            display: none;
-            min-height: 100vh;
-            padding-top: 70px;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #2c7873 0%, #4a9d96 100%);
-            color: white;
-            text-align: center;
-            padding: 3rem 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .page-content {
-            padding: 3rem 0;
-        }
-
-        .back-button {
-            background: #2c7873;
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            margin-bottom: 2rem;
-            font-size: 1rem;
-        }
-
-        .back-button:hover {
-            background: #1e5a57;
-        }
-
-        /* Hero Section */
-        .hero {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 3/2;
-            margin-top: 60px;
-            background: linear-gradient(135deg, #2c7873 0%, #4a9d96 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .hero-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(44, 120, 115, 0.7);
-            z-index: 2;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 3;
-            text-align: center;
-            color: white;
-            padding: 2rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .btn-primary {
-            background: #fff;
-            color: #2c7873;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-        }
-
-        .contact-info {
-            margin-top: 2rem;
-        }
-
-        .contact-info p {
-            font-size: 1.1rem;
-            margin: 0.5rem 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        /* Section Styles */
-        section {
-            padding: 4rem 0;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 3rem;
-            color: #2c7873;
-        }
-
-        /* Doctors Section - Fixed Alignment */
-        .doctors-container {
-            overflow-x: auto;
-            padding: 1rem 0;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .doctors-grid {
-            display: flex;
-            gap: 1.5rem;
-            padding: 1rem;
-            min-width: max-content;
-            justify-content: flex-start;
-        }
-
-        .doctors-list {
-            display: grid;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .doctor-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: transform 0.3s;
-            cursor: pointer;
-            text-align: center;
-            padding: 1.5rem;
-            min-width: 180px;
-            flex-shrink: 0;
-        }
-
-        .doctor-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .doctor-card-horizontal {
-            display: flex;
-            align-items: center;
-            padding: 2rem;
-            gap: 2rem;
-            text-align: left;
-        }
-
-        .doctor-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: #2c7873;
-            overflow: hidden;
-            position: relative;
-            flex-shrink: 0;
-            margin: 0 auto 1rem;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 12px rgba(44, 120, 115, 0.2);
-        }
-
-        .doctor-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .doctor-info {
-            flex: 1;
-            text-align: center;
-        }
-
-        .doctor-info h3 {
-            color: #2c7873;
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .doctor-info p {
-            color: #666;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .doctor-fees {
-            color: #2c7873;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin: 1rem 0;
-        }
-
-        .btn-book {
-            background: #2c7873;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: background 0.3s;
-        }
-
-        .btn-book:hover {
-            background: #1e5a57;
-        }
-
-        /* Services Section */
-        .services {
-            background: #f8f9fa;
-            position: relative;
-        }
-
-        .services-banner {
-            width: 100%;
-            height: 300px;
-            background: linear-gradient(135deg, #2c7873 0%, #4a9d96 100%);
-            margin-bottom: 3rem;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .services-banner img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .services-grid, .services-list {
-            display: grid;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .service-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s;
-        }
-
-        .service-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .service-card h3 {
-            color: #2c7873;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-        }
-
-        .service-card p {
-            margin-bottom: 1rem;
-        }
-
-        .service-price {
-            color: #2c7873;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin: 1rem 0;
-        }
-
-        .sub-services {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #eee;
-        }
-
-        .sub-services h4 {
-            color: #555;
-            margin-bottom: 1rem;
-        }
-
-        .sub-service-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.8rem;
-            margin-bottom: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .sub-service-name {
-            font-weight: 500;
-        }
-
-        .sub-service-price {
-            color: #2c7873;
-            font-weight: bold;
-        }
-
-        .btn-service {
-            background: #2c7873;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 1rem;
-            transition: background 0.3s;
-        }
-
-        .btn-service:hover {
-            background: #1e5a57;
-        }
-
-        /* Products Section */
-        .products-grid, .products-list {
-            display: grid;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: transform 0.3s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: #2c7873;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-info {
-            padding: 1.5rem;
-        }
-
-        .product-price {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c7873;
-            margin: 1rem 0;
-        }
-
-        /* Footer */
-        footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 3rem 0 1rem;
-        }
-
-        .footer-content {
-            margin-bottom: 2rem;
-        }
-
-        .footer-content h3 {
-            margin-bottom: 1rem;
-        }
-
-        .footer-content p {
-            margin: 0.5rem 0;
-        }
-
-        .copyright {
-            border-top: 1px solid #555;
-            padding-top: 1rem;
-            color: #ccc;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 2rem;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        /* Admin Panel Styles */
-        .admin-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 3000;
-            overflow-y: auto;
-        }
-
-        .admin-content {
-            background: white;
-            margin: 2rem;
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 1000px;
-            margin: 2rem auto;
-        }
-
-        .admin-form {
-            margin-bottom: 2rem;
-        }
-
-        .admin-form h3 {
-            margin-bottom: 1rem;
-            color: #2c7873;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-group textarea {
-            height: 100px;
-            resize: vertical;
-        }
-
-        .btn-admin {
-            background: #2c7873;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .image-preview {
-            max-width: 200px;
-            max-height: 150px;
-            margin-top: 0.5rem;
-            border-radius: 5px;
-        }
-
-        .sub-service-management {
-            border: 1px solid #eee;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 5px;
-            background: #f9f9f9;
-        }
-
-        /* Real-time Update Indicator */
-        .update-indicator {
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            background: #4caf50;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 999;
-        }
-
-        .update-indicator.show {
-            opacity: 1;
-        }
-
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            z-index: 4000;
-            display: none;
-        }
-
-        /* Enhanced Responsive Design */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            nav {
-                padding: 0.8rem 1rem;
-            }
-
-            .doctors-grid {
-                gap: 1rem;
-                padding: 0.5rem;
-                justify-content: flex-start;
-            }
-
-            .doctor-card {
-                min-width: 140px;
-                padding: 1rem;
-            }
-
-            .doctor-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
-            }
-
-            .doctor-info h3 {
-                font-size: 1rem;
-            }
-
-            .doctor-info p {
-                font-size: 0.85rem;
-            }
-
-            .doctor-card-horizontal {
-                flex-direction: column;
-                text-align: center;
-                gap: 1rem;
-            }
-
-            .services-banner {
-                height: 200px;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .products-list {
-                grid-template-columns: 1fr;
-            }
-
-            .services-list {
-                grid-template-columns: 1fr;
-            }
-
-            .doctors-list {
-                grid-template-columns: 1fr;
-            }
-
-            .sub-service-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .products-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .services-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .doctors-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .doctors-grid {
-                justify-content: center;
-            }
-
-            .doctor-card {
-                min-width: 200px;
-            }
-
-            .doctor-avatar {
-                width: 120px;
-                height: 120px;
-                font-size: 3rem;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .products-list {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .doctors-grid {
-                justify-content: center;
-                gap: 2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Physio - The Therapeutic Moves</title>
+  <style>
+    /* Keep all your existing CSS styles exactly the same */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Arial', sans-serif; line-height:1.6; color:#333; }
+    .container { max-width:1200px; margin:0 auto; padding:0 20px; }
+
+    /* Header Styles */
+    header { background:#fff; box-shadow:0 2px 10px rgba(0,0,0,0.1); position:fixed; width:100%; top:0; z-index:1000; transition:transform 0.3s ease; }
+    header.hidden { transform:translateY(-100%); }
+    nav { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; height:60px; }
+    .logo { height:40px; display:flex; align-items:center; }
+    .logo img { height:100%; width:auto; }
+    .logo-text { font-size:1.3rem; font-weight:bold; color:#2c7873; }
+    .hamburger { display:flex; flex-direction:column; cursor:pointer; padding:0.5rem; }
+    .hamburger span { width:22px; height:2.5px; background:#333; margin:2.5px 0; transition:0.3s; }
+    .menu { position:fixed; top:0; right:-100%; width:300px; height:100vh; background:#fff; box-shadow:-2px 0 10px rgba(0,0,0,0.1); transition:right 0.3s; padding:2rem; z-index:1001; }
+    .menu.active { right:0; }
+    .menu-close { position:absolute; top:1rem; right:1rem; font-size:2rem; cursor:pointer; }
+    .menu ul { list-style:none; margin-top:3rem; }
+    .menu li { margin:1.5rem 0; }
+    .menu a { text-decoration:none; color:#333; font-size:1.1rem; display:block; padding:0.5rem 0; border-bottom:1px solid #eee; cursor:pointer; }
+    .menu a:hover { color:#2c7873; }
+
+    /* Page Container */
+    .page { display:none; min-height:100vh; padding-top:70px; }
+    .page.active { display:block; }
+    .page-header { background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); color:white; text-align:center; padding:3rem 2rem; }
+    .page-header h1 { font-size:2.5rem; margin-bottom:1rem; }
+    .page-content { padding:3rem 0; }
+    .back-button { background:#2c7873; color:white; border:none; padding:0.8rem 1.5rem; border-radius:25px; cursor:pointer; margin-bottom:2rem; font-size:1rem; }
+    .back-button:hover { background:#1e5a57; }
+
+    /* Hero Section */
+    .hero { position:relative; width:100%; aspect-ratio:3/2; margin-top:60px; background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .hero-image { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+    .hero-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(44, 120, 115, 0.7); z-index:2; }
+    .hero-content { position:relative; z-index:3; text-align:center; color:white; padding:2rem; }
+    .hero h1 { font-size:2.5rem; margin-bottom:1rem; text-shadow:2px 2px 4px rgba(0,0,0,0.5); }
+    .hero p { font-size:1.2rem; margin-bottom:2rem; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
+    .btn-primary { background:#fff; color:#2c7873; padding:1rem 2rem; border:none; border-radius:50px; font-size:1.1rem; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; transition:transform 0.3s; box-shadow:0 4px 15px rgba(0,0,0,0.2); }
+    .btn-primary:hover { transform:translateY(-2px); }
+    .contact-info { margin-top:2rem; }
+    .contact-info p { font-size:1.1rem; margin:0.5rem 0; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
+
+    /* Section Styles */
+    section { padding:4rem 0; }
+    .section-title { text-align:center; font-size:2rem; margin-bottom:3rem; color:#2c7873; }
+
+    /* Doctors Section - Fixed Alignment */
+    .doctors-container { overflow-x:auto; padding:1rem 0; -webkit-overflow-scrolling:touch; }
+    .doctors-grid { display:flex; gap:1.5rem; padding:1rem; min-width:max-content; justify-content:flex-start; }
+    .doctors-list { display:grid; gap:2rem; margin-top:2rem; }
+    .doctor-card { background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.08); overflow:hidden; transition:transform 0.3s; cursor:pointer; text-align:center; padding:1.5rem; min-width:180px; flex-shrink:0; }
+    .doctor-card:hover { transform:translateY(-5px); }
+    .doctor-card-horizontal { display:flex; align-items:center; padding:2rem; gap:2rem; text-align:left; }
+    .doctor-avatar { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #e0f2f1, #b2dfdb); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:#2c7873; overflow:hidden; position:relative; flex-shrink:0; margin:0 auto 1rem; border:3px solid #fff; box-shadow:0 4px 12px rgba(44, 120, 115, 0.2); }
+    .doctor-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .doctor-info { flex:1; text-align:center; }
+    .doctor-info h3 { color:#2c7873; margin-bottom:0.5rem; font-size:1.2rem; font-weight:600; }
+    .doctor-info p { color:#666; margin-bottom:0.5rem; font-size:0.95rem; }
+    .doctor-fees { color:#2c7873; font-weight:bold; font-size:1.2rem; margin:1rem 0; }
+    .btn-book { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:25px; cursor:pointer; text-decoration:none; display:inline-block; transition:background 0.3s; }
+    .btn-book:hover { background:#1e5a57; }
+
+    /* Services Section */
+    .services { background:#f8f9fa; position:relative; }
+    .services-banner { width:100%; height:300px; background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); margin-bottom:3rem; border-radius:10px; overflow:hidden; position:relative; }
+    .services-banner img { width:100%; height:100%; object-fit:cover; }
+    .services-grid, .services-list { display:grid; gap:2rem; margin-top:2rem; }
+    .service-card { background:white; padding:2rem; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); transition:transform 0.3s; }
+    .service-card:hover { transform:translateY(-5px); }
+    .service-card h3 { color:#2c7873; margin-bottom:1rem; font-size:1.5rem; }
+    .service-card p { margin-bottom:1rem; }
+    .service-price { color:#2c7873; font-weight:bold; font-size:1.2rem; margin:1rem 0; }
+    .sub-services { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #eee; }
+    .sub-services h4 { color:#555; margin-bottom:1rem; }
+    .sub-service-item { display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin-bottom:0.5rem; background:#f8f9fa; border-radius:5px; }
+    .sub-service-name { font-weight:500; }
+    .sub-service-price { color:#2c7873; font-weight:bold; }
+    .btn-service { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:25px; cursor:pointer; text-decoration:none; display:inline-block; margin-top:1rem; transition:background 0.3s; }
+    .btn-service:hover { background:#1e5a57; }
+
+    /* Products Section */
+    .products-grid, .products-list { display:grid; gap:2rem; margin-top:2rem; }
+    .product-card { background:white; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); overflow:hidden; transition:transform 0.3s; }
+    .product-card:hover { transform:translateY(-5px); }
+    .product-image { width:100%; height:200px; background:linear-gradient(135deg, #e0f2f1, #b2dfdb); display:flex; align-items:center; justify-content:center; font-size:3rem; color:#2c7873; position:relative; overflow:hidden; }
+    .product-image img { width:100%; height:100%; object-fit:cover; }
+    .product-info { padding:1.5rem; }
+    .product-price { font-size:1.2rem; font-weight:bold; color:#2c7873; margin:1rem 0; }
+
+    /* Footer */
+    footer { background:#333; color:white; text-align:center; padding:3rem 0 1rem; }
+    .footer-content { margin-bottom:2rem; }
+    .footer-content h3 { margin-bottom:1rem; }
+    .footer-content p { margin:0.5rem 0; }
+    .copyright { border-top:1px solid #555; padding-top:1rem; color:#ccc; }
+
+    /* Modal Styles */
+    .modal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); }
+    .modal-content { background-color:white; margin:5% auto; padding:2rem; border-radius:10px; width:90%; max-width:500px; position:relative; }
+    .close { color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer; position:absolute; right:1rem; top:1rem; }
+    .close:hover { color:#000; }
+
+    /* Admin Panel Styles */
+    .admin-panel { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; overflow-y:auto; }
+    .admin-content { background:white; margin:2rem; padding:2rem; border-radius:10px; max-width:1000px; margin:2rem auto; }
+    .admin-form { margin-bottom:2rem; }
+    .admin-form h3 { margin-bottom:1rem; color:#2c7873; }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { display:block; margin-bottom:0.5rem; font-weight:bold; }
+    .form-group input, .form-group textarea { width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:5px; font-size:1rem; }
+    .form-group textarea { height:100px; resize:vertical; }
+    .btn-admin { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:5px; cursor:pointer; margin-right:1rem; margin-bottom:0.5rem; }
+    .btn-danger { background:#dc3545; }
+    .image-preview { max-width:200px; max-height:150px; margin-top:0.5rem; border-radius:5px; }
+    .sub-service-management { border:1px solid #eee; padding:1rem; margin:1rem 0; border-radius:5px; background:#f9f9f9; }
+
+    /* Real-time Update Indicator */
+    .update-indicator { position:fixed; top:70px; right:20px; background:#4caf50; color:white; padding:0.5rem 1rem; border-radius:20px; font-size:0.8rem; opacity:0; transition:opacity 0.3s; z-index:999; }
+    .update-indicator.show { opacity:1; }
+
+    .loading { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:4000; display:none; }
+
+    /* Enhanced Responsive Design */
+    @media (max-width:768px){
+      .hero h1{ font-size:2rem; }
+      .hero p{ font-size:1rem; }
+      nav{ padding:0.8rem 1rem; }
+      .doctors-grid{ gap:1rem; padding:0.5rem; justify-content:flex-start; }
+      .doctor-card{ min-width:140px; padding:1rem; }
+      .doctor-avatar{ width:80px; height:80px; font-size:2rem; }
+      .doctor-info h3{ font-size:1rem; }
+      .doctor-info p{ font-size:0.85rem; }
+      .doctor-card-horizontal{ flex-direction:column; text-align:center; gap:1rem; }
+      .services-banner{ height:200px; }
+      .page-header h1{ font-size:2rem; }
+      .products-list{ grid-template-columns:1fr; }
+      .services-list{ grid-template-columns:1fr; }
+      .doctors-list{ grid-template-columns:1fr; }
+      .sub-service-item{ flex-direction:column; align-items:flex-start; gap:0.5rem; }
+      .section-title{ font-size:1.5rem; }
+    }
+    @media (min-width:769px){
+      .products-list{ grid-template-columns:repeat(2, 1fr); }
+      .services-list{ grid-template-columns:repeat(2, 1fr); }
+      .doctors-list{ grid-template-columns:repeat(2, 1fr); }
+      .doctors-grid{ justify-content:center; }
+      .doctor-card{ min-width:200px; }
+      .doctor-avatar{ width:120px; height:120px; font-size:3rem; }
+    }
+    @media (min-width:1024px){
+      .products-list{ grid-template-columns:repeat(3, 1fr); }
+      .doctors-grid{ justify-content:center; gap:2rem; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="loading">
-        <p>Loading...</p>
-    </div>
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator" class="loading"><p>Loading...</p></div>
 
-    <!-- Real-time Update Indicator -->
-    <div id="updateIndicator" class="update-indicator">
-        Content Updated ✓
-    </div>
+  <!-- Real-time Update Indicator -->
+  <div id="updateIndicator" class="update-indicator">Content Updated ✓</div>
 
-    <!-- Header -->
-    <header id="header">
-        <nav>
-            <div class="logo" id="logoContainer">
-                <div class="logo-text" id="clinicName">Physio - The Therapeutic Moves</div>
-            </div>
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
-    </header>
+  <!-- Header -->
+  <header id="header">
+    <nav>
+      <div class="logo" id="logoContainer">
+        <div class="logo-text" id="clinicName">Physio - The Therapeutic Moves</div>
+      </div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </nav>
+  </header>
 
-    <!-- Menu -->
-    <div class="menu" id="menu">
-        <div class="menu-close" onclick="toggleMenu()">&times;</div>
-        <ul>
-            <li><a onclick="showPage('home'); toggleMenu();">Home</a></li>
-            <li><a onclick="showPage('doctors-page'); toggleMenu();">Doctors</a></li>
-            <li><a onclick="showPage('services-page'); toggleMenu();">Services</a></li>
-            <li><a onclick="showPage('products-page'); toggleMenu();">Products</a></li>
-            <li><a onclick="openAdminLogin(); toggleMenu();">Admin Login</a></li>
-        </ul>
-    </div>
+  <!-- Menu -->
+  <div class="menu" id="menu">
+    <div class="menu-close" onclick="toggleMenu()">&times;</div>
+    <ul>
+      <li><a onclick="showPage('home'); toggleMenu();">Home</a></li>
+      <li><a onclick="showPage('doctors-page'); toggleMenu();">Doctors</a></li>
+      <li><a onclick="showPage('services-page'); toggleMenu();">Services</a></li>
+      <li><a onclick="showPage('products-page'); toggleMenu();">Products</a></li>
+      <li><a onclick="openAdminLogin(); toggleMenu();">Admin Login</a></li>
+    </ul>
+  </div>
 
-    <!-- Home Page -->
-    <div id="home" class="page active">
-        <!-- Hero Section -->
-        <section class="hero">
-            <img id="heroBannerImage" class="hero-image" style="display: none;" alt="Hero Banner">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1 id="heroTitle">Physio - The Therapeutic Moves</h1>
-                <p id="heroTagline">"We add life in your days."</p>
-                <a href="#" class="btn-primary" onclick="bookAppointment()">Book Appointment</a>
-                <div class="contact-info">
-                    <p>📞 <span id="phoneNumber">+91 9641568109</span></p>
-                    <p>📍 <a href="#" id="locationLink" style="color: white;">Our Location</a></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Doctors Section -->
-        <section id="doctors">
-            <div class="container">
-                <h2 class="section-title">Our Doctors</h2>
-                <div class="doctors-container">
-                    <div class="doctors-grid" id="doctorsGrid">
-                        <!-- Doctors will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Services Section -->
-        <section id="services" class="services">
-            <div class="container">
-                <h2 class="section-title">Our Services</h2>
-                <div class="services-banner" id="servicesBanner">
-                    <img id="servicesBannerImage" style="display: none;" alt="Services Banner">
-                </div>
-                <div class="services-grid" id="servicesGrid">
-                    <!-- Services will be populated by JavaScript -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Products Section -->
-        <section id="products">
-            <div class="container">
-                <h2 class="section-title">Our Products</h2>
-                <div class="products-grid" id="productsGrid">
-                    <!-- Products will be populated by JavaScript -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer>
-            <div class="container">
-                <div class="footer-content">
-                    <h3>Contact Us</h3>
-                    <p>📞 <span id="footerPhone">+91 9641568109</span></p>
-                    <p>✉️ Dr.ArpanDas.PT@gmail.com</p>
-                    <p>📍 <a href="#" id="footerLocation" style="color: #ccc;">Our Location</a></p>
-                </div>
-                <div class="copyright">
-                    <p>&copy; 2025 Physio - The Therapeutic Moves. All rights reserved.</p>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Doctors Page -->
-    <div id="doctors-page" class="page">
-        <div class="page-header">
-            <h1>Our Doctors</h1>
-            <p>Expert healthcare professionals dedicated to your recovery</p>
+  <!-- Home Page -->
+  <div id="home" class="page active">
+    <!-- Hero Section -->
+    <section class="hero">
+      <img id="heroBannerImage" class="hero-image" style="display:none;" alt="Hero Banner">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1 id="heroTitle">Physio - The Therapeutic Moves</h1>
+        <p id="heroTagline">"We add life in your days."</p>
+        <a href="#" class="btn-primary" onclick="bookAppointment()">Book Appointment</a>
+        <div class="contact-info">
+          <p>📞 <span id="phoneNumber">+91 9641568109</span></p>
+          <p>📍 <a href="#" id="locationLink" style="color:white;">Our Location</a></p>
         </div>
-        <div class="container">
-            <div class="page-content">
-                <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-                <div class="doctors-list" id="doctorsList">
-                    <!-- Doctors list will be populated by JavaScript -->
-                </div>
-            </div>
+      </div>
+    </section>
+
+    <!-- Doctors Section -->
+    <section id="doctors">
+      <div class="container">
+        <h2 class="section-title">Our Doctors</h2>
+        <div class="doctors-container">
+          <div class="doctors-grid" id="doctorsGrid">
+            <!-- Doctors populated by JS -->
+          </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+      <div class="container">
+        <h2 class="section-title">Our Services</h2>
+        <div class="services-banner" id="servicesBanner">
+          <img id="servicesBannerImage" style="display:none;" alt="Services Banner">
+        </div>
+        <div class="services-grid" id="servicesGrid">
+          <!-- Services populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products">
+      <div class="container">
+        <h2 class="section-title">Our Products</h2>
+        <div class="products-grid" id="productsGrid">
+          <!-- Products populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <h3>Contact Us</h3>
+          <p>📞 <span id="footerPhone">+91 9641568109</span></p>
+          <p>✉️ Dr.ArpanDas.PT@gmail.com</p>
+          <p>📍 <a href="#" id="footerLocation" style="color:#ccc;">Our Location</a></p>
+        </div>
+        <div class="copyright">
+          <p>&copy; 2025 Physio - The Therapeutic Moves. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Doctors Page -->
+  <div id="doctors-page" class="page">
+    <div class="page-header">
+      <h1>Our Doctors</h1>
+      <p>Expert healthcare professionals dedicated to your recovery</p>
     </div>
-
-    <!-- Services Page -->
-    <div id="services-page" class="page">
-        <div class="page-header">
-            <h1>Our Services</h1>
-            <p>Comprehensive physiotherapy and healthcare services</p>
-        </div>
-        <div class="container">
-            <div class="page-content">
-                <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-                <div class="services-list" id="servicesList">
-                    <!-- Services list will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
+    <div class="container">
+      <div class="page-content">
+        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
+        <div class="doctors-list" id="doctorsList"></div>
+      </div>
     </div>
+  </div>
 
-    <!-- Products Page -->
-    <div id="products-page" class="page">
-        <div class="page-header">
-            <h1>Our Products</h1>
-            <p>Quality medical equipment and support products</p>
-        </div>
-        <div class="container">
-            <div class="page-content">
-                <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-                <div class="products-list" id="productsList">
-                    <!-- Products list will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
+  <!-- Services Page -->
+  <div id="services-page" class="page">
+    <div class="page-header">
+      <h1>Our Services</h1>
+      <p>Comprehensive physiotherapy and healthcare services</p>
     </div>
-
-    <!-- Doctor Detail Modal -->
-    <div id="doctorModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeDoctorModal()">&times;</span>
-            <div id="doctorDetails"></div>
-        </div>
+    <div class="container">
+      <div class="page-content">
+        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
+        <div class="services-list" id="servicesList"></div>
+      </div>
     </div>
+  </div>
 
-    <!-- Admin Login Modal -->
-    <div id="adminLoginModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeAdminLogin()">&times;</span>
-            <h2>Admin Login</h2>
-            <form onsubmit="adminLogin(event)">
-                <div class="form-group">
-                    <label>Username:</label>
-                    <input type="text" id="adminUsername" required>
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" id="adminPassword" required>
-                </div>
-                <button type="submit" class="btn-admin">Login</button>
-            </form>
-        </div>
+  <!-- Products Page -->
+  <div id="products-page" class="page">
+    <div class="page-header">
+      <h1>Our Products</h1>
+      <p>Quality medical equipment and support products</p>
     </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-panel">
-        <div class="admin-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2>Admin Panel</h2>
-                <button onclick="closeAdminPanel()" class="btn-danger">Close</button>
-            </div>
-
-            <!-- Basic Info Form -->
-            <div class="admin-form">
-                <h3>Basic Information</h3>
-                <div class="form-group">
-                    <label>Clinic Name:</label>
-                    <input type="text" id="adminClinicName" onchange="updateBasicInfoAdmin()">
-                </div>
-                <div class="form-group">
-                    <label>Tagline:</label>
-                    <input type="text" id="adminTagline" onchange="updateBasicInfoAdmin()">
-                </div>
-                <div class="form-group">
-                    <label>Phone Number:</label>
-                    <input type="text" id="adminPhone" onchange="updateBasicInfoAdmin()">
-                </div>
-                <div class="form-group">
-                    <label>Location Link:</label>
-                    <input type="url" id="adminLocation" onchange="updateBasicInfoAdmin()">
-                </div>
-                <div class="form-group">
-                    <label>Logo Image URL:</label>
-                    <input type="url" id="logoImageUrl" onchange="updateLogo()" placeholder="https://i.ibb.co/...">
-                    <img id="logoPreview" class="image-preview" style="display: none;" alt="Logo Preview">
-                </div>
-                <div class="form-group">
-                    <label>Hero Banner Image URL:</label>
-                    <input type="url" id="heroBannerUrl" onchange="updateHeroBanner()" placeholder="https://i.ibb.co/...">
-                    <img id="heroBannerPreview" class="image-preview" style="display: none;" alt="Hero Banner Preview">
-                </div>
-                <div class="form-group">
-                    <label>Services Banner Image URL:</label>
-                    <input type="url" id="servicesBannerUrl" onchange="updateServicesBanner()" placeholder="https://i.ibb.co/...">
-                    <img id="servicesBannerPreview" class="image-preview" style="display: none;" alt="Services Banner Preview">
-                </div>
-            </div>
-
-            <!-- Doctors Management -->
-            <div class="admin-form">
-                <h3>Doctors Management</h3>
-                <div id="doctorsManagement"></div>
-                <button onclick="addDoctor()" class="btn-admin">Add New Doctor</button>
-            </div>
-
-            <!-- Services Management -->
-            <div class="admin-form">
-                <h3>Services Management</h3>
-                <div id="servicesManagement"></div>
-                <button onclick="addService()" class="btn-admin">Add New Service</button>
-            </div>
-
-            <!-- Products Management -->
-            <div class="admin-form">
-                <h3>Products Management</h3>
-                <div id="productsManagement"></div>
-                <button onclick="addProduct()" class="btn-admin">Add New Product</button>
-            </div>
-
-            <!-- Messages Management -->
-            <div class="admin-form">
-                <h3>WhatsApp Messages</h3>
-                <div class="form-group">
-                    <label>Appointment Booking Message:</label>
-                    <textarea id="appointmentMessage" onchange="updateMessages()"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Doctor Booking Message Template:</label>
-                    <textarea id="doctorBookingMessage" onchange="updateMessages()" placeholder="Use {doctorName} for doctor name"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Service Booking Message Template:</label>
-                    <textarea id="serviceBookingMessage" onchange="updateMessages()" placeholder="Use {serviceName} for service name"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Product Purchase Message Template:</label>
-                    <textarea id="productPurchaseMessage" onchange="updateMessages()" placeholder="Use {productName} for product name"></textarea>
-                </div>
-            </div>
-
-            <button onclick="saveAllData()" class="btn-admin">Save All Changes</button>
-        </div>
+    <div class="container">
+      <div class="page-content">
+        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
+        <div class="products-list" id="productsList"></div>
+      </div>
     </div>
+  </div>
 
-    <!-- Firebase JavaScript SDK -->
-    <script type="module">
-        // Import Firebase functions
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js';
+  <!-- Doctor Detail Modal -->
+  <div id="doctorModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDoctorModal()">&times;</span>
+      <div id="doctorDetails"></div>
+    </div>
+  </div>
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
-            authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
-            projectId: "clinic-bdf92",
-            storageBucket: "clinic-bdf92.firebasestorage.app",
-            messagingSenderId: "302452317883",
-            appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
-            measurementId: "G-XZXEVNMVRS"
-        };
+  <!-- Admin Login Modal -->
+  <div id="adminLoginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAdminLogin()">&times;</span>
+      <h2>Admin Login</h2>
+      <form onsubmit="adminLogin(event)">
+        <div class="form-group">
+          <label>Username:</label>
+          <input type="text" id="adminUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Password:</label>
+          <input type="password" id="adminPassword" required>
+        </div>
+        <button type="submit" class="btn-admin">Login</button>
+      </form>
+    </div>
+  </div>
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const analytics = getAnalytics(app);
+  <!-- Admin Panel -->
+  <div id="adminPanel" class="admin-panel">
+    <div class="admin-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+        <h2>Admin Panel</h2>
+        <button onclick="closeAdminPanel()" class="btn-danger">Close</button>
+      </div>
 
-        // Make Firebase functions globally available
-        window.db = db;
-        window.doc = doc;
-        window.getDoc = getDoc;
-        window.setDoc = setDoc;
-        window.onSnapshot = onSnapshot;
-        
-        // Initialize the app after Firebase is ready
-        initializeApp();
-    </script>
+      <!-- Basic Info Form -->
+      <div class="admin-form">
+        <h3>Basic Information</h3>
+        <div class="form-group">
+          <label>Clinic Name:</label>
+          <input type="text" id="adminClinicName" onchange="updateBasicInfoAdmin()">
+        </div>
+        <div class="form-group">
+          <label>Tagline:</label>
+          <input type="text" id="adminTagline" onchange="updateBasicInfoAdmin()">
+        </div>
+        <div class="form-group">
+          <label>Phone Number:</label>
+          <input type="text" id="adminPhone" onchange="updateBasicInfoAdmin()">
+        </div>
+        <div class="form-group">
+          <label>Location Link:</label>
+          <input type="url" id="adminLocation" onchange="updateBasicInfoAdmin()">
+        </div>
+        <div class="form-group">
+          <label>Logo Image URL:</label>
+          <input type="url" id="logoImageUrl" onchange="updateLogo()" placeholder="https://i.ibb.co/...">
+          <img id="logoPreview" class="image-preview" style="display:none;" alt="Logo Preview">
+        </div>
+        <div class="form-group">
+          <label>Hero Banner Image URL:</label>
+          <input type="url" id="heroBannerUrl" onchange="updateHeroBanner()" placeholder="https://i.ibb.co/...">
+          <img id="heroBannerPreview" class="image-preview" style="display:none;" alt="Hero Banner Preview">
+        </div>
+        <div class="form-group">
+          <label>Services Banner Image URL:</label>
+          <input type="url" id="servicesBannerUrl" onchange="updateServicesBanner()" placeholder="https://i.ibb.co/...">
+          <img id="servicesBannerPreview" class="image-preview" style="display:none;" alt="Services Banner Preview">
+        </div>
+      </div>
 
-    <script>
-        // WhatsApp Configuration
-        const WHATSAPP_NUMBER = '+919641568109';
+      <!-- Doctors Management -->
+      <div class="admin-form">
+        <h3>Doctors Management</h3>
+        <div id="doctorsManagement"></div>
+        <button onclick="addDoctor()" class="btn-admin">Add New Doctor</button>
+      </div>
 
-        // Enhanced Data Storage with Firebase
-        let clinicData = {
-            basic: {
-                name: "Physio - The Therapeutic Moves",
-                tagline: "\"We add life in your days.\"",
-                phone: "+91 9641568109",
-                email: "Dr.ArpanDas.PT@gmail.com",
-                location: "#",
-                logoImage: "",
-                heroBannerImage: "",
-                servicesBannerImage: ""
-            },
-            doctors: [
-                {
-                    id: 1,
-                    name: "Arpan Das",
-                    qualification: "BPT",
-                    fees: "₹500",
-                    description: "Experienced physiotherapist specializing in sports injuries and rehabilitation.",
-                    image: ""
-                },
-                {
-                    id: 2,
-                    name: "Jhunu Das",
-                    qualification: "DPT",
-                    fees: "₹600",
-                    description: "Expert in neurological rehabilitation and pediatric physiotherapy.",
-                    image: ""
-                },
-                {
-                    id: 3,
-                    name: "Apurba Das",
-                    qualification: "DPT",
-                    fees: "₹600",
-                    description: "Specialist in orthopedic conditions and manual therapy.",
-                    image: ""
-                }
-            ],
-            services: [
-                {
-                    id: 1,
-                    name: "Physical Therapy",
-                    description: "Comprehensive physical rehabilitation services.",
-                    price: "₹400",
-                    subServices: [
-                        { name: "Movement Therapy", price: "₹300" },
-                        { name: "Strength Training", price: "₹400" },
-                        { name: "Flexibility Training", price: "₹350" }
-                    ]
-                },
-                {
-                    id: 2,
-                    name: "Lab Tests",
-                    description: "Complete diagnostic laboratory services.",
-                    price: "₹200",
-                    subServices: [
-                        { name: "CBC", price: "₹200" },
-                        { name: "RFT", price: "₹500" },
-                        { name: "LFT", price: "₹450" },
-                        { name: "Lipid Profile", price: "₹350" }
-                    ]
-                },
-                {
-                    id: 3,
-                    name: "Sports Rehabilitation",
-                    description: "Recovery programs for sports-related injuries.",
-                    price: "₹600",
-                    subServices: [
-                        { name: "Injury Assessment", price: "₹500" },
-                        { name: "Recovery Planning", price: "₹600" },
-                        { name: "Performance Enhancement", price: "₹800" }
-                    ]
-                }
-            ],
-            products: [
-                {
-                    id: 1,
-                    name: "Lumbar Support Belt",
-                    description: "Medical grade lumbar support for back pain relief.",
-                    price: "₹1200",
-                    image: ""
-                },
-                {
-                    id: 2,
-                    name: "Knee Support Brace",
-                    description: "Adjustable knee brace for injury support and prevention.",
-                    price: "₹800",
-                    image: ""
-                }
-            ],
-            messages: {
-                appointment: "Hello, I would like to book an appointment with Physio - The Therapeutic Moves.",
-                doctorBooking: "Hello, I would like to book an appointment with Dr. {doctorName} at Physio - The Therapeutic Moves.",
-                serviceBooking: "Hello, I would like to book {serviceName} service at Physio - The Therapeutic Moves.",
-                productPurchase: "Hello, I would like to buy {productName} from Physio - The Therapeutic Moves."
-            }
-        };
+      <!-- Services Management -->
+      <div class="admin-form">
+        <h3>Services Management</h3>
+        <div id="servicesManagement"></div>
+        <button onclick="addService()" class="btn-admin">Add New Service</button>
+      </div>
 
-        // Admin credentials
-        const adminCredentials = {
-            username: "PhysioArpan",
-            password: "PtApu@9932TM"
-        };
+      <!-- Products Management -->
+      <div class="admin-form">
+        <h3>Products Management</h3>
+        <div id="productsManagement"></div>
+        <button onclick="addProduct()" class="btn-admin">Add New Product</button>
+      </div>
 
-        let lastScrollTop = 0;
-        let currentPage = 'home';
-        let updateCheckInterval;
-        let unsubscribeSnapshot;
+      <!-- Messages Management -->
+      <div class="admin-form">
+        <h3>WhatsApp Messages</h3>
+        <div class="form-group">
+          <label>Appointment Booking Message:</label>
+          <textarea id="appointmentMessage" onchange="updateMessages()"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Doctor Booking Message Template:</label>
+          <textarea id="doctorBookingMessage" onchange="updateMessages()" placeholder="Use {doctorName} for doctor name"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Service Booking Message Template:</label>
+          <textarea id="serviceBookingMessage" onchange="updateMessages()" placeholder="Use {serviceName} for service name"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Product Purchase Message Template:</label>
+          <textarea id="productPurchaseMessage" onchange="updateMessages()" placeholder="Use {productName} for product name"></textarea>
+        </div>
+      </div>
 
-        // Initialize the website
-        function initializeApp() {
-            document.addEventListener('DOMContentLoaded', async function() {
-                showLoading(true);
-                await loadDataFromFirebase();
-                renderAllViews();
-                updateImages();
-                setupScrollHandler();
-                setupRealTimeUpdates();
-                showLoading(false);
-            });
+      <button onclick="saveAllData()" class="btn-admin">Save All Changes</button>
+    </div>
+  </div>
 
-            // If DOM is already loaded
-            if (document.readyState === 'loading') {
-                // Do nothing, event listener will handle it
-            } else {
-                // DOM already loaded
-                (async function() {
-                    showLoading(true);
-                    await loadDataFromFirebase();
-                    renderAllViews();
-                    updateImages();
-                    setupScrollHandler();
-                    setupRealTimeUpdates();
-                    showLoading(false);
-                })();
-            }
+  <!-- Firebase + App Logic -->
+  <script type="module">
+    // Firebase CDN SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
+      authDomain: "clinic-bdf92.firebaseapp.com",
+      databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
+      projectId: "clinic-bdf92",
+      storageBucket: "clinic-bdf92.firebasestorage.app",
+      messagingSenderId: "302452317883",
+      appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
+      measurementId: "G-XZXEVNMVRS"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    // WhatsApp Configuration
+    const WHATSAPP_NUMBER = '+919641568109';
+
+    // Default Data (same structure as before)
+    let clinicData = {
+      basic: {
+        name: "Physio - The Therapeutic Moves",
+        tagline: "\"We add life in your days.\"",
+        phone: "+91 9641568109",
+        email: "Dr.ArpanDas.PT@gmail.com",
+        location: "#",
+        logoImage: "",
+        heroBannerImage: "",
+        servicesBannerImage: ""
+      },
+      doctors: [
+        {
+          id: 1,
+          name: "Arpan Das",
+          qualification: "BPT",
+          fees: "₹500",
+          description: "Experienced physiotherapist specializing in sports injuries and rehabilitation.",
+          image: ""
+        },
+        {
+          id: 2,
+          name: "Jhunu Das",
+          qualification: "DPT",
+          fees: "₹600",
+          description: "Expert in neurological rehabilitation and pediatric physiotherapy.",
+          image: ""
+        },
+        {
+          id: 3,
+          name: "Apurba Das",
+          qualification: "DPT",
+          fees: "₹600",
+          description: "Specialist in orthopedic conditions and manual therapy.",
+          image: ""
+        }
+      ],
+      services: [
+        {
+          id: 1,
+          name: "Physical Therapy",
+          description: "Comprehensive physical rehabilitation services.",
+          price: "₹400",
+          subServices: [
+            { name: "Movement Therapy", price: "₹300" },
+            { name: "Strength Training", price: "₹400" },
+            { name: "Flexibility Training", price: "₹350" }
+          ]
+        },
+        {
+          id: 2,
+          name: "Lab Tests",
+          description: "Complete diagnostic laboratory services.",
+          price: "₹200",
+          subServices: [
+            { name: "CBC", price: "₹200" },
+            { name: "RFT", price: "₹500" },
+            { name: "LFT", price: "₹450" },
+            { name: "Lipid Profile", price: "₹350" }
+          ]
+        },
+        {
+          id: 3,
+          name: "Sports Rehabilitation",
+          description: "Recovery programs for sports-related injuries.",
+          price: "₹600",
+          subServices: [
+            { name: "Injury Assessment", price: "₹500" },
+            { name: "Recovery Planning", price: "₹600" },
+            { name: "Performance Enhancement", price: "₹800" }
+          ]
+        }
+      ],
+      products: [
+        {
+          id: 1,
+          name: "Lumbar Support Belt",
+          description: "Medical grade lumbar support for back pain relief.",
+          price: "₹1200",
+          image: ""
+        },
+        {
+          id: 2,
+          name: "Knee Support Brace",
+          description: "Adjustable knee brace for injury support and prevention.",
+          price: "₹800",
+          image: ""
+        }
+      ],
+      messages: {
+        appointment: "Hello, I would like to book an appointment with Physio - The Therapeutic Moves.",
+        doctorBooking: "Hello, I would like to book an appointment with Dr. {doctorName} at Physio - The Therapeutic Moves.",
+        serviceBooking: "Hello, I would like to book {serviceName} service at Physio - The Therapeutic Moves.",
+        productPurchase: "Hello, I would like to buy {productName} from Physio - The Therapeutic Moves."
+      },
+      updated_at: null
+    };
+
+    // Admin credentials
+    const adminCredentials = {
+      username: "PhysioArpan",
+      password: "PtApu@9932TM"
+    };
+
+    let lastScrollTop = 0;
+    let currentPage = 'home';
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      showLoading(true);
+      await loadDataFromFirebase();
+      renderAllViews();
+      updateImages();
+      setupScrollHandler();
+      setupRealTimeUpdates();
+      showLoading(false);
+    });
+
+    // Loading indicator
+    function showLoading(show) {
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+
+    // Firebase: Load
+    async function loadDataFromFirebase() {
+      try {
+        const snapshot = await get(ref(db, "clinicData"));
+        if (snapshot.exists()) {
+          clinicData = snapshot.val();
+          console.log("Data loaded from Firebase");
+        } else {
+          await saveDataToFirebase();
+          console.log("Initial data created in Firebase");
+        }
+      } catch (error) {
+        console.error("Error loading data from Firebase:", error);
+        loadFromLocalStorage();
+      }
+    }
+
+    // Firebase: Save
+    async function saveDataToFirebase() {
+      try {
+        clinicData.updated_at = new Date().toISOString();
+        await set(ref(db, "clinicData"), clinicData);
+        saveToLocalStorage();
+        showUpdateIndicator();
+        console.log("Data saved to Firebase");
+        return true;
+      } catch (error) {
+        console.error("Error saving to Firebase:", error);
+        saveToLocalStorage();
+        return false;
+      }
+    }
+
+    // Firebase: Realtime subscription
+    function setupRealTimeUpdates() {
+      const clinicRef = ref(db, "clinicData");
+      onValue(clinicRef, (snapshot) => {
+        if (snapshot.exists()) {
+          clinicData = snapshot.val();
+          renderAllViews();
+          updateImages();
+          showUpdateIndicator();
+          console.log("Realtime update received from Firebase!");
+        }
+      });
+    }
+
+    // Local storage fallback
+    function saveToLocalStorage() {
+      localStorage.setItem('clinicData', JSON.stringify(clinicData));
+    }
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('clinicData');
+      if (saved) {
+        clinicData = JSON.parse(saved);
+        console.log("Loaded clinic data from localStorage");
+      }
+    }
+
+    // UI helpers
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.classList.toggle('active');
+    }
+
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      currentPage = pageId;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setupScrollHandler() {
+      const header = document.getElementById('header');
+      window.addEventListener('scroll', () => {
+        const st = window.pageYOffset || document.documentElement.scrollTop;
+        if (st > lastScrollTop && st > 100) {
+          header.classList.add('hidden');
+        } else {
+          header.classList.remove('hidden');
+        }
+        lastScrollTop = st <= 0 ? 0 : st;
+      }, { passive: true });
+    }
+
+    function showUpdateIndicator() {
+      const ui = document.getElementById('updateIndicator');
+      ui.classList.add('show');
+      setTimeout(() => ui.classList.remove('show'), 1500);
+    }
+
+    // Render functions
+    function renderAllViews() {
+      renderBasicInfo();
+      renderDoctorsHome();
+      renderServicesHome();
+      renderProductsHome();
+
+      renderDoctorsPage();
+      renderServicesPage();
+      renderProductsPage();
+
+      renderAdminForms();
+    }
+
+    function renderBasicInfo() {
+      document.getElementById('clinicName').textContent = clinicData.basic.name || '';
+      document.getElementById('heroTitle').textContent = clinicData.basic.name || '';
+      document.getElementById('heroTagline').textContent = clinicData.basic.tagline || '';
+      document.getElementById('phoneNumber').textContent = clinicData.basic.phone || '';
+      document.getElementById('footerPhone').textContent = clinicData.basic.phone || '';
+      const locLink1 = document.getElementById('locationLink');
+      const locLink2 = document.getElementById('footerLocation');
+      if (clinicData.basic.location) {
+        locLink1.href = clinicData.basic.location;
+        locLink2.href = clinicData.basic.location;
+      }
+    }
+
+    function updateImages() {
+      // Logo
+      const logoContainer = document.getElementById('logoContainer');
+      let logoImg = logoContainer.querySelector('img');
+      if (clinicData.basic.logoImage) {
+        if (!logoImg) {
+          logoImg = document.createElement('img');
+          logoContainer.innerHTML = '';
+          logoContainer.appendChild(logoImg);
+        }
+        logoImg.src = clinicData.basic.logoImage;
+        logoImg.alt = 'Logo';
+      } else {
+        // fallback to text
+        logoContainer.innerHTML = '<div class="logo-text" id="clinicName">' + (clinicData.basic.name || 'Physio - The Therapeutic Moves') + '</div>';
+      }
+
+      // Hero banner
+      const heroImg = document.getElementById('heroBannerImage');
+      if (clinicData.basic.heroBannerImage) {
+        heroImg.src = clinicData.basic.heroBannerImage;
+        heroImg.style.display = 'block';
+      } else {
+        heroImg.style.display = 'none';
+      }
+
+      // Services banner
+      const servicesBannerImage = document.getElementById('servicesBannerImage');
+      if (clinicData.basic.servicesBannerImage) {
+        servicesBannerImage.src = clinicData.basic.servicesBannerImage;
+        servicesBannerImage.style.display = 'block';
+      } else {
+        servicesBannerImage.style.display = 'none';
+      }
+    }
+
+    function renderDoctorsHome() {
+      const grid = document.getElementById('doctorsGrid');
+      grid.innerHTML = '';
+      clinicData.doctors.forEach(doc => {
+        const card = document.createElement('div');
+        card.className = 'doctor-card';
+        card.onclick = () => openDoctorModal(doc);
+
+        const avatar = document.createElement('div');
+        avatar.className = 'doctor-avatar';
+        if (doc.image) {
+          const img = document.createElement('img');
+          img.src = doc.image;
+          img.alt = doc.name;
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = doc.name ? doc.name[0] : '?';
         }
 
-        // Loading indicator
-        function showLoading(show) {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = show ? 'block' : 'none';
-            }
+        const info = document.createElement('div');
+        info.className = 'doctor-info';
+        info.innerHTML = `
+          <h3>${doc.name}</h3>
+          <p>${doc.qualification || ''}</p>
+          <div class="doctor-fees">${doc.fees || ''}</div>
+          <button class="btn-book" onclick="event.stopPropagation(); bookDoctor('${encodeURIComponent(doc.name)}');">Book</button>
+        `;
+
+        card.appendChild(avatar);
+        card.appendChild(info);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderServicesHome() {
+      const grid = document.getElementById('servicesGrid');
+      grid.innerHTML = '';
+      clinicData.services.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+          <h3>${s.name}</h3>
+          <p>${s.description || ''}</p>
+          <div class="service-price">${s.price || ''}</div>
+          <div class="sub-services">
+            <h4>Sub-services</h4>
+            ${Array.isArray(s.subServices) ? s.subServices.map(ss => `
+              <div class="sub-service-item">
+                <span class="sub-service-name">${ss.name}</span>
+                <span class="sub-service-price">${ss.price}</span>
+              </div>
+            `).join('') : ''}
+          </div>
+          <button class="btn-service" onclick="bookService('${encodeURIComponent(s.name)}')">Book Service</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderProductsHome() {
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = '';
+      clinicData.products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <div class="product-image">
+            ${p.image ? `<img src="${p.image}" alt="${p.name}"/>` : `<span>🛍️</span>`}
+          </div>
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <p>${p.description || ''}</p>
+            <div class="product-price">${p.price || ''}</div>
+            <button class="btn-service" onclick="buyProduct('${encodeURIComponent(p.name)}')">Buy via WhatsApp</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderDoctorsPage() {
+      const list = document.getElementById('doctorsList');
+      list.innerHTML = '';
+      clinicData.doctors.forEach(doc => {
+        const card = document.createElement('div');
+        card.className = 'doctor-card doctor-card-horizontal';
+        const avatar = document.createElement('div');
+        avatar.className = 'doctor-avatar';
+        if (doc.image) {
+          const img = document.createElement('img');
+          img.src = doc.image; img.alt = doc.name;
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = doc.name ? doc.name[0] : '?';
         }
+        const info = document.createElement('div');
+        info.className = 'doctor-info';
+        info.innerHTML = `
+          <h3>${doc.name}</h3>
+          <p>${doc.qualification || ''}</p>
+          <p>${doc.description || ''}</p>
+          <div class="doctor-fees">${doc.fees || ''}</div>
+          <button class="btn-book" onclick="bookDoctor('${encodeURIComponent(doc.name)}')">Book</button>
+        `;
+        card.appendChild(avatar);
+        card.appendChild(info);
+        list.appendChild(card);
+      });
+    }
 
-        // **FIREBASE INTEGRATION FUNCTIONS**
-        
-        // Load data from Firebase Firestore
-        async function loadDataFromFirebase() {
-            try {
-                const docRef = window.doc(window.db, 'clinic', 'data');
-                const docSnap = await window.getDoc(docRef);
+    function renderServicesPage() {
+      const list = document.getElementById('servicesList');
+      list.innerHTML = '';
+      clinicData.services.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+          <h3>${s.name}</h3>
+          <p>${s.description || ''}</p>
+          <div class="service-price">${s.price || ''}</div>
+          <div class="sub-services">
+            <h4>Sub-services</h4>
+            ${Array.isArray(s.subServices) ? s.subServices.map(ss => `
+              <div class="sub-service-item">
+                <span class="sub-service-name">${ss.name}</span>
+                <span class="sub-service-price">${ss.price}</span>
+              </div>
+            `).join('') : ''}
+          </div>
+          <button class="btn-service" onclick="bookService('${encodeURIComponent(s.name)}')">Book Service</button>
+        `;
+        list.appendChild(card);
+      });
+    }
 
-                if (docSnap.exists()) {
-                    clinicData = docSnap.data().content;
-                    console.log('Data loaded from Firebase successfully');
-                } else {
-                    // If no data exists, create initial record
-                    await saveDataToFirebase();
-                    console.log('Initial data created in Firebase');
-                }
-            } catch (error) {
-                console.error('Error loading data from Firebase:', error);
-                // Fallback to localStorage if Firebase fails
-                loadFromLocalStorage();
-            }
+    function renderProductsPage() {
+      const list = document.getElementById('productsList');
+      list.innerHTML = '';
+      clinicData.products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <div class="product-image">
+            ${p.image ? `<img src="${p.image}" alt="${p.name}"/>` : `<span>🛒</span>`}
+          </div>
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <p>${p.description || ''}</p>
+            <div class="product-price">${p.price || ''}</div>
+            <button class="btn-service" onclick="buyProduct('${encodeURIComponent(p.name)}')">Buy via WhatsApp</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // Admin UI rendering
+    function renderAdminForms() {
+      // Fill basic form with current values
+      document.getElementById('adminClinicName').value = clinicData.basic.name || '';
+      document.getElementById('adminTagline').value = clinicData.basic.tagline || '';
+      document.getElementById('adminPhone').value = clinicData.basic.phone || '';
+      document.getElementById('adminLocation').value = clinicData.basic.location || '';
+      document.getElementById('logoImageUrl').value = clinicData.basic.logoImage || '';
+      document.getElementById('heroBannerUrl').value = clinicData.basic.heroBannerImage || '';
+      document.getElementById('servicesBannerUrl').value = clinicData.basic.servicesBannerImage || '';
+
+      // Preview images
+      const logoPreview = document.getElementById('logoPreview');
+      if (clinicData.basic.logoImage) { logoPreview.src = clinicData.basic.logoImage; logoPreview.style.display = 'block'; }
+      else { logoPreview.style.display = 'none'; }
+
+      const heroBannerPreview = document.getElementById('heroBannerPreview');
+      if (clinicData.basic.heroBannerImage) { heroBannerPreview.src = clinicData.basic.heroBannerImage; heroBannerPreview.style.display = 'block'; }
+      else { heroBannerPreview.style.display = 'none'; }
+
+      const servicesBannerPreview = document.getElementById('servicesBannerPreview');
+      if (clinicData.basic.servicesBannerImage) { servicesBannerPreview.src = clinicData.basic.servicesBannerImage; servicesBannerPreview.style.display = 'block'; }
+      else { servicesBannerPreview.style.display = 'none'; }
+
+      // Doctors management
+      const dm = document.getElementById('doctorsManagement');
+      dm.innerHTML = '';
+      clinicData.doctors.forEach((doc, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'sub-service-management';
+        wrap.innerHTML = `
+          <div class="form-group"><label>Name</label><input type="text" value="${doc.name}" data-type="doctor" data-field="name" data-index="${idx}"></div>
+          <div class="form-group"><label>Qualification</label><input type="text" value="${doc.qualification || ''}" data-type="doctor" data-field="qualification" data-index="${idx}"></div>
+          <div class="form-group"><label>Fees</label><input type="text" value="${doc.fees || ''}" data-type="doctor" data-field="fees" data-index="${idx}"></div>
+          <div class="form-group"><label>Description</label><textarea data-type="doctor" data-field="description" data-index="${idx}">${doc.description || ''}</textarea></div>
+          <div class="form-group"><label>Image URL</label><input type="url" value="${doc.image || ''}" data-type="doctor" data-field="image" data-index="${idx}"></div>
+          <button class="btn-admin" data-action="remove-doctor" data-index="${idx}">Remove</button>
+        `;
+        dm.appendChild(wrap);
+      });
+
+      dm.addEventListener('input', onAdminInlineChange);
+      dm.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.dataset.action === 'remove-doctor') {
+          const i = Number(t.dataset.index);
+          clinicData.doctors.splice(i, 1);
+          renderAllViews();
+          saveToLocalStorage();
         }
+      });
 
-        // Save data to Firebase Firestore
-        async function saveDataToFirebase() {
-            try {
-                const docRef = window.doc(window.db, 'clinic', 'data');
-                await window.setDoc(docRef, {
-                    content: clinicData,
-                    updatedAt: new Date().toISOString()
-                });
+      // Services management
+      const sm = document.getElementById('servicesManagement');
+      sm.innerHTML = '';
+      clinicData.services.forEach((s, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'sub-service-management';
+        wrap.innerHTML = `
+          <div class="form-group"><label>Name</label><input type="text" value="${s.name}" data-type="service" data-field="name" data-index="${idx}"></div>
+          <div class="form-group"><label>Description</label><textarea data-type="service" data-field="description" data-index="${idx}">${s.description || ''}</textarea></div>
+          <div class="form-group"><label>Price</label><input type="text" value="${s.price || ''}" data-type="service" data-field="price" data-index="${idx}"></div>
+          <div class="form-group"><label>Sub-services JSON</label>
+            <textarea data-type="service" data-field="subServices" data-index="${idx}" placeholder='[{"name":"X","price":"₹100"}]'>${JSON.stringify(s.subServices || [])}</textarea>
+          </div>
+          <button class="btn-admin" data-action="remove-service" data-index="${idx}">Remove</button>
+        `;
+        sm.appendChild(wrap);
+      });
 
-                // Also save to localStorage as backup
-                saveToLocalStorage();
-                console.log('Data saved to Firebase successfully');
-                return true;
-            } catch (error) {
-                console.error('Error saving to Firebase:', error);
-                saveToLocalStorage();
-                return false;
-            }
+      sm.addEventListener('input', onAdminInlineChange);
+      sm.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.dataset.action === 'remove-service') {
+          const i = Number(t.dataset.index);
+          clinicData.services.splice(i, 1);
+          renderAllViews();
+          saveToLocalStorage();
         }
+      });
 
-        // Set up real-time updates from Firebase
-        function setupRealTimeUpdates() {
-            try {
-                const docRef = window.doc(window.db, 'clinic', 'data');
-                unsubscribeSnapshot = window.onSnapshot(docRef, (doc) => {
-                    if (doc.exists()) {
-                        const newData = doc.data().content;
-                        if (JSON.stringify(newData) !== JSON.stringify(clinicData)) {
-                            clinicData = newData;
-                            renderAllViews();
-                            updateImages();
-                            showUpdateIndicator();
-                            console.log('Real-time update received from Firebase');
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error setting up real-time updates:', error);
-            }
+      // Products management
+      const pm = document.getElementById('productsManagement');
+      pm.innerHTML = '';
+      clinicData.products.forEach((p, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'sub-service-management';
+        wrap.innerHTML = `
+          <div class="form-group"><label>Name</label><input type="text" value="${p.name}" data-type="product" data-field="name" data-index="${idx}"></div>
+          <div class="form-group"><label>Description</label><textarea data-type="product" data-field="description" data-index="${idx}">${p.description || ''}</textarea></div>
+          <div class="form-group"><label>Price</label><input type="text" value="${p.price || ''}" data-type="product" data-field="price" data-index="${idx}"></div>
+          <div class="form-group"><label>Image URL</label><input type="url" value="${p.image || ''}" data-type="product" data-field="image" data-index="${idx}"></div>
+          <button class="btn-admin" data-action="remove-product" data-index="${idx}">Remove</button>
+        `;
+        pm.appendChild(wrap);
+      });
+
+      pm.addEventListener('input', onAdminInlineChange);
+      pm.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.dataset.action === 'remove-product') {
+          const i = Number(t.dataset.index);
+          clinicData.products.splice(i, 1);
+          renderAllViews();
+          saveToLocalStorage();
         }
+      });
 
-        // Fallback localStorage functions
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem('clinicData', JSON.stringify(clinicData));
-            } catch (error) {
-                console.error('Error saving to localStorage:', error);
-            }
+      // Messages
+      document.getElementById('appointmentMessage').value = clinicData.messages?.appointment || '';
+      document.getElementById('doctorBookingMessage').value = clinicData.messages?.doctorBooking || '';
+      document.getElementById('serviceBookingMessage').value = clinicData.messages?.serviceBooking || '';
+      document.getElementById('productPurchaseMessage').value = clinicData.messages?.productPurchase || '';
+    }
+
+    function onAdminInlineChange(e) {
+      const el = e.target;
+      const type = el.dataset.type;
+      const field = el.dataset.field;
+      const index = Number(el.dataset.index);
+      if (!type || !field || Number.isNaN(index)) return;
+
+      if (type === 'doctor') {
+        clinicData.doctors[index][field] = el.value;
+      } else if (type === 'service') {
+        if (field === 'subServices') {
+          try {
+            clinicData.services[index][field] = JSON.parse(el.value || '[]');
+          } catch {
+            // ignore invalid JSON until corrected
+          }
+        } else {
+          clinicData.services[index][field] = el.value;
         }
-
-        function loadFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem('clinicData');
-                if (savedData) {
-                    clinicData = JSON.parse(savedData);
-                    console.log('Data loaded from localStorage as fallback');
-                }
-            } catch (error) {
-                console.error('Error loading from localStorage:', error);
-            }
-        }
-
-        // Show update indicator
-        function showUpdateIndicator() {
-            const indicator = document.getElementById('updateIndicator');
-            if (indicator) {
-                indicator.classList.add('show');
-                setTimeout(() => {
-                    indicator.classList.remove('show');
-                }, 3000);
-            }
-        }
-
-        // Menu toggle functionality
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            menu.classList.toggle('active');
-        }
-
-        // Page navigation
-        function showPage(pageId) {
-            // Hide all pages
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.remove('active'));
-            
-            // Show the selected page
-            const selectedPage = document.getElementById(pageId);
-            if (selectedPage) {
-                selectedPage.classList.add('active');
-            }
-            
-            currentPage = pageId;
-            
-            // Close menu if open
-            const menu = document.getElementById('menu');
-            menu.classList.remove('active');
-            
-            // Update URL without page reload
-            const newUrl = pageId === 'home' ? '/' : `/#${pageId}`;
-            history.pushState({ page: pageId }, '', newUrl);
-        }
-
-        // Scroll handler for header hide/show
-        function setupScrollHandler() {
-            const header = document.getElementById('header');
-            
-            window.addEventListener('scroll', function() {
-                const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
-                    // Scrolling down & past 100px
-                    header.classList.add('hidden');
-                } else {
-                    // Scrolling up
-                    header.classList.remove('hidden');
-                }
-                
-                lastScrollTop = currentScrollTop;
-            });
-        }
-
-        // Render all views
-        function renderAllViews() {
-            updateBasicInfo();
-            renderDoctors();
-            renderServices();
-            renderProducts();
-            populateAdminForms();
-        }
-
-        // Update basic information
-        function updateBasicInfo() {
-            const clinicNameEl = document.getElementById('clinicName');
-            const heroTitleEl = document.getElementById('heroTitle');
-            const heroTaglineEl = document.getElementById('heroTagline');
-            const phoneNumberEl = document.getElementById('phoneNumber');
-            const locationLinkEl = document.getElementById('locationLink');
-            const footerPhoneEl = document.getElementById('footerPhone');
-            const footerLocationEl = document.getElementById('footerLocation');
-
-            if (clinicNameEl) clinicNameEl.textContent = clinicData.basic.name;
-            if (heroTitleEl) heroTitleEl.textContent = clinicData.basic.name;
-            if (heroTaglineEl) heroTaglineEl.textContent = clinicData.basic.tagline;
-            if (phoneNumberEl) phoneNumberEl.textContent = clinicData.basic.phone;
-            if (locationLinkEl) locationLinkEl.href = clinicData.basic.location;
-            if (footerPhoneEl) footerPhoneEl.textContent = clinicData.basic.phone;
-            if (footerLocationEl) footerLocationEl.href = clinicData.basic.location;
-
-            // Update page title
-            document.title = clinicData.basic.name;
-        }
-
-        // Update images
-        function updateImages() {
-            // Logo
-            const logoContainer = document.getElementById('logoContainer');
-            if (logoContainer && clinicData.basic.logoImage) {
-                logoContainer.innerHTML = `<img src="${clinicData.basic.logoImage}" alt="Logo" style="height: 40px; width: auto;">`;
-            } else if (logoContainer) {
-                logoContainer.innerHTML = `<div class="logo-text">${clinicData.basic.name}</div>`;
-            }
-
-            // Hero banner
-            const heroBannerImage = document.getElementById('heroBannerImage');
-            if (heroBannerImage && clinicData.basic.heroBannerImage) {
-                heroBannerImage.src = clinicData.basic.heroBannerImage;
-                heroBannerImage.style.display = 'block';
-            } else if (heroBannerImage) {
-                heroBannerImage.style.display = 'none';
-            }
-
-            // Services banner
-            const servicesBannerImage = document.getElementById('servicesBannerImage');
-            if (servicesBannerImage && clinicData.basic.servicesBannerImage) {
-                servicesBannerImage.src = clinicData.basic.servicesBannerImage;
-                servicesBannerImage.style.display = 'block';
-            } else if (servicesBannerImage) {
-                servicesBannerImage.style.display = 'none';
-            }
-        }
-
-        // Render doctors
-        function renderDoctors() {
-            const doctorsGrid = document.getElementById('doctorsGrid');
-            const doctorsList = document.getElementById('doctorsList');
-
-            if (doctorsGrid) {
-                doctorsGrid.innerHTML = clinicData.doctors.map(doctor => `
-                    <div class="doctor-card" onclick="openDoctorModal(${doctor.id})">
-                        <div class="doctor-avatar">
-                            ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
-                        </div>
-                        <div class="doctor-info">
-                            <h3>${doctor.name}</h3>
-                            <p>${doctor.qualification}</p>
-                            <p class="doctor-fees">${doctor.fees}</p>
-                            <a href="#" class="btn-book" onclick="event.stopPropagation(); bookDoctor('${doctor.name}')">Book Now</a>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            if (doctorsList) {
-                doctorsList.innerHTML = clinicData.doctors.map(doctor => `
-                    <div class="doctor-card doctor-card-horizontal">
-                        <div class="doctor-avatar">
-                            ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
-                        </div>
-                        <div class="doctor-info">
-                            <h3>${doctor.name}</h3>
-                            <p>${doctor.qualification}</p>
-                            <p>${doctor.description}</p>
-                            <p class="doctor-fees">${doctor.fees}</p>
-                            <a href="#" class="btn-book" onclick="bookDoctor('${doctor.name}')">Book Appointment</a>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // Render services
-        function renderServices() {
-            const servicesGrid = document.getElementById('servicesGrid');
-            const servicesList = document.getElementById('servicesList');
-
-            const renderServiceCard = (service, isDetailed = false) => `
-                <div class="service-card">
-                    <h3>${service.name}</h3>
-                    <p>${service.description}</p>
-                    <p class="service-price">${service.price}</p>
-                    ${isDetailed && service.subServices && service.subServices.length > 0 ? `
-                        <div class="sub-services">
-                            <h4>Available Services:</h4>
-                            ${service.subServices.map(subService => `
-                                <div class="sub-service-item">
-                                    <span class="sub-service-name">${subService.name}</span>
-                                    <span class="sub-service-price">${subService.price}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    <a href="#" class="btn-service" onclick="bookService('${service.name}')">Book Service</a>
-                </div>
-            `;
-
-            if (servicesGrid) {
-                servicesGrid.innerHTML = clinicData.services.map(service => renderServiceCard(service, false)).join('');
-            }
-
-            if (servicesList) {
-                servicesList.innerHTML = clinicData.services.map(service => renderServiceCard(service, true)).join('');
-            }
-        }
-
-        // Render products
-        function renderProducts() {
-            const productsGrid = document.getElementById('productsGrid');
-            const productsList = document.getElementById('productsList');
-
-            const renderProductCard = (product) => `
-                <div class="product-card">
-                    <div class="product-image">
-                        ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🏥'}
-                    </div>
-                    <div class="product-info">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p class="product-price">${product.price}</p>
-                        <a href="#" class="btn-book" onclick="buyProduct('${product.name}')">Buy Now</a>
-                    </div>
-                </div>
-            `;
-
-            if (productsGrid) {
-                productsGrid.innerHTML = clinicData.products.map(renderProductCard).join('');
-            }
-
-            if (productsList) {
-                productsList.innerHTML = clinicData.products.map(renderProductCard).join('');
-            }
-        }
-
-        // WhatsApp booking functions
-        function bookAppointment() {
-            const message = encodeURIComponent(clinicData.messages.appointment);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-        }
-
-        function bookDoctor(doctorName) {
-            const message = clinicData.messages.doctorBooking.replace('{doctorName}', doctorName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
-
-        function bookService(serviceName) {
-            const message = clinicData.messages.serviceBooking.replace('{serviceName}', serviceName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
-
-        function buyProduct(productName) {
-            const message = clinicData.messages.productPurchase.replace('{productName}', productName);
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-        }
-
-        // Doctor modal functions
-        function openDoctorModal(doctorId) {
-            const doctor = clinicData.doctors.find(d => d.id === doctorId);
-            if (!doctor) return;
-
-            const doctorDetails = document.getElementById('doctorDetails');
-            if (doctorDetails) {
-                doctorDetails.innerHTML = `
-                    <div style="text-align: center;">
-                        <div class="doctor-avatar" style="margin: 0 auto 2rem; width: 150px; height: 150px; font-size: 4rem;">
-                            ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.name}">` : doctor.name.charAt(0)}
-                        </div>
-                        <h2>${doctor.name}</h2>
-                        <p style="font-size: 1.2rem; color: #666; margin: 1rem 0;">${doctor.qualification}</p>
-                        <p style="margin: 2rem 0;">${doctor.description}</p>
-                        <p style="font-size: 1.5rem; font-weight: bold; color: #2c7873; margin: 2rem 0;">${doctor.fees}</p>
-                        <a href="#" class="btn-book" onclick="bookDoctor('${doctor.name}'); closeDoctorModal();">Book Appointment</a>
-                    </div>
-                `;
-            }
-
-            const modal = document.getElementById('doctorModal');
-            if (modal) {
-                modal.style.display = 'block';
-            }
-        }
-
-        function closeDoctorModal() {
-            const modal = document.getElementById('doctorModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        // Admin functions
-        function openAdminLogin() {
-            const modal = document.getElementById('adminLoginModal');
-            if (modal) {
-                modal.style.display = 'block';
-            }
-        }
-
-        function closeAdminLogin() {
-            const modal = document.getElementById('adminLoginModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            
-            // Clear form
-            const usernameEl = document.getElementById('adminUsername');
-            const passwordEl = document.getElementById('adminPassword');
-            if (usernameEl) usernameEl.value = '';
-            if (passwordEl) passwordEl.value = '';
-        }
-
-        function adminLogin(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            if (username === adminCredentials.username && password === adminCredentials.password) {
-                closeAdminLogin();
-                openAdminPanel();
-            } else {
-                alert('Invalid credentials');
-            }
-        }
-
-        function openAdminPanel() {
-            populateAdminForms();
-            const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.style.display = 'block';
-            }
-        }
-
-        function closeAdminPanel() {
-            const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.style.display = 'none';
-            }
-            
-            // Clean up any listeners if needed
-            if (unsubscribeSnapshot) {
-                try {
-                    // Note: In a real app, you might want to restart the listener
-                    // For now, we'll keep it running
-                } catch (error) {
-                    console.error('Error managing snapshot listener:', error);
-                }
-            }
-        }
-
-        // Populate admin forms
-        function populateAdminForms() {
-            // Basic info
-            const elements = {
-                adminClinicName: clinicData.basic.name,
-                adminTagline: clinicData.basic.tagline,
-                adminPhone: clinicData.basic.phone,
-                adminLocation: clinicData.basic.location,
-                logoImageUrl: clinicData.basic.logoImage,
-                heroBannerUrl: clinicData.basic.heroBannerImage,
-                servicesBannerUrl: clinicData.basic.servicesBannerImage,
-                appointmentMessage: clinicData.messages.appointment,
-                doctorBookingMessage: clinicData.messages.doctorBooking,
-                serviceBookingMessage: clinicData.messages.serviceBooking,
-                productPurchaseMessage: clinicData.messages.productPurchase
-            };
-
-            for (const [id, value] of Object.entries(elements)) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.value = value;
-                }
-            }
-
-            // Update image previews
-            updateImagePreview('logoImageUrl', 'logoPreview');
-            updateImagePreview('heroBannerUrl', 'heroBannerPreview');
-            updateImagePreview('servicesBannerUrl', 'servicesBannerPreview');
-
-            // Populate management sections
-            populateDoctorsManagement();
-            populateServicesManagement();
-            populateProductsManagement();
-        }
-
-        // Image preview function
-        function updateImagePreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (input && preview) {
-                if (input.value) {
-                    preview.src = input.value;
-                    preview.style.display = 'block';
-                } else {
-                    preview.style.display = 'none';
-                }
-            }
-        }
-
-        // Admin update functions
-        function updateBasicInfoAdmin() {
-            const clinicNameEl = document.getElementById('adminClinicName');
-            const taglineEl = document.getElementById('adminTagline');
-            const phoneEl = document.getElementById('adminPhone');
-            const locationEl = document.getElementById('adminLocation');
-
-            if (clinicNameEl) clinicData.basic.name = clinicNameEl.value;
-            if (taglineEl) clinicData.basic.tagline = taglineEl.value;
-            if (phoneEl) clinicData.basic.phone = phoneEl.value;
-            if (locationEl) clinicData.basic.location = locationEl.value;
-
-            updateBasicInfo();
-            saveDataToFirebase();
-        }
-
-        function updateLogo() {
-            const logoUrlEl = document.getElementById('logoImageUrl');
-            if (logoUrlEl) {
-                clinicData.basic.logoImage = logoUrlEl.value;
-                updateImagePreview('logoImageUrl', 'logoPreview');
-                updateImages();
-                saveDataToFirebase();
-            }
-        }
-
-        function updateHeroBanner() {
-            const heroBannerUrlEl = document.getElementById('heroBannerUrl');
-            if (heroBannerUrlEl) {
-                clinicData.basic.heroBannerImage = heroBannerUrlEl.value;
-                updateImagePreview('heroBannerUrl', 'heroBannerPreview');
-                updateImages();
-                saveDataToFirebase();
-            }
-        }
-
-        function updateServicesBanner() {
-            const servicesBannerUrlEl = document.getElementById('servicesBannerUrl');
-            if (servicesBannerUrlEl) {
-                clinicData.basic.servicesBannerImage = servicesBannerUrlEl.value;
-                updateImagePreview('servicesBannerUrl', 'servicesBannerPreview');
-                updateImages();
-                saveDataToFirebase();
-            }
-        }
-
-        function updateMessages() {
-            const appointmentEl = document.getElementById('appointmentMessage');
-            const doctorBookingEl = document.getElementById('doctorBookingMessage');
-            const serviceBookingEl = document.getElementById('serviceBookingMessage');
-            const productPurchaseEl = document.getElementById('productPurchaseMessage');
-
-            if (appointmentEl) clinicData.messages.appointment = appointmentEl.value;
-            if (doctorBookingEl) clinicData.messages.doctorBooking = doctorBookingEl.value;
-            if (serviceBookingEl) clinicData.messages.serviceBooking = serviceBookingEl.value;
-            if (productPurchaseEl) clinicData.messages.productPurchase = productPurchaseEl.value;
-
-            saveDataToFirebase();
-        }
-
-        // Management functions
-        function populateDoctorsManagement() {
-            const container = document.getElementById('doctorsManagement');
-            if (!container) return;
-
-            container.innerHTML = clinicData.doctors.map(doctor => `
-                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
-                    <div class="form-group">
-                        <label>Name:</label>
-                        <input type="text" value="${doctor.name}" onchange="updateDoctor(${doctor.id}, 'name', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Qualification:</label>
-                        <input type="text" value="${doctor.qualification}" onchange="updateDoctor(${doctor.id}, 'qualification', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Fees:</label>
-                        <input type="text" value="${doctor.fees}" onchange="updateDoctor(${doctor.id}, 'fees', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea onchange="updateDoctor(${doctor.id}, 'description', this.value)">${doctor.description}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Image URL:</label>
-                        <input type="url" value="${doctor.image || ''}" onchange="updateDoctor(${doctor.id}, 'image', this.value)">
-                    </div>
-                    <button onclick="removeDoctor(${doctor.id})" class="btn-danger">Remove Doctor</button>
-                </div>
-            `).join('');
-        }
-
-        function populateServicesManagement() {
-            const container = document.getElementById('servicesManagement');
-            if (!container) return;
-
-            container.innerHTML = clinicData.services.map(service => `
-                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
-                    <div class="form-group">
-                        <label>Name:</label>
-                        <input type="text" value="${service.name}" onchange="updateService(${service.id}, 'name', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea onchange="updateService(${service.id}, 'description', this.value)">${service.description}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Price:</label>
-                        <input type="text" value="${service.price}" onchange="updateService(${service.id}, 'price', this.value)">
-                    </div>
-                    <div class="sub-service-management">
-                        <h4>Sub-services:</h4>
-                        <div id="subServices_${service.id}">
-                            ${service.subServices ? service.subServices.map((sub, index) => `
-                                <div style="display: flex; gap: 1rem; margin: 0.5rem 0; align-items: center;">
-                                    <input type="text" placeholder="Service name" value="${sub.name}" 
-                                           onchange="updateSubService(${service.id}, ${index}, 'name', this.value)" style="flex: 1;">
-                                    <input type="text" placeholder="Price" value="${sub.price}" 
-                                           onchange="updateSubService(${service.id}, ${index}, 'price', this.value)" style="flex: 1;">
-                                    <button onclick="removeSubService(${service.id}, ${index})" class="btn-danger" style="padding: 0.5rem;">×</button>
-                                </div>
-                            `).join('') : ''}
-                        </div>
-                        <button onclick="addSubService(${service.id})" class="btn-admin">Add Sub-service</button>
-                    </div>
-                    <button onclick="removeService(${service.id})" class="btn-danger">Remove Service</button>
-                </div>
-            `).join('');
-        }
-
-        function populateProductsManagement() {
-            const container = document.getElementById('productsManagement');
-            if (!container) return;
-
-            container.innerHTML = clinicData.products.map(product => `
-                <div style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
-                    <div class="form-group">
-                        <label>Name:</label>
-                        <input type="text" value="${product.name}" onchange="updateProduct(${product.id}, 'name', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea onchange="updateProduct(${product.id}, 'description', this.value)">${product.description}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Price:</label>
-                        <input type="text" value="${product.price}" onchange="updateProduct(${product.id}, 'price', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Image URL:</label>
-                        <input type="url" value="${product.image || ''}" onchange="updateProduct(${product.id}, 'image', this.value)">
-                    </div>
-                    <button onclick="removeProduct(${product.id})" class="btn-danger">Remove Product</button>
-                </div>
-            `).join('');
-        }
-
-        // CRUD operations for doctors
-        function addDoctor() {
-            const newDoctor = {
-                id: Date.now(),
-                name: "New Doctor",
-                qualification: "BPT",
-                fees: "₹500",
-                description: "Experienced healthcare professional.",
-                image: ""
-            };
-            
-            clinicData.doctors.push(newDoctor);
-            populateDoctorsManagement();
-            renderDoctors();
-            saveDataToFirebase();
-        }
-
-        function updateDoctor(id, field, value) {
-            const doctor = clinicData.doctors.find(d => d.id === id);
-            if (doctor) {
-                doctor[field] = value;
-                renderDoctors();
-                saveDataToFirebase();
-            }
-        }
-
-        function removeDoctor(id) {
-            if (confirm('Are you sure you want to remove this doctor?')) {
-                clinicData.doctors = clinicData.doctors.filter(d => d.id !== id);
-                populateDoctorsManagement();
-                renderDoctors();
-                saveDataToFirebase();
-            }
-        }
-
-        // CRUD operations for services
-        function addService() {
-            const newService = {
-                id: Date.now(),
-                name: "New Service",
-                description: "Description of the new service.",
-                price: "₹400",
-                subServices: []
-            };
-            
-            clinicData.services.push(newService);
-            populateServicesManagement();
-            renderServices();
-            saveDataToFirebase();
-        }
-
-        function updateService(id, field, value) {
-            const service = clinicData.services.find(s => s.id === id);
-            if (service) {
-                service[field] = value;
-                renderServices();
-                saveDataToFirebase();
-            }
-        }
-
-        function removeService(id) {
-            if (confirm('Are you sure you want to remove this service?')) {
-                clinicData.services = clinicData.services.filter(s => s.id !== id);
-                populateServicesManagement();
-                renderServices();
-                saveDataToFirebase();
-            }
-        }
-
-        function addSubService(serviceId) {
-            const service = clinicData.services.find(s => s.id === serviceId);
-            if (service) {
-                if (!service.subServices) {
-                    service.subServices = [];
-                }
-                service.subServices.push({ name: "New Sub-service", price: "₹200" });
-                populateServicesManagement();
-                renderServices();
-                saveDataToFirebase();
-            }
-        }
-
-        function updateSubService(serviceId, subIndex, field, value) {
-            const service = clinicData.services.find(s => s.id === serviceId);
-            if (service && service.subServices && service.subServices[subIndex]) {
-                service.subServices[subIndex][field] = value;
-                renderServices();
-                saveDataToFirebase();
-            }
-        }
-
-        function removeSubService(serviceId, subIndex) {
-            const service = clinicData.services.find(s => s.id === serviceId);
-            if (service && service.subServices) {
-                service.subServices.splice(subIndex, 1);
-                populateServicesManagement();
-                renderServices();
-                saveDataToFirebase();
-            }
-        }
-
-        // CRUD operations for products
-        function addProduct() {
-            const newProduct = {
-                id: Date.now(),
-                name: "New Product",
-                description: "Description of the new product.",
-                price: "₹800",
-                image: ""
-            };
-            
-            clinicData.products.push(newProduct);
-            populateProductsManagement();
-            renderProducts();
-            saveDataToFirebase();
-        }
-
-        function updateProduct(id, field, value) {
-            const product = clinicData.products.find(p => p.id === id);
-            if (product) {
-                product[field] = value;
-                renderProducts();
-                saveDataToFirebase();
-            }
-        }
-
-        function removeProduct(id) {
-            if (confirm('Are you sure you want to remove this product?')) {
-                clinicData.products = clinicData.products.filter(p => p.id !== id);
-                populateProductsManagement();
-                renderProducts();
-                saveDataToFirebase();
-            }
-        }
-
-        // Save all data
-        function saveAllData() {
-            saveDataToFirebase().then(success => {
-                if (success) {
-                    alert('All changes saved successfully!');
-                } else {
-                    alert('Error saving data. Please try again.');
-                }
-            });
-        }
-
-        // Handle browser back/forward
-        window.addEventListener('popstate', function(event) {
-            if (event.state && event.state.page) {
-                showPage(event.state.page);
-            } else {
-                showPage('home');
-            }
-        });
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            const doctorModal = document.getElementById('doctorModal');
-            const adminLoginModal = document.getElementById('adminLoginModal');
-            
-            if (event.target === doctorModal) {
-                closeDoctorModal();
-            }
-            if (event.target === adminLoginModal) {
-                closeAdminLogin();
-            }
-        });
-
-        // Initialize URL routing
-        window.addEventListener('load', function() {
-            const hash = window.location.hash.substring(1);
-            if (hash && document.getElementById(hash)) {
-                showPage(hash);
-            }
-        });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', function() {
-            if (unsubscribeSnapshot) {
-                unsubscribeSnapshot();
-            }
-        });
-    </script>
+      } else if (type === 'product') {
+        clinicData.products[index][field] = el.value;
+      }
+      saveToLocalStorage();
+    }
+
+    // Admin basic info handlers
+    window.updateBasicInfoAdmin = function() {
+      clinicData.basic.name = document.getElementById('adminClinicName').value;
+      clinicData.basic.tagline = document.getElementById('adminTagline').value;
+      clinicData.basic.phone = document.getElementById('adminPhone').value;
+      clinicData.basic.location = document.getElementById('adminLocation').value;
+      renderBasicInfo();
+      saveToLocalStorage();
+    }
+
+    window.updateLogo = function() {
+      const url = document.getElementById('logoImageUrl').value;
+      clinicData.basic.logoImage = url;
+      const prev = document.getElementById('logoPreview');
+      if (url) { prev.src = url; prev.style.display = 'block'; }
+      else { prev.style.display = 'none'; }
+      updateImages();
+      saveToLocalStorage();
+    }
+
+    window.updateHeroBanner = function() {
+      const url = document.getElementById('heroBannerUrl').value;
+      clinicData.basic.heroBannerImage = url;
+      const prev = document.getElementById('heroBannerPreview');
+      if (url) { prev.src = url; prev.style.display = 'block'; }
+      else { prev.style.display = 'none'; }
+      updateImages();
+      saveToLocalStorage();
+    }
+
+    window.updateServicesBanner = function() {
+      const url = document.getElementById('servicesBannerUrl').value;
+      clinicData.basic.servicesBannerImage = url;
+      const prev = document.getElementById('servicesBannerPreview');
+      if (url) { prev.src = url; prev.style.display = 'block'; }
+      else { prev.style.display = 'none'; }
+      updateImages();
+      saveToLocalStorage();
+    }
+
+    window.updateMessages = function() {
+      clinicData.messages.appointment = document.getElementById('appointmentMessage').value;
+      clinicData.messages.doctorBooking = document.getElementById('doctorBookingMessage').value;
+      clinicData.messages.serviceBooking = document.getElementById('serviceBookingMessage').value;
+      clinicData.messages.productPurchase = document.getElementById('productPurchaseMessage').value;
+      saveToLocalStorage();
+    }
+
+    // Admin actions
+    window.addDoctor = function() {
+      const nextId = clinicData.doctors.length ? Math.max(...clinicData.doctors.map(d => d.id || 0)) + 1 : 1;
+      clinicData.doctors.push({ id: nextId, name: "New Doctor", qualification: "", fees: "", description: "", image: "" });
+      renderAllViews();
+      saveToLocalStorage();
+    }
+
+    window.addService = function() {
+      const nextId = clinicData.services.length ? Math.max(...clinicData.services.map(s => s.id || 0)) + 1 : 1;
+      clinicData.services.push({ id: nextId, name: "New Service", description: "", price: "", subServices: [] });
+      renderAllViews();
+      saveToLocalStorage();
+    }
+
+    window.addProduct = function() {
+      const nextId = clinicData.products.length ? Math.max(...clinicData.products.map(p => p.id || 0)) + 1 : 1;
+      clinicData.products.push({ id: nextId, name: "New Product", description: "", price: "", image: "" });
+      renderAllViews();
+      saveToLocalStorage();
+    }
+
+    window.saveAllData = async function() {
+      showLoading(true);
+      const ok = await saveDataToFirebase();
+      showLoading(false);
+      if (!ok) alert('Failed to save to Firebase. Changes saved locally.');
+    }
+
+    // Auth-less Admin (as per original)
+    window.openAdminLogin = function() {
+      document.getElementById('adminLoginModal').style.display = 'block';
+    }
+    window.closeAdminLogin = function() {
+      document.getElementById('adminLoginModal').style.display = 'none';
+    }
+    window.adminLogin = function(e) {
+      e.preventDefault();
+      const u = document.getElementById('adminUsername').value;
+      const p = document.getElementById('adminPassword').value;
+      if (u === adminCredentials.username && p === adminCredentials.password) {
+        closeAdminLogin();
+        openAdminPanel();
+      } else {
+        alert('Invalid credentials');
+      }
+    }
+    window.openAdminPanel = function() {
+      document.getElementById('adminPanel').style.display = 'block';
+    }
+    window.closeAdminPanel = function() {
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    // Modal controls
+    window.openDoctorModal = function(doc) {
+      const modal = document.getElementById('doctorModal');
+      const details = document.getElementById('doctorDetails');
+      details.innerHTML = `
+        <h2>${doc.name}</h2>
+        <p>${doc.qualification || ''}</p>
+        <p>${doc.description || ''}</p>
+        <p><strong>Fees:</strong> ${doc.fees || ''}</p>
+        <button class="btn-book" onclick="bookDoctor('${encodeURIComponent(doc.name)}')">Book with ${doc.name}</button>
+      `;
+      modal.style.display = 'block';
+    }
+    window.closeDoctorModal = function() {
+      document.getElementById('doctorModal').style.display = 'none';
+    }
+
+    // Booking and WhatsApp helpers
+    function openWhatsApp(message) {
+      const text = encodeURIComponent(message);
+      const url = `https://wa.me/${WHATSAPP_NUMBER.replace('+','')}?text=${text}`;
+      window.open(url, '_blank');
+    }
+
+    window.bookAppointment = function() {
+      const msg = clinicData.messages?.appointment || "Hello, I would like to book an appointment.";
+      openWhatsApp(msg);
+    }
+
+    window.bookDoctor = function(encodedName) {
+      const name = decodeURIComponent(encodedName);
+      const template = clinicData.messages?.doctorBooking || "Hello, I would like to book an appointment with Dr. {doctorName}.";
+      const msg = template.replace('{doctorName}', name);
+      openWhatsApp(msg);
+    }
+
+    window.bookService = function(encodedService) {
+      const name = decodeURIComponent(encodedService);
+      const template = clinicData.messages?.serviceBooking || "Hello, I would like to book {serviceName} service.";
+      const msg = template.replace('{serviceName}', name);
+      openWhatsApp(msg);
+    }
+
+    window.buyProduct = function(encodedProduct) {
+      const name = decodeURIComponent(encodedProduct);
+      const template = clinicData.messages?.productPurchase || "Hello, I would like to buy {productName}.";
+      const msg = template.replace('{productName}', name);
+      openWhatsApp(msg);
+    }
+
+    // Close modals on outside click
+    window.onclick = function(event) {
+      const modals = ['doctorModal', 'adminLoginModal'];
+      modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if (event.target === modal) modal.style.display = 'none';
+      });
+    }
+  </script>
 </body>
 </html>
