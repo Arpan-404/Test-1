@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Social App</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Hide scrollbar for aesthetics but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main Container -->
+    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <!-- Header -->
+        <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-blue-600">FireFeed</h1>
+            <div id="user-info" class="hidden items-center">
+                <p id="user-email" class="text-sm text-gray-600 mr-4 hidden md:block"></p>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Logout</button>
+            </div>
+        </header>
+
+        <!-- Error/Message Display -->
+        <div id="message-box" class="hidden p-3 mb-4 text-center text-white rounded-lg"></div>
+
+        <!-- Login View -->
+        <div id="login-view">
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+                <h2 class="text-2xl font-bold text-center mb-6">Login or Sign Up</h2>
+                <div class="space-y-4">
+                    <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" id="password-input" placeholder="Password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="login-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Login</button>
+                        <button id="signup-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
+                    </div>
+                    <div class="relative flex py-3 items-center">
+                        <div class="flex-grow border-t border-gray-300"></div>
+                        <span class="flex-shrink mx-4 text-gray-500">OR</span>
+                        <div class="flex-grow border-t border-gray-300"></div>
+                    </div>
+                     <button id="google-signin-button" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center">
+                        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google logo" class="h-5 mr-2">
+                        Sign in with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App View (Logged In) -->
+        <div id="main-view" class="hidden">
+            <!-- Post Creation Form -->
+            <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-xl font-bold mb-4">Create a Post</h2>
+                <form id="post-form">
+                    <textarea id="post-text-input" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="What's on your mind?"></textarea>
+                    
+                    <!-- Input for image URL instead of file upload -->
+                    <input type="text" id="image-url-input" placeholder="Paste image URL here (optional)" class="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                    <div class="flex justify-end items-center mt-4">
+                        <button type="submit" id="submit-post-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300">
+                            Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Posts Feed -->
+            <div id="posts-container" class="space-y-6">
+                <!-- Posts will be dynamically inserted here -->
+                <div id="loading-spinner" class="text-center py-10">
+                    <p class="text-gray-500">Loading posts...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import functions from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            onSnapshot,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 1. INITIALIZATION ---
+        // IMPORTANT: This configuration is provided by the environment. Do not change it.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID", storageBucket: "YOUR_STORAGE_BUCKET", messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID" };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- 2. DOM ELEMENT REFERENCES ---
+        const loginView = document.getElementById('login-view');
+        const mainView = document.getElementById('main-view');
+        const userInfo = document.getElementById('user-info');
+        const userEmailDisplay = document.getElementById('user-email');
+        const messageBox = document.getElementById('message-box');
+        
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const loginButton = document.getElementById('login-button');
+        const signupButton = document.getElementById('signup-button');
+        const googleSigninButton = document.getElementById('google-signin-button');
+        const logoutButton = document.getElementById('logout-button');
+
+        const postForm = document.getElementById('post-form');
+        const postTextInput = document.getElementById('post-text-input');
+        const imageUrlInput = document.getElementById('image-url-input');
+        const submitPostButton = document.getElementById('submit-post-button');
+        const postsContainer = document.getElementById('posts-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        let postsUnsubscribe = null;
+
+        // --- 3. AUTHENTICATION LOGIC ---
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                userEmailDisplay.textContent = user.email;
+                loginView.classList.add('hidden');
+                mainView.classList.remove('hidden');
+                userInfo.classList.remove('hidden');
+                userInfo.classList.add('flex');
+                listenForPosts();
+            } else {
+                userEmailDisplay.textContent = '';
+                loginView.classList.remove('hidden');
+                mainView.classList.add('hidden');
+                userInfo.classList.add('hidden');
+                userInfo.classList.remove('flex');
+                if (postsUnsubscribe) postsUnsubscribe();
+                postsContainer.innerHTML = '';
+            }
+        });
+
+        signupButton.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) return showMessage('Please enter email and password.', 'error');
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage('Sign up successful!', 'success');
+            } catch (error) { showMessage(error.message, 'error'); }
+        });
+
+        loginButton.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) return showMessage('Please enter email and password.', 'error');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage('Login successful!', 'success');
+            } catch (error) { showMessage(error.message, 'error'); }
+        });
+
+        googleSigninButton.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showMessage('Google sign-in successful!', 'success');
+            } catch (error) { showMessage(error.message, 'error'); }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage('You have been logged out.', 'success');
+            } catch (error) { showMessage(error.message, 'error'); }
+        });
+
+
+        // --- 4. FIRESTORE LOGIC ---
+
+        // Handle post submission
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const postText = postTextInput.value;
+            const imageUrl = imageUrlInput.value.trim();
+            const user = auth.currentUser;
+
+            if (!user) return showMessage('You must be logged in to post.', 'error');
+            if (!postText && !imageUrl) return showMessage('Please write some text or provide an image URL.', 'error');
+
+            submitPostButton.disabled = true;
+            submitPostButton.textContent = 'Posting...';
+
+            try {
+                await createPost(postText, imageUrl || null, user);
+                resetPostForm();
+            } catch (error) {
+                console.error("Post creation error:", error);
+                showMessage('Error creating post. Please try again.', 'error');
+                resetPostForm();
+            }
+        });
+
+        // Function to add a post document to Firestore
+        async function createPost(text, imageUrl, user) {
+             await addDoc(collection(db, "posts"), {
+                text: text,
+                imageUrl: imageUrl,
+                authorEmail: user.email,
+                createdAt: serverTimestamp()
+            });
+            showMessage('Post created successfully!', 'success');
+        }
+        
+        // Function to listen for new posts in real-time
+        function listenForPosts() {
+            const q = query(collection(db, "posts")); 
+            postsUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                loadingSpinner.classList.add('hidden');
+                let posts = [];
+                querySnapshot.forEach((doc) => posts.push({ id: doc.id, ...doc.data() }));
+                posts.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+                renderPosts(posts);
+            }, (error) => {
+                console.error("Error fetching posts:", error);
+                showMessage("Could not fetch posts.", "error");
+            });
+        }
+
+        // --- 5. UI HELPER FUNCTIONS ---
+
+        function renderPosts(posts) {
+            postsContainer.innerHTML = '';
+            if (posts.length === 0) {
+                postsContainer.innerHTML = '<p class="text-center text-gray-500">No posts yet. Be the first to post!</p>';
+                return;
+            }
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'bg-white p-5 rounded-xl shadow-md';
+                const postDate = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+                let imageHTML = '';
+                if (post.imageUrl) {
+                    imageHTML = `<img src="${post.imageUrl}" alt="Post image" class="mt-4 rounded-lg w-full max-h-96 object-cover" onerror="this.style.display='none'; this.alt='Image could not be loaded.'">`;
+                }
+                postElement.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <div class="font-bold text-blue-600">${post.authorEmail}</div>
+                        <div class="text-xs text-gray-500 ml-auto">${postDate}</div>
+                    </div>
+                    <p class="text-gray-800 whitespace-pre-wrap">${post.text || ''}</p>
+                    ${imageHTML}
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = `p-3 mb-4 text-center text-white rounded-lg ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 3000);
+        }
+        
+        function resetPostForm() {
+            postForm.reset();
+            submitPostButton.disabled = false;
+            submitPostButton.textContent = 'Post';
+        }
+    </script>
+</body>
+</html>
