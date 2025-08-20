@@ -118,10 +118,16 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 1. INITIALIZATION ---
-        // IMPORTANT: This configuration is provided by the environment. Do not change it.
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID", storageBucket: "YOUR_STORAGE_BUCKET", messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID" };
+        // Your web app's Firebase configuration with your actual keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyCbyPeq_cCsKGPKtQgJiE9IIEmvuKB354s",
+            authDomain: "test-6aa2a.firebaseapp.com",
+            projectId: "test-6aa2a",
+            storageBucket: "test-6aa2a.firebasestorage.app",
+            messagingSenderId: "885407505484",
+            appId: "1:885407505484:web:bd41c21a69a1f097f4a8e9",
+            measurementId: "G-T93J97T4M9"
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
