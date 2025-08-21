@@ -363,22 +363,19 @@
             transform: translateY(-2px);
         }
 
-        /* Homepage Services and Products Sections */
-        .services-preview, .products-preview {
+        /* Homepage Services Section */
+        .services-preview {
             padding: 1.5rem;
-            margin: 1rem;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 20px;
         }
 
-        .services-preview-grid, .products-preview-grid {
+        .services-preview-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 1rem;
         }
 
-        .service-preview-card, .product-preview-card {
+        .service-preview-card {
             background: white;
             border-radius: 15px;
             padding: 1.2rem;
@@ -388,11 +385,54 @@
             cursor: pointer;
         }
 
-        .service-preview-card:hover, .product-preview-card:hover {
+        .service-preview-card:hover {
             transform: translateY(-3px);
         }
 
-        .service-preview-image, .product-preview-image {
+        .service-preview-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .service-preview-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-preview-description {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Homepage Products Section */
+        .products-preview {
+            padding: 1.5rem;
+        }
+
+        .products-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-preview-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+
+        .product-preview-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .product-preview-image {
             width: 100%;
             height: 100px;
             background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%);
@@ -405,23 +445,18 @@
             margin-bottom: 0.8rem;
         }
 
-        .service-preview-title, .product-preview-title {
-            font-size: 1rem;
+        .product-preview-title {
+            font-size: 0.9rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .service-preview-description, .product-preview-description {
-            color: #666;
-            font-size: 0.85rem;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.3rem;
         }
 
         .product-preview-price {
             color: #2c8577;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         /* Full page sections */
@@ -553,26 +588,13 @@
 
         .doctor-details-content {
             background-color: white;
-            margin: 10% auto;
+            margin: 15% auto;
             padding: 2rem;
             border-radius: 20px;
             width: 90%;
             max-width: 500px;
             position: relative;
             text-align: center;
-        }
-
-        .doctor-details-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%);
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: #2c8577;
         }
 
         /* Admin Login Modal */
@@ -637,33 +659,281 @@
             border-color: #2c8577;
         }
 
-        /* Admin Dashboard */
+        /* Enhanced Admin Dashboard */
         .admin-dashboard {
             display: none;
-            padding: 2rem;
-            background: white;
-            margin: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #f8f9fa;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .dashboard-header {
+        .admin-dashboard.active {
+            display: block;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
         }
 
-        .dashboard-section {
-            margin-bottom: 2rem;
+        .admin-header h2 {
+            color: #333;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .admin-tabs {
+            background: white;
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .admin-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #495057;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .admin-tab.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            font-weight: 600;
+        }
+
+        .admin-tab:hover {
+            background: #f8f9fa;
+        }
+
+        .admin-content {
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-section {
+            background: white;
             padding: 1.5rem;
-            border: 2px solid #e8f5f3;
-            border-radius: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
         }
 
-        .dashboard-section h3 {
-            color: #2c8577;
+        .form-section h3 {
+            color: #333;
             margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row.two-col {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            outline: 0;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .form-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .url-input {
+            position: relative;
+        }
+
+        .url-preview {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+
+        .update-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .update-btn:hover {
+            background: #218838;
+        }
+
+        .add-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .add-btn:hover {
+            background: #0056b3;
+        }
+
+        .item-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .item {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: #333;
+        }
+
+        .item-info p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #138496;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        /* Edit Form Modal */
+        .edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .edit-modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
         }
 
         /* Service Details Modal */
@@ -696,6 +966,34 @@
             align-items: center;
             padding: 0.75rem 0;
             border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
         /* Responsive Design */
@@ -739,10 +1037,6 @@
                 margin-top: 2rem;
             }
 
-            .services-preview-grid, .products-preview-grid {
-                grid-template-columns: 1fr;
-            }
-
             .back-btn {
                 top: 55px;
                 font-size: 0.8rem;
@@ -751,6 +1045,27 @@
 
             .page-title {
                 font-size: 1.6rem;
+            }
+
+            .services-preview-grid, .products-preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+
+            .admin-tab {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .admin-content {
+                padding: 1rem;
+            }
+
+            .form-row.two-col {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -864,12 +1179,12 @@
     <div id="doctorDetailsModal" class="doctor-details">
         <div class="doctor-details-content">
             <span class="close" onclick="closeDoctorDetails()">&times;</span>
-            <div class="doctor-details-avatar" id="doctorDetailsAvatar">👨‍⚕️</div>
-            <h2 id="doctorDetailsName" style="color: #2c8577; margin-bottom: 0.5rem;"></h2>
-            <p id="doctorDetailsQualification" style="color: #666; margin-bottom: 1rem;"></p>
-            <div id="doctorDetailsFees" style="color: #2c8577; font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem;"></div>
-            <p id="doctorDetailsDescription" style="color: #666; margin-bottom: 2rem;"></p>
-            <button class="btn btn-primary" id="doctorDetailsBookBtn">Book Appointment</button>
+            <div class="doctor-avatar" id="modalDoctorAvatar">👨‍⚕️</div>
+            <h2 id="modalDoctorName" style="color: #2c8577; margin-bottom: 0.5rem;"></h2>
+            <p id="modalDoctorQualification" style="color: #666; margin-bottom: 0.5rem;"></p>
+            <p id="modalDoctorFees" style="color: #2c8577; font-weight: 600; font-size: 1.2rem; margin-bottom: 1rem;"></p>
+            <p id="modalDoctorDetails" style="color: #666; margin-bottom: 1.5rem;"></p>
+            <button class="btn btn-primary" id="modalBookingBtn">Book Appointment</button>
         </div>
     </div>
 
@@ -903,55 +1218,112 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
+    <!-- Edit Modal -->
+    <div id="editModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3 id="editModalTitle">Edit Item</h3>
+            <div id="editModalContent">
+                <!-- Edit form will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Admin Dashboard -->
     <div class="admin-dashboard" id="adminDashboard">
-        <div class="dashboard-header">
-            <h2 style="color: #2c8577;">Admin Dashboard</h2>
-            <button class="btn" onclick="logout()">Logout</button>
-        </div>
+        <header class="admin-header">
+            <h2>Admin Dashboard</h2>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
 
-        <div class="dashboard-section">
-            <h3>Hero Section</h3>
-            <div class="form-group">
-                <label>Clinic Name:</label>
-                <input type="text" id="editClinicName" placeholder="Clinic Name">
-            </div>
-            <div class="form-group">
-                <label>Hero Title:</label>
-                <input type="text" id="editHeroTitle" placeholder="Hero Title">
-            </div>
-            <div class="form-group">
-                <label>Tagline:</label>
-                <input type="text" id="editTagline" placeholder="Tagline">
-            </div>
-            <div class="form-group">
-                <label>Phone Number:</label>
-                <input type="text" id="editPhone" placeholder="Phone Number">
-            </div>
-            <button class="btn btn-primary" onclick="updateHero()">Update Hero Section</button>
-        </div>
+        <nav class="admin-tabs">
+            <button class="admin-tab active" data-tab="clinic">Clinic Info</button>
+            <button class="admin-tab" data-tab="doctors">Doctors</button>
+            <button class="admin-tab" data-tab="services">Services</button>
+            <button class="admin-tab" data-tab="products">Products</button>
+        </nav>
 
-        <div class="dashboard-section">
-            <h3>Doctors</h3>
-            <button class="btn btn-primary" onclick="addDoctor()">Add New Doctor</button>
-            <div id="doctorsManagement">
-                <!-- Doctor management will be loaded here -->
-            </div>
-        </div>
+        <div class="admin-content">
+            <!-- Clinic Info Tab -->
+            <div class="tab-panel active" id="clinic-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalDoctors">3</div>
+                        <div class="stat-label">Total Doctors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalServices">3</div>
+                        <div class="stat-label">Total Services</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalProducts">3</div>
+                        <div class="stat-label">Total Products</div>
+                    </div>
+                </div>
 
-        <div class="dashboard-section">
-            <h3>Services</h3>
-            <button class="btn btn-primary" onclick="addService()">Add New Service</button>
-            <div id="servicesManagement">
-                <!-- Services management will be loaded here -->
+                <div class="form-section">
+                    <h3>Clinic Information</h3>
+                    <div class="form-row two-col">
+                        <div class="form-field">
+                            <label>Clinic Name</label>
+                            <input type="text" id="adminClinicName" placeholder="Enter clinic name">
+                        </div>
+                        <div class="form-field">
+                            <label>Phone</label>
+                            <input type="tel" id="adminPhone" placeholder="Enter phone number">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Tagline</label>
+                            <input type="text" id="adminTagline" placeholder="Enter tagline">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Email</label>
+                            <input type="email" id="adminEmail" placeholder="Enter email address">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Banner Image URL (imgbb, etc.)</label>
+                            <input type="url" id="bannerImageUrl" placeholder="https://i.ibb.co/..." oninput="previewImage(this, 'bannerPreview')">
+                            <img id="bannerPreview" class="image-preview" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Banner Video URL (Optional)</label>
+                            <input type="url" id="bannerVideoUrl" placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+                    </div>
+                    <button class="update-btn" onclick="updateClinicInfo()">Update Clinic Info</button>
+                </div>
             </div>
-        </div>
 
-        <div class="dashboard-section">
-            <h3>Products</h3>
-            <button class="btn btn-primary" onclick="addProduct()">Add New Product</button>
-            <div id="productsManagement">
-                <!-- Products management will be loaded here -->
+            <!-- Doctors Tab -->
+            <div class="tab-panel" id="doctors-panel">
+                <button class="add-btn" onclick="addNewDoctor()">Add New Doctor</button>
+                <div class="item-list" id="doctorsAdminList">
+                    <!-- Doctors will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Services Tab -->
+            <div class="tab-panel" id="services-panel">
+                <button class="add-btn" onclick="addNewService()">Add New Service</button>
+                <div class="item-list" id="servicesAdminList">
+                    <!-- Services will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Products Tab -->
+            <div class="tab-panel" id="products-panel">
+                <button class="add-btn" onclick="addNewProduct()">Add New Product</button>
+                <div class="item-list" id="productsAdminList">
+                    <!-- Products will be loaded here -->
+                </div>
             </div>
         </div>
     </div>
@@ -959,7 +1331,7 @@
     <script type="module">
         // Firebase Configuration
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
-        import { getDatabase, ref, get, set, push } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
+        import { getDatabase, ref, get, set, push, remove } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
 
         const firebaseConfig = {
@@ -983,7 +1355,10 @@
                 clinicName: "Physio - The Therapeutic Moves",
                 title: "Therapeutic Moves",
                 tagline: '"We add life in your days."',
-                phone: "+91 9641568109"
+                phone: "+91 9641568109",
+                email: "DrArpanDas.PT@gmail.com",
+                bannerImageUrl: "",
+                bannerVideoUrl: ""
             },
             doctors: [
                 {
@@ -991,21 +1366,27 @@
                     name: "Dr. Arpan Das",
                     qualification: "BPT",
                     fees: "₹500",
-                    details: "Experienced physiotherapist specializing in sports injuries and rehabilitation. With over 8 years of experience, Dr. Arpan has helped countless patients recover from injuries and improve their quality of life."
+                    details: "Experienced physiotherapist specializing in sports injuries and rehabilitation.",
+                    photoUrl: "",
+                    videoUrl: ""
                 },
                 {
                     id: 2,
                     name: "Dr. Jhunu Das",
                     qualification: "DPT",
                     fees: "₹600",
-                    details: "Expert in neurological rehabilitation and pediatric physiotherapy. Dr. Jhunu specializes in treating children and adults with neurological conditions and has extensive training in advanced therapeutic techniques."
+                    details: "Expert in neurological rehabilitation and pediatric physiotherapy.",
+                    photoUrl: "",
+                    videoUrl: ""
                 },
                 {
                     id: 3,
                     name: "Dr. Apurba Das",
                     qualification: "DPT",
                     fees: "₹600",
-                    details: "Specialist in orthopedic conditions and manual therapy techniques. Dr. Apurba focuses on treating musculoskeletal disorders and has specialized training in manual therapy and pain management."
+                    details: "Specialist in orthopedic conditions and manual therapy techniques.",
+                    photoUrl: "",
+                    videoUrl: ""
                 }
             ],
             services: [
@@ -1014,6 +1395,8 @@
                     title: "Physical Therapy",
                     description: "Comprehensive physical rehabilitation and therapeutic exercises.",
                     icon: "🏃‍♂️",
+                    bannerImageUrl: "",
+                    bannerVideoUrl: "",
                     tests: [
                         { name: "Movement Assessment", price: "₹300" },
                         { name: "Strength Testing", price: "₹250" },
@@ -1025,6 +1408,8 @@
                     title: "Pain Management",
                     description: "Specialized treatment for chronic and acute pain conditions.",
                     icon: "💊",
+                    bannerImageUrl: "",
+                    bannerVideoUrl: "",
                     tests: [
                         { name: "Pain Assessment", price: "₹400" },
                         { name: "Trigger Point Therapy", price: "₹600" },
@@ -1036,6 +1421,8 @@
                     title: "Sports Rehabilitation",
                     description: "Recovery programs for sports-related injuries and performance enhancement.",
                     icon: "⚽",
+                    bannerImageUrl: "",
+                    bannerVideoUrl: "",
                     tests: [
                         { name: "Sports Injury Assessment", price: "₹500" },
                         { name: "Performance Analysis", price: "₹700" },
@@ -1049,21 +1436,24 @@
                     name: "Lumbar Support Belt",
                     description: "Medical grade lumbar support for back pain relief",
                     price: "₹1200",
-                    image: "🎒"
+                    imageUrl: "",
+                    videoUrl: ""
                 },
                 {
                     id: 2,
                     name: "Knee Support Brace",
                     description: "Adjustable knee brace for injury support and prevention",
                     price: "₹800",
-                    image: "🎒"
+                    imageUrl: "",
+                    videoUrl: ""
                 },
                 {
                     id: 3,
                     name: "Resistance Bands Set",
                     description: "Professional resistance bands for rehabilitation exercises",
                     price: "₹600",
-                    image: "🎒"
+                    imageUrl: "",
+                    videoUrl: ""
                 }
             ]
         };
@@ -1076,10 +1466,8 @@
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
             if (scrollTop > lastScrollTop && scrollTop > 80) {
-                // Scrolling down & past threshold
                 header.classList.add('hidden');
             } else {
-                // Scrolling up
                 header.classList.remove('hidden');
             }
             
@@ -1090,22 +1478,52 @@
         window.currentPage = 'home';
 
         window.showPage = function(pageId) {
-            // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
             });
             
-            // Show selected page
             document.getElementById(pageId + 'Page').classList.add('active');
             window.currentPage = pageId;
             
-            // Close mobile menu if open
             if (document.getElementById('mobileMenu').classList.contains('active')) {
                 toggleMenu();
             }
             
-            // Scroll to top
             window.scrollTo(0, 0);
+        }
+
+        // Admin Dashboard Tab Navigation
+        function initAdminTabs() {
+            const tabs = document.querySelectorAll('.admin-tab');
+            const panels = document.querySelectorAll('.tab-panel');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+                });
+            });
+        }
+
+        // Image Preview Function
+        window.previewImage = function(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.value && isValidImageUrl(input.value)) {
+                preview.src = input.value;
+                preview.style.display = 'block';
+                preview.onerror = () => {
+                    preview.style.display = 'none';
+                };
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function isValidImageUrl(url) {
+            return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url) || url.includes('i.ibb.co') || url.includes('imgur.com');
         }
 
         // Load data from Firebase or use default
@@ -1120,6 +1538,14 @@
             }
             
             renderSite();
+            updateStats();
+        }
+
+        // Update Statistics
+        function updateStats() {
+            document.getElementById('totalDoctors').textContent = window.siteData.doctors.length;
+            document.getElementById('totalServices').textContent = window.siteData.services.length;
+            document.getElementById('totalProducts').textContent = window.siteData.products.length;
         }
 
         // Render site content
@@ -1131,6 +1557,7 @@
             renderDoctors();
             renderServices();
             renderProducts();
+            renderAdminLists();
         }
 
         function renderHero() {
@@ -1144,13 +1571,17 @@
             const container = document.getElementById('doctorsPreview');
             container.innerHTML = '';
             
-            // Show only first 3 doctors
             window.siteData.doctors.slice(0, 3).forEach(doctor => {
                 const doctorCard = document.createElement('div');
                 doctorCard.className = 'doctor-preview-card';
                 doctorCard.onclick = () => showDoctorDetails(doctor);
+                
+                const avatarContent = doctor.photoUrl ? 
+                    `<img src="${doctor.photoUrl}" alt="${doctor.name}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">` :
+                    '<div class="doctor-preview-avatar">👨‍⚕️</div>';
+                
                 doctorCard.innerHTML = `
-                    <div class="doctor-preview-avatar">👨‍⚕️</div>
+                    ${avatarContent}
                     <div class="doctor-preview-name">${doctor.name.replace('Dr. ', '')}</div>
                     <div class="doctor-preview-qualification">${doctor.qualification}</div>
                 `;
@@ -1162,15 +1593,15 @@
             const container = document.getElementById('servicesPreview');
             container.innerHTML = '';
             
-            // Show only first 2 services
-            window.siteData.services.slice(0, 2).forEach(service => {
+            window.siteData.services.slice(0, 3).forEach(service => {
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-preview-card';
                 serviceCard.onclick = () => showServiceDetails(service);
                 serviceCard.innerHTML = `
-                    <div class="service-preview-image">${service.icon}</div>
+                    <div class="service-preview-icon">${service.icon}</div>
                     <div class="service-preview-title">${service.title}</div>
                     <div class="service-preview-description">${service.description}</div>
+                    <button class="btn btn-primary">View Details</button>
                 `;
                 container.appendChild(serviceCard);
             });
@@ -1180,15 +1611,21 @@
             const container = document.getElementById('productsPreview');
             container.innerHTML = '';
             
-            // Show only first 2 products
-            window.siteData.products.slice(0, 2).forEach(product => {
+            window.siteData.products.slice(0, 3).forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-preview-card';
+                
+                const imageContent = product.imageUrl ?
+                    `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 10px; margin-bottom: 0.8rem;">` :
+                    '<div class="product-preview-image">🎒</div>';
+                
                 productCard.innerHTML = `
-                    <div class="product-preview-image">${product.image}</div>
+                    ${imageContent}
                     <div class="product-preview-title">${product.name}</div>
-                    <div class="product-preview-description">${product.description}</div>
                     <div class="product-preview-price">${product.price}</div>
+                    <button class="btn btn-primary" onclick="buyProduct('${product.name}')">
+                        🛒 Buy Now
+                    </button>
                 `;
                 container.appendChild(productCard);
             });
@@ -1201,8 +1638,13 @@
             window.siteData.doctors.forEach(doctor => {
                 const doctorCard = document.createElement('div');
                 doctorCard.className = 'doctor-card';
+                
+                const avatarContent = doctor.photoUrl ?
+                    `<img src="${doctor.photoUrl}" alt="${doctor.name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem;">` :
+                    '<div class="doctor-avatar">👨‍⚕️</div>';
+                
                 doctorCard.innerHTML = `
-                    <div class="doctor-avatar" onclick="showDoctorDetails(${JSON.stringify(doctor).replace(/"/g, '&quot;')})" style="cursor: pointer;">👨‍⚕️</div>
+                    ${avatarContent}
                     <div class="doctor-name">${doctor.name}</div>
                     <div class="doctor-qualification">${doctor.qualification}</div>
                     <div class="doctor-fees">${doctor.fees}</div>
@@ -1222,8 +1664,13 @@
             window.siteData.services.forEach(service => {
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-card';
+                
+                const imageContent = service.bannerImageUrl ?
+                    `<img src="${service.bannerImageUrl}" alt="${service.title}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem;">` :
+                    `<div class="service-image">${service.icon}</div>`;
+                
                 serviceCard.innerHTML = `
-                    <div class="service-image">${service.icon}</div>
+                    ${imageContent}
                     <div class="service-title">${service.title}</div>
                     <div class="service-description">${service.description}</div>
                     <button class="btn btn-primary" onclick="showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})">
@@ -1241,8 +1688,13 @@
             window.siteData.products.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
+                
+                const imageContent = product.imageUrl ?
+                    `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem;">` :
+                    '<div class="product-image">🎒</div>';
+                
                 productCard.innerHTML = `
-                    <div class="product-image">${product.image}</div>
+                    ${imageContent}
                     <div class="product-title">${product.name}</div>
                     <div class="product-description">${product.description}</div>
                     <div class="product-price">${product.price}</div>
@@ -1254,24 +1706,409 @@
             });
         }
 
-        // Doctor details modal functions
-        window.showDoctorDetails = function(doctor) {
-            document.getElementById('doctorDetailsName').textContent = doctor.name;
-            document.getElementById('doctorDetailsQualification').textContent = doctor.qualification;
-            document.getElementById('doctorDetailsFees').textContent = `Consultation Fee: ${doctor.fees}`;
-            document.getElementById('doctorDetailsDescription').textContent = doctor.details;
-            
-            // Set up book appointment button
-            document.getElementById('doctorDetailsBookBtn').onclick = () => {
-                bookDoctorAppointment(doctor.name);
-                closeDoctorDetails();
-            };
-            
-            document.getElementById('doctorDetailsModal').style.display = 'block';
+        // Render Admin Lists
+        function renderAdminLists() {
+            renderDoctorsAdminList();
+            renderServicesAdminList();
+            renderProductsAdminList();
+            loadAdminFormData();
         }
 
-        window.closeDoctorDetails = function() {
-            document.getElementById('doctorDetailsModal').style.display = 'none';
+        function renderDoctorsAdminList() {
+            const container = document.getElementById('doctorsAdminList');
+            container.innerHTML = '';
+            
+            window.siteData.doctors.forEach(doctor => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <h4>${doctor.name}</h4>
+                        <p>${doctor.qualification} - ${doctor.fees}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="editDoctor(${doctor.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteDoctor(${doctor.id})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderServicesAdminList() {
+            const container = document.getElementById('servicesAdminList');
+            container.innerHTML = '';
+            
+            window.siteData.services.forEach(service => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <h4>${service.title}</h4>
+                        <p>${service.description}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="editService(${service.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteService(${service.id})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderProductsAdminList() {
+            const container = document.getElementById('productsAdminList');
+            container.innerHTML = '';
+            
+            window.siteData.products.forEach(product => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <h4>${product.name}</h4>
+                        <p>${product.price} - ${product.description}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="editProduct(${product.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadAdminFormData() {
+            const hero = window.siteData.hero;
+            document.getElementById('adminClinicName').value = hero.clinicName || '';
+            document.getElementById('adminTagline').value = hero.tagline || '';
+            document.getElementById('adminPhone').value = hero.phone || '';
+            document.getElementById('adminEmail').value = hero.email || '';
+            document.getElementById('bannerImageUrl').value = hero.bannerImageUrl || '';
+            document.getElementById('bannerVideoUrl').value = hero.bannerVideoUrl || '';
+            
+            if (hero.bannerImageUrl) {
+                previewImage(document.getElementById('bannerImageUrl'), 'bannerPreview');
+            }
+        }
+
+        // Admin Functions
+        window.updateClinicInfo = async function() {
+            const heroData = {
+                clinicName: document.getElementById('adminClinicName').value,
+                title: document.getElementById('adminClinicName').value,
+                tagline: document.getElementById('adminTagline').value,
+                phone: document.getElementById('adminPhone').value,
+                email: document.getElementById('adminEmail').value,
+                bannerImageUrl: document.getElementById('bannerImageUrl').value,
+                bannerVideoUrl: document.getElementById('bannerVideoUrl').value
+            };
+            
+            try {
+                await set(ref(database, 'site/hero'), heroData);
+                window.siteData.hero = heroData;
+                renderHero();
+                alert('Clinic information updated successfully!');
+            } catch (error) {
+                alert('Error updating clinic information');
+                console.error(error);
+            }
+        }
+
+        // Doctor Management
+        window.addNewDoctor = function() {
+            showEditModal('doctor', null);
+        }
+
+        window.editDoctor = function(id) {
+            const doctor = window.siteData.doctors.find(d => d.id === id);
+            showEditModal('doctor', doctor);
+        }
+
+        window.deleteDoctor = async function(id) {
+            if (confirm('Are you sure you want to delete this doctor?')) {
+                window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id);
+                await set(ref(database, 'site/doctors'), window.siteData.doctors);
+                renderAdminLists();
+                renderSite();
+                updateStats();
+            }
+        }
+
+        // Service Management
+        window.addNewService = function() {
+            showEditModal('service', null);
+        }
+
+        window.editService = function(id) {
+            const service = window.siteData.services.find(s => s.id === id);
+            showEditModal('service', service);
+        }
+
+        window.deleteService = async function(id) {
+            if (confirm('Are you sure you want to delete this service?')) {
+                window.siteData.services = window.siteData.services.filter(s => s.id !== id);
+                await set(ref(database, 'site/services'), window.siteData.services);
+                renderAdminLists();
+                renderSite();
+                updateStats();
+            }
+        }
+
+        // Product Management
+        window.addNewProduct = function() {
+            showEditModal('product', null);
+        }
+
+        window.editProduct = function(id) {
+            const product = window.siteData.products.find(p => p.id === id);
+            showEditModal('product', product);
+        }
+
+        window.deleteProduct = async function(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                window.siteData.products = window.siteData.products.filter(p => p.id !== id);
+                await set(ref(database, 'site/products'), window.siteData.products);
+                renderAdminLists();
+                renderSite();
+                updateStats();
+            }
+        }
+
+        // Edit Modal Functions
+        function showEditModal(type, item) {
+            const modal = document.getElementById('editModal');
+            const title = document.getElementById('editModalTitle');
+            const content = document.getElementById('editModalContent');
+            
+            title.textContent = item ? `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}` : `Add New ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            
+            let formHtml = '';
+            
+            switch(type) {
+                case 'doctor':
+                    formHtml = `
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Name</label>
+                                <input type="text" id="editName" value="${item ? item.name : ''}" required>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-field">
+                                <label>Qualification</label>
+                                <input type="text" id="editQualification" value="${item ? item.qualification : ''}" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Consultation Fees</label>
+                                <input type="text" id="editFees" value="${item ? item.fees : ''}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Photo URL (imgbb, etc.)</label>
+                                <input type="url" id="editPhotoUrl" value="${item ? item.photoUrl || '' : ''}" oninput="previewImage(this, 'editPhotoPreview')">
+                                <img id="editPhotoPreview" class="image-preview" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Video URL (Optional)</label>
+                                <input type="url" id="editVideoUrl" value="${item ? item.videoUrl || '' : ''}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Description/Details</label>
+                                <textarea id="editDetails" required>${item ? item.details : ''}</textarea>
+                            </div>
+                        </div>
+                        <button class="update-btn" onclick="saveDoctor(${item ? item.id : 'null'})">Save Doctor</button>
+                    `;
+                    break;
+                case 'service':
+                    formHtml = `
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Title</label>
+                                <input type="text" id="editTitle" value="${item ? item.title : ''}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Icon (Emoji)</label>
+                                <input type="text" id="editIcon" value="${item ? item.icon : ''}" maxlength="5">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Description</label>
+                                <textarea id="editDescription" required>${item ? item.description : ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Banner Image URL (imgbb, etc.)</label>
+                                <input type="url" id="editBannerImageUrl" value="${item ? item.bannerImageUrl || '' : ''}" oninput="previewImage(this, 'editBannerPreview')">
+                                <img id="editBannerPreview" class="image-preview" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Banner Video URL (Optional)</label>
+                                <input type="url" id="editBannerVideoUrl" value="${item ? item.bannerVideoUrl || '' : ''}">
+                            </div>
+                        </div>
+                        <button class="update-btn" onclick="saveService(${item ? item.id : 'null'})">Save Service</button>
+                    `;
+                    break;
+                case 'product':
+                    formHtml = `
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Product Name</label>
+                                <input type="text" id="editProductName" value="${item ? item.name : ''}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Price</label>
+                                <input type="text" id="editPrice" value="${item ? item.price : ''}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Description</label>
+                                <textarea id="editProductDescription" required>${item ? item.description : ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Image URL (imgbb, etc.)</label>
+                                <input type="url" id="editImageUrl" value="${item ? item.imageUrl || '' : ''}" oninput="previewImage(this, 'editImagePreview')">
+                                <img id="editImagePreview" class="image-preview" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Video URL (Optional)</label>
+                                <input type="url" id="editProductVideoUrl" value="${item ? item.videoUrl || '' : ''}">
+                            </div>
+                        </div>
+                        <button class="update-btn" onclick="saveProduct(${item ? item.id : 'null'})">Save Product</button>
+                    `;
+                    break;
+            }
+            
+            content.innerHTML = formHtml;
+            modal.style.display = 'block';
+            
+            // Preview existing images
+            setTimeout(() => {
+                if (type === 'doctor' && item && item.photoUrl) {
+                    previewImage(document.getElementById('editPhotoUrl'), 'editPhotoPreview');
+                } else if (type === 'service' && item && item.bannerImageUrl) {
+                    previewImage(document.getElementById('editBannerImageUrl'), 'editBannerPreview');
+                } else if (type === 'product' && item && item.imageUrl) {
+                    previewImage(document.getElementById('editImageUrl'), 'editImagePreview');
+                }
+            }, 100);
+        }
+
+        // Save Functions
+        window.saveDoctor = async function(id) {
+            const doctorData = {
+                id: id || Date.now(),
+                name: document.getElementById('editName').value,
+                qualification: document.getElementById('editQualification').value,
+                fees: document.getElementById('editFees').value,
+                photoUrl: document.getElementById('editPhotoUrl').value,
+                videoUrl: document.getElementById('editVideoUrl').value,
+                details: document.getElementById('editDetails').value
+            };
+            
+            if (id) {
+                const index = window.siteData.doctors.findIndex(d => d.id === id);
+                window.siteData.doctors[index] = doctorData;
+            } else {
+                window.siteData.doctors.push(doctorData);
+            }
+            
+            try {
+                await set(ref(database, 'site/doctors'), window.siteData.doctors);
+                closeEditModal();
+                renderAdminLists();
+                renderSite();
+                updateStats();
+                alert('Doctor saved successfully!');
+            } catch (error) {
+                alert('Error saving doctor');
+                console.error(error);
+            }
+        }
+
+        window.saveService = async function(id) {
+            const serviceData = {
+                id: id || Date.now(),
+                title: document.getElementById('editTitle').value,
+                icon: document.getElementById('editIcon').value,
+                description: document.getElementById('editDescription').value,
+                bannerImageUrl: document.getElementById('editBannerImageUrl').value,
+                bannerVideoUrl: document.getElementById('editBannerVideoUrl').value,
+                tests: id ? window.siteData.services.find(s => s.id === id).tests : []
+            };
+            
+            if (id) {
+                const index = window.siteData.services.findIndex(s => s.id === id);
+                window.siteData.services[index] = serviceData;
+            } else {
+                window.siteData.services.push(serviceData);
+            }
+            
+            try {
+                await set(ref(database, 'site/services'), window.siteData.services);
+                closeEditModal();
+                renderAdminLists();
+                renderSite();
+                updateStats();
+                alert('Service saved successfully!');
+            } catch (error) {
+                alert('Error saving service');
+                console.error(error);
+            }
+        }
+
+        window.saveProduct = async function(id) {
+            const productData = {
+                id: id || Date.now(),
+                name: document.getElementById('editProductName').value,
+                price: document.getElementById('editPrice').value,
+                description: document.getElementById('editProductDescription').value,
+                imageUrl: document.getElementById('editImageUrl').value,
+                videoUrl: document.getElementById('editProductVideoUrl').value
+            };
+            
+            if (id) {
+                const index = window.siteData.products.findIndex(p => p.id === id);
+                window.siteData.products[index] = productData;
+            } else {
+                window.siteData.products.push(productData);
+            }
+            
+            try {
+                await set(ref(database, 'site/products'), window.siteData.products);
+                closeEditModal();
+                renderAdminLists();
+                renderSite();
+                updateStats();
+                alert('Product saved successfully!');
+            } catch (error) {
+                alert('Error saving product');
+                console.error(error);
+            }
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
         }
 
         // Global functions
@@ -1295,6 +2132,32 @@
         window.buyProduct = function(productName) {
             const message = encodeURIComponent(`I would like to buy ${productName}.`);
             window.open(`https://wa.me/919641568109?text=${message}`, '_blank');
+        }
+
+        // Doctor details modal functions
+        window.showDoctorDetails = function(doctor) {
+            document.getElementById('modalDoctorName').textContent = doctor.name;
+            document.getElementById('modalDoctorQualification').textContent = doctor.qualification;
+            document.getElementById('modalDoctorFees').textContent = `Consultation Fee: ${doctor.fees}`;
+            document.getElementById('modalDoctorDetails').textContent = doctor.details;
+            
+            const avatar = document.getElementById('modalDoctorAvatar');
+            if (doctor.photoUrl) {
+                avatar.innerHTML = `<img src="${doctor.photoUrl}" alt="${doctor.name}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                avatar.innerHTML = '👨‍⚕️';
+            }
+            
+            document.getElementById('modalBookingBtn').onclick = () => {
+                bookDoctorAppointment(doctor.name);
+                closeDoctorDetails();
+            };
+            
+            document.getElementById('doctorDetailsModal').style.display = 'block';
+        }
+
+        window.closeDoctorDetails = function() {
+            document.getElementById('doctorDetailsModal').style.display = 'none';
         }
 
         window.showServiceDetails = function(service) {
@@ -1337,9 +2200,10 @@
             try {
                 await signInWithEmailAndPassword(auth, username, password);
                 document.getElementById('adminModal').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
+                document.getElementById('adminDashboard').classList.add('active');
                 document.querySelector('.main').style.display = 'none';
-                loadAdminData();
+                initAdminTabs();
+                renderAdminLists();
             } catch (error) {
                 alert('Invalid credentials');
             }
@@ -1347,98 +2211,8 @@
 
         window.logout = function() {
             signOut(auth);
-            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('adminDashboard').classList.remove('active');
             document.querySelector('.main').style.display = 'block';
-        }
-
-        function loadAdminData() {
-            document.getElementById('editClinicName').value = window.siteData.hero.clinicName;
-            document.getElementById('editHeroTitle').value = window.siteData.hero.title;
-            document.getElementById('editTagline').value = window.siteData.hero.tagline;
-            document.getElementById('editPhone').value = window.siteData.hero.phone;
-        }
-
-        window.updateHero = async function() {
-            const heroData = {
-                clinicName: document.getElementById('editClinicName').value,
-                title: document.getElementById('editHeroTitle').value,
-                tagline: document.getElementById('editTagline').value,
-                phone: document.getElementById('editPhone').value
-            };
-            
-            try {
-                await set(ref(database, 'site/hero'), heroData);
-                window.siteData.hero = heroData;
-                renderHero();
-                alert('Hero section updated successfully!');
-            } catch (error) {
-                alert('Error updating hero section');
-            }
-        }
-
-        window.addDoctor = function() {
-            const name = prompt('Enter doctor name:');
-            const qualification = prompt('Enter qualification:');
-            const fees = prompt('Enter consultation fees:');
-            const details = prompt('Enter additional details:');
-            
-            if (name && qualification && fees) {
-                const newDoctor = {
-                    id: Date.now(),
-                    name,
-                    qualification,
-                    fees,
-                    details: details || ''
-                };
-                
-                window.siteData.doctors.push(newDoctor);
-                set(ref(database, 'site/doctors'), window.siteData.doctors);
-                renderDoctorsPreview();
-                renderDoctors();
-            }
-        }
-
-        window.addService = function() {
-            const title = prompt('Enter service title:');
-            const description = prompt('Enter service description:');
-            const icon = prompt('Enter service icon (emoji):');
-            
-            if (title && description) {
-                const newService = {
-                    id: Date.now(),
-                    title,
-                    description,
-                    icon: icon || '🏥',
-                    tests: []
-                };
-                
-                window.siteData.services.push(newService);
-                set(ref(database, 'site/services'), window.siteData.services);
-                renderServicesPreview();
-                renderServices();
-            }
-        }
-
-        window.addProduct = function() {
-            const name = prompt('Enter product name:');
-            const description = prompt('Enter product description:');
-            const price = prompt('Enter product price:');
-            const image = prompt('Enter product image (emoji or URL):');
-            
-            if (name && description && price) {
-                const newProduct = {
-                    id: Date.now(),
-                    name,
-                    description,
-                    price,
-                    image: image || '🎒'
-                };
-                
-                window.siteData.products.push(newProduct);
-                set(ref(database, 'site/products'), window.siteData.products);
-                renderProductsPreview();
-                renderProducts();
-            }
         }
 
         // Initialize the site
@@ -1449,6 +2223,7 @@
             const adminModal = document.getElementById('adminModal');
             const serviceModal = document.getElementById('serviceDetailsModal');
             const doctorModal = document.getElementById('doctorDetailsModal');
+            const editModal = document.getElementById('editModal');
             
             if (event.target == adminModal) {
                 adminModal.style.display = 'none';
@@ -1458,6 +2233,9 @@
             }
             if (event.target == doctorModal) {
                 doctorModal.style.display = 'none';
+            }
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
             }
         }
     </script>
