@@ -1,1186 +1,739 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Physio - The Therapeutic Moves</title>
-  <style>
-    /* Keep all your existing CSS styles exactly the same */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Arial', sans-serif; line-height:1.6; color:#333; }
-    .container { max-width:1200px; margin:0 auto; padding:0 20px; }
-
-    /* Header Styles */
-    header { background:#fff; box-shadow:0 2px 10px rgba(0,0,0,0.1); position:fixed; width:100%; top:0; z-index:1000; transition:transform 0.3s ease; }
-    header.hidden { transform:translateY(-100%); }
-    nav { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; height:60px; }
-    .logo { height:40px; display:flex; align-items:center; }
-    .logo img { height:100%; width:auto; }
-    .logo-text { font-size:1.3rem; font-weight:bold; color:#2c7873; }
-    .hamburger { display:flex; flex-direction:column; cursor:pointer; padding:0.5rem; }
-    .hamburger span { width:22px; height:2.5px; background:#333; margin:2.5px 0; transition:0.3s; }
-    .menu { position:fixed; top:0; right:-100%; width:300px; height:100vh; background:#fff; box-shadow:-2px 0 10px rgba(0,0,0,0.1); transition:right 0.3s; padding:2rem; z-index:1001; }
-    .menu.active { right:0; }
-    .menu-close { position:absolute; top:1rem; right:1rem; font-size:2rem; cursor:pointer; }
-    .menu ul { list-style:none; margin-top:3rem; }
-    .menu li { margin:1.5rem 0; }
-    .menu a { text-decoration:none; color:#333; font-size:1.1rem; display:block; padding:0.5rem 0; border-bottom:1px solid #eee; cursor:pointer; }
-    .menu a:hover { color:#2c7873; }
-
-    /* Page Container */
-    .page { display:none; min-height:100vh; padding-top:70px; }
-    .page.active { display:block; }
-    .page-header { background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); color:white; text-align:center; padding:3rem 2rem; }
-    .page-header h1 { font-size:2.5rem; margin-bottom:1rem; }
-    .page-content { padding:3rem 0; }
-    .back-button { background:#2c7873; color:white; border:none; padding:0.8rem 1.5rem; border-radius:25px; cursor:pointer; margin-bottom:2rem; font-size:1rem; }
-    .back-button:hover { background:#1e5a57; }
-
-    /* Hero Section */
-    .hero { position:relative; width:100%; aspect-ratio:3/2; margin-top:60px; background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); display:flex; align-items:center; justify-content:center; overflow:hidden; }
-    .hero-image { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-    .hero-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(44, 120, 115, 0.7); z-index:2; }
-    .hero-content { position:relative; z-index:3; text-align:center; color:white; padding:2rem; }
-    .hero h1 { font-size:2.5rem; margin-bottom:1rem; text-shadow:2px 2px 4px rgba(0,0,0,0.5); }
-    .hero p { font-size:1.2rem; margin-bottom:2rem; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
-    .btn-primary { background:#fff; color:#2c7873; padding:1rem 2rem; border:none; border-radius:50px; font-size:1.1rem; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; transition:transform 0.3s; box-shadow:0 4px 15px rgba(0,0,0,0.2); }
-    .btn-primary:hover { transform:translateY(-2px); }
-    .contact-info { margin-top:2rem; }
-    .contact-info p { font-size:1.1rem; margin:0.5rem 0; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
-
-    /* Section Styles */
-    section { padding:4rem 0; }
-    .section-title { text-align:center; font-size:2rem; margin-bottom:3rem; color:#2c7873; }
-
-    /* Doctors Section - Fixed Alignment */
-    .doctors-container { overflow-x:auto; padding:1rem 0; -webkit-overflow-scrolling:touch; }
-    .doctors-grid { display:flex; gap:1.5rem; padding:1rem; min-width:max-content; justify-content:flex-start; }
-    .doctors-list { display:grid; gap:2rem; margin-top:2rem; }
-    .doctor-card { background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.08); overflow:hidden; transition:transform 0.3s; cursor:pointer; text-align:center; padding:1.5rem; min-width:180px; flex-shrink:0; }
-    .doctor-card:hover { transform:translateY(-5px); }
-    .doctor-card-horizontal { display:flex; align-items:center; padding:2rem; gap:2rem; text-align:left; }
-    .doctor-avatar { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #e0f2f1, #b2dfdb); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:#2c7873; overflow:hidden; position:relative; flex-shrink:0; margin:0 auto 1rem; border:3px solid #fff; box-shadow:0 4px 12px rgba(44, 120, 115, 0.2); }
-    .doctor-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-    .doctor-info { flex:1; text-align:center; }
-    .doctor-info h3 { color:#2c7873; margin-bottom:0.5rem; font-size:1.2rem; font-weight:600; }
-    .doctor-info p { color:#666; margin-bottom:0.5rem; font-size:0.95rem; }
-    .doctor-fees { color:#2c7873; font-weight:bold; font-size:1.2rem; margin:1rem 0; }
-    .btn-book { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:25px; cursor:pointer; text-decoration:none; display:inline-block; transition:background 0.3s; }
-    .btn-book:hover { background:#1e5a57; }
-
-    /* Services Section */
-    .services { background:#f8f9fa; position:relative; }
-    .services-banner { width:100%; height:300px; background:linear-gradient(135deg, #2c7873 0%, #4a9d96 100%); margin-bottom:3rem; border-radius:10px; overflow:hidden; position:relative; }
-    .services-banner img { width:100%; height:100%; object-fit:cover; }
-    .services-grid, .services-list { display:grid; gap:2rem; margin-top:2rem; }
-    .service-card { background:white; padding:2rem; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); transition:transform 0.3s; }
-    .service-card:hover { transform:translateY(-5px); }
-    .service-card h3 { color:#2c7873; margin-bottom:1rem; font-size:1.5rem; }
-    .service-card p { margin-bottom:1rem; }
-    .service-price { color:#2c7873; font-weight:bold; font-size:1.2rem; margin:1rem 0; }
-    .sub-services { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #eee; }
-    .sub-services h4 { color:#555; margin-bottom:1rem; }
-    .sub-service-item { display:flex; justify-content:space-between; align-items:center; padding:0.8rem; margin-bottom:0.5rem; background:#f8f9fa; border-radius:5px; }
-    .sub-service-name { font-weight:500; }
-    .sub-service-price { color:#2c7873; font-weight:bold; }
-    .btn-service { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:25px; cursor:pointer; text-decoration:none; display:inline-block; margin-top:1rem; transition:background 0.3s; }
-    .btn-service:hover { background:#1e5a57; }
-
-    /* Products Section */
-    .products-grid, .products-list { display:grid; gap:2rem; margin-top:2rem; }
-    .product-card { background:white; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); overflow:hidden; transition:transform 0.3s; }
-    .product-card:hover { transform:translateY(-5px); }
-    .product-image { width:100%; height:200px; background:linear-gradient(135deg, #e0f2f1, #b2dfdb); display:flex; align-items:center; justify-content:center; font-size:3rem; color:#2c7873; position:relative; overflow:hidden; }
-    .product-image img { width:100%; height:100%; object-fit:cover; }
-    .product-info { padding:1.5rem; }
-    .product-price { font-size:1.2rem; font-weight:bold; color:#2c7873; margin:1rem 0; }
-
-    /* Footer */
-    footer { background:#333; color:white; text-align:center; padding:3rem 0 1rem; }
-    .footer-content { margin-bottom:2rem; }
-    .footer-content h3 { margin-bottom:1rem; }
-    .footer-content p { margin:0.5rem 0; }
-    .copyright { border-top:1px solid #555; padding-top:1rem; color:#ccc; }
-
-    /* Modal Styles */
-    .modal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); }
-    .modal-content { background-color:white; margin:5% auto; padding:2rem; border-radius:10px; width:90%; max-width:500px; position:relative; }
-    .close { color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer; position:absolute; right:1rem; top:1rem; }
-    .close:hover { color:#000; }
-
-    /* Admin Panel Styles */
-    .admin-panel { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; overflow-y:auto; }
-    .admin-content { background:white; margin:2rem; padding:2rem; border-radius:10px; max-width:1000px; margin:2rem auto; }
-    .admin-form { margin-bottom:2rem; }
-    .admin-form h3 { margin-bottom:1rem; color:#2c7873; }
-    .form-group { margin-bottom:1rem; }
-    .form-group label { display:block; margin-bottom:0.5rem; font-weight:bold; }
-    .form-group input, .form-group textarea { width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:5px; font-size:1rem; }
-    .form-group textarea { height:100px; resize:vertical; }
-    .btn-admin { background:#2c7873; color:white; padding:0.8rem 1.5rem; border:none; border-radius:5px; cursor:pointer; margin-right:1rem; margin-bottom:0.5rem; }
-    .btn-danger { background:#dc3545; }
-    .image-preview { max-width:200px; max-height:150px; margin-top:0.5rem; border-radius:5px; }
-    .sub-service-management { border:1px solid #eee; padding:1rem; margin:1rem 0; border-radius:5px; background:#f9f9f9; }
-
-    /* Real-time Update Indicator */
-    .update-indicator { position:fixed; top:70px; right:20px; background:#4caf50; color:white; padding:0.5rem 1rem; border-radius:20px; font-size:0.8rem; opacity:0; transition:opacity 0.3s; z-index:999; }
-    .update-indicator.show { opacity:1; }
-
-    .loading { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:4000; display:none; }
-
-    /* Enhanced Responsive Design */
-    @media (max-width:768px){
-      .hero h1{ font-size:2rem; }
-      .hero p{ font-size:1rem; }
-      nav{ padding:0.8rem 1rem; }
-      .doctors-grid{ gap:1rem; padding:0.5rem; justify-content:flex-start; }
-      .doctor-card{ min-width:140px; padding:1rem; }
-      .doctor-avatar{ width:80px; height:80px; font-size:2rem; }
-      .doctor-info h3{ font-size:1rem; }
-      .doctor-info p{ font-size:0.85rem; }
-      .doctor-card-horizontal{ flex-direction:column; text-align:center; gap:1rem; }
-      .services-banner{ height:200px; }
-      .page-header h1{ font-size:2rem; }
-      .products-list{ grid-template-columns:1fr; }
-      .services-list{ grid-template-columns:1fr; }
-      .doctors-list{ grid-template-columns:1fr; }
-      .sub-service-item{ flex-direction:column; align-items:flex-start; gap:0.5rem; }
-      .section-title{ font-size:1.5rem; }
-    }
-    @media (min-width:769px){
-      .products-list{ grid-template-columns:repeat(2, 1fr); }
-      .services-list{ grid-template-columns:repeat(2, 1fr); }
-      .doctors-list{ grid-template-columns:repeat(2, 1fr); }
-      .doctors-grid{ justify-content:center; }
-      .doctor-card{ min-width:200px; }
-      .doctor-avatar{ width:120px; height:120px; font-size:3rem; }
-    }
-    @media (min-width:1024px){
-      .products-list{ grid-template-columns:repeat(3, 1fr); }
-      .doctors-grid{ justify-content:center; gap:2rem; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Physio - The Therapeutic Moves</title>
+<meta name="theme-color" content="#0f7a7a" />
+<style>
+  :root{
+    --brand:#0f7a7a;
+    --brand-2:#0aa284;
+    --ink:#0f172a;
+    --muted:#64748b;
+    --bg:#f7faf9;
+    --card:#ffffff;
+    --soft:#e6f1ef;
+    --danger:#e11d48;
+    --shadow:0 8px 24px rgba(2,24,33,.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  button{font:inherit}
+  /* Header */
+  .header{
+    position:sticky;top:0;z-index:50;background:#fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.04)
+  }
+  .nav{
+    max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px;gap:12px
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{
+    width:40px;height:40px;border-radius:10px;background:var(--soft);
+    display:grid;place-items:center;color:var(--brand);font-weight:700
+  }
+  .brand .title{line-height:1}
+  .brand .name{font-weight:700}
+  .brand .tag{font-size:12px;color:var(--muted)}
+  .hamburger{
+    width:44px;height:44px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;display:grid;place-items:center;cursor:pointer
+  }
+  .hamburger span,.hamburger span:before,.hamburger span:after{
+    content:"";display:block;width:18px;height:2px;background:#0b1720;border-radius:1px;position:relative
+  }
+  .hamburger span:before{position:absolute;top:-6px}
+  .hamburger span:after{position:absolute;top:6px}
+  /* Drawer */
+  .drawer{
+    position:fixed;inset:0 0 0 auto;width:min(84vw,320px);background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.12);
+    transform:translateX(100%);transition:transform .25s ease;z-index:60;display:flex;flex-direction:column
+  }
+  .drawer.open{transform:translateX(0)}
+  .drawer-header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #eef2f7}
+  .drawer-body{padding:12px 8px 24px;overflow:auto;flex:1}
+  .menu{list-style:none;margin:0;padding:0}
+  .menu li a{
+    display:block;padding:12px 14px;border-radius:10px;margin:4px 6px;color:#0b1720
+  }
+  .menu li a:hover{background:#f2f7f6}
+  .menu .admin{margin-top:12px;border-top:1px dashed #e5e7eb;padding-top:8px}
+  /* Sections */
+  .wrap{max-width:1120px;margin:0 auto;padding:10px 16px}
+  .section-title{
+    font-weight:800;margin:18px 4px 10px
+  }
+  .muted{color:var(--muted)}
+  /* Hero */
+  .hero{
+    border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#eaf7f5,#f7fcfb);
+    box-shadow:var(--shadow);position:relative
+  }
+  .hero-inner{display:grid}
+  .slides{position:relative;height:260px;overflow:hidden;background:#dfeeed}
+  .slide{
+    position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .6s ease
+  }
+  .slide.active{opacity:1}
+  .hero-content{
+    padding:18px 16px 16px;background:#fff;border-top:1px solid #eef3f0
+  }
+  .hero h1{margin:0 0 6px;font-size:22px}
+  .hero p{margin:0 0 12px;color:var(--muted)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 16px;border-radius:12px;border:none;cursor:pointer;font-weight:600
+  }
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(15,122,122,.25)}
+  .btn-outline{background:#fff;border:1px solid #dbe6e3;color:var(--ink)}
+  .btn-whatsapp{background:#25d366;color:#083b24}
+  .tel{margin-top:10px;font-weight:600}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .action-btn{border:1px solid #e6efec;border-radius:12px;padding:10px 12px;background:#fff;display:flex;align-items:center;gap:8px}
+  .action-btn img{width:18px;height:18px;object-fit:contain}
+  /* Doctors horizontal carousel */
+  .h-scroll{
+    display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 2px
+  }
+  .card{
+    background:var(--card);border-radius:16px;box-shadow:var(--shadow)
+  }
+  .doc-card{
+    min-width:240px;scroll-snap-align:start;overflow:hidden
+  }
+  .doc-photo{
+    height:140px;background:#eaf2f1;display:grid;place-items:center;color:var(--brand);font-weight:700;font-size:18px
+  }
+  .doc-body{padding:12px}
+  .pill{background:var(--soft);color:var(--brand);padding:4px 8px;border-radius:999px;font-size:12px;margin-left:6px}
+  .fee{font-weight:700;margin-left:auto}
+  .doc-meta{display:flex;align-items:center;gap:8px;margin:6px 0 10px;color:var(--muted)}
+  .doc-actions{display:flex;gap:8px}
+  /* Services */
+  .service-banner{aspect-ratio:3/2;background:#eaf7f4;border-radius:16px;display:grid;place-items:center;color:var(--brand);box-shadow:var(--shadow);margin-bottom:10px}
+  .services-rail{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px
+  }
+  .service-card{position:relative;overflow:hidden}
+  .service-img{height:120px;background:#e5f3f0;background-size:cover;background-position:center}
+  .service-body{padding:12px}
+  .service-list{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .service-card.open .service-list{max-height:260px}
+  .badge{font-size:12px;color:#fff;background:var(--brand-2);padding:2px 8px;border-radius:999px}
+  .test-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e6ecea;color:#0f1b26}
+  /* Products */
+  .product-card{overflow:hidden}
+  .product-img{height:150px;background:#f2f8f7;background-size:cover;background-position:center}
+  .product-body{padding:12px}
+  .price{color:#0a7a60;font-weight:800}
+  /* Floating quick actions (mobile) */
+  .fab-stack{
+    position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:40
+  }
+  .fab{
+    width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:none;cursor:pointer;
+    box-shadow:0 10px 22px rgba(0,0,0,.18)
+  }
+  .fab.whatsapp{background:#25d366;color:#063; }
+  .fab.call{background:#0f7a7a;color:#fff}
+  .fab.map{background:#ef4444;color:#fff}
+  /* Admin modal */
+  .modal{
+    position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:70
+  }
+  .modal.open{display:flex}
+  .dialog{
+    width:min(92vw,420px);background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px
+  }
+  .dialog h3{margin:0 0 10px}
+  .input{width:100%;padding:10px 12px;border:1px solid #e6ecea;border-radius:10px;background:#fff}
+  .row{display:flex;gap:10px}
+  .admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .note{font-size:12px;color:var(--muted)}
+  /* Desktop tweaks */
+  @media(min-width:900px){
+    .slides{height:360px}
+    .hero h1{font-size:28px}
+    .services-rail{grid-template-columns:repeat(2,1fr)}
+    .wrap{padding:16px}
+  }
+</style>
 </head>
 <body>
-  <!-- Loading Indicator -->
-  <div id="loadingIndicator" class="loading"><p>Loading...</p></div>
 
-  <!-- Real-time Update Indicator -->
-  <div id="updateIndicator" class="update-indicator">Content Updated ✓</div>
-
-  <!-- Header -->
-  <header id="header">
-    <nav>
-      <div class="logo" id="logoContainer">
-        <div class="logo-text" id="clinicName">Physio - The Therapeutic Moves</div>
+<!-- Header -->
+<header class="header">
+  <nav class="nav">
+    <div class="brand">
+      <div id="logo" class="logo">LOGO</div>
+      <div class="title">
+        <div class="name">Physio - The Therapeutic Moves</div>
+        <div class="tag">"We add life in your days."</div>
       </div>
-      <div class="hamburger" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-      </div>
-    </nav>
-  </header>
+    </div>
+    <button id="openMenu" class="hamburger" aria-label="Open menu"><span></span></button>
+  </nav>
+</header>
 
-  <!-- Menu -->
-  <div class="menu" id="menu">
-    <div class="menu-close" onclick="toggleMenu()">&times;</div>
-    <ul>
-      <li><a onclick="showPage('home'); toggleMenu();">Home</a></li>
-      <li><a onclick="showPage('doctors-page'); toggleMenu();">Doctors</a></li>
-      <li><a onclick="showPage('services-page'); toggleMenu();">Services</a></li>
-      <li><a onclick="showPage('products-page'); toggleMenu();">Products</a></li>
-      <li><a onclick="openAdminLogin(); toggleMenu();">Admin Login</a></li>
+<!-- Drawer Menu -->
+<aside id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <strong>Menu</strong>
+    <button id="closeMenu" class="btn btn-outline" style="padding:6px 10px;border-radius:8px">Close</button>
+  </div>
+  <div class="drawer-body">
+    <ul class="menu">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#doctors">Doctors</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#products">Products</a></li>
+      <li class="admin"><a href="#" id="adminLoginLink">Admin Login</a></li>
     </ul>
   </div>
+</aside>
 
-  <!-- Home Page -->
-  <div id="home" class="page active">
-    <!-- Hero Section -->
-    <section class="hero">
-      <img id="heroBannerImage" class="hero-image" style="display:none;" alt="Hero Banner">
-      <div class="hero-overlay"></div>
+<!-- MAIN -->
+<main class="wrap" id="home">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-inner">
+      <div class="slides" id="heroSlides">
+        <!-- Slides are injected from Firebase. Fallback demo slides below -->
+        <div class="slide active" style="background-image:linear-gradient(135deg,#bfe9db,#eafbf6)"></div>
+        <div class="slide" style="background-image:linear-gradient(135deg,#cfe7ff,#eaf3ff)"></div>
+        <div class="slide" style="background-image:linear-gradient(135deg,#ffe3ce,#fff3e7)"></div>
+      </div>
       <div class="hero-content">
-        <h1 id="heroTitle">Physio - The Therapeutic Moves</h1>
-        <p id="heroTagline">"We add life in your days."</p>
-        <a href="#" class="btn-primary" onclick="bookAppointment()">Book Appointment</a>
-        <div class="contact-info">
-          <p>📞 <span id="phoneNumber">+91 9641568109</span></p>
-          <p>📍 <a href="#" id="locationLink" style="color:white;">Our Location</a></p>
+        <h1>Physio - The Therapeutic Moves</h1>
+        <p class="muted">"We add life in your days."</p>
+        <div class="actions">
+          <a class="btn btn-primary" id="bookWhatsApp">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 10.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11A2.5 2.5 0 0 1 5.5 4H12" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M10 12h6M10 16h6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="18.5" cy="5.5" r="3.5" fill="#fff"/></svg>
+            Book Appointment
+          </a>
+          <button class="btn btn-outline" id="callNow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4.5 5.5c0 8.284 6.716 15 15 15v-3a2 2 0 0 0-1.85-1.995l-3.67-.245a2 2 0 0 0-1.38.4l-1.24.93a16 16 0 0 1-6.75-6.75l.93-1.24a2 2 0 0 0 .4-1.38l-.25-3.67A2 2 0 0 0 7.5 3h-3A2 2 0 0 0 2.5 5v.5" stroke="#0b1720" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Call
+          </button>
+        </div>
+        <div class="tel">+91 9641568109</div>
+        <div style="margin-top:8px" class="note">Action buttons below are editable by Admin (name, icon URL, and target link).</div>
+        <div id="actionButtons" class="actions" style="margin-top:10px">
+          <!-- Admin-defined quick action buttons (icon+label) get injected here -->
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Doctors Section -->
-    <section id="doctors">
-      <div class="container">
-        <h2 class="section-title">Our Doctors</h2>
-        <div class="doctors-container">
-          <div class="doctors-grid" id="doctorsGrid">
-            <!-- Doctors populated by JS -->
-          </div>
+  <!-- DOCTORS -->
+  <h2 id="doctors" class="section-title">Our Expert Team</h2>
+  <section class="h-scroll" id="doctorsRail" aria-label="Doctors">
+    <!-- Sample placeholders (replaced by Firebase content if present) -->
+    <article class="card doc-card">
+      <div class="doc-photo">Photo</div>
+      <div class="doc-body">
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong>Arpan Das</strong><span class="pill">BPT</span><span class="fee">₹400</span>
+        </div>
+        <div class="doc-meta">
+          <span>Experience: 5+ yrs</span>
+        </div>
+        <div class="doc-actions">
+          <a class="btn btn-primary" href="https://wa.me/919641568109?text=Hello,%20I%20would%20like%20to%20book%20an%20appointment%20with%20Arpan%20Das." target="_blank">WhatsApp</a>
+          <a class="btn btn-outline" href="tel:+919641568109">Call</a>
         </div>
       </div>
-    </section>
+    </article>
+    <article class="card doc-card">
+      <div class="doc-photo">Photo</div>
+      <div class="doc-body">
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong>Jhunu Das</strong><span class="pill">DPT</span><span class="fee">₹400</span>
+        </div>
+        <div class="doc-meta">
+          <span>Pediatric & Neuro</span>
+        </div>
+        <div class="doc-actions">
+          <a class="btn btn-primary" href="https://wa.me/919641568109?text=Hello,%20I%20would%20like%20to%20book%20an%20appointment%20with%20Jhunu%20Das." target="_blank">WhatsApp</a>
+          <a class="btn btn-outline" href="tel:+919641568109">Call</a>
+        </div>
+      </div>
+    </article>
+    <article class="card doc-card">
+      <div class="doc-photo">Photo</div>
+      <div class="doc-body">
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong>Apurba Das</strong><span class="pill">DPT</span><span class="fee">₹400</span>
+        </div>
+        <div class="doc-meta">
+          <span>Home Care Available</span>
+        </div>
+        <div class="doc-actions">
+          <a class="btn btn-primary" href="https://wa.me/919641568109?text=Hello,%20I%20would%20like%20to%20book%20an%20appointment%20with%20Apurba%20Das." target="_blank">WhatsApp</a>
+          <a class="btn btn-outline" href="tel:+919641568109">Call</a>
+        </div>
+      </div>
+    </article>
+  </section>
 
-    <!-- Services Section -->
-    <section id="services" class="services">
-      <div class="container">
-        <h2 class="section-title">Our Services</h2>
-        <div class="services-banner" id="servicesBanner">
-          <img id="servicesBannerImage" style="display:none;" alt="Services Banner">
-        </div>
-        <div class="services-grid" id="servicesGrid">
-          <!-- Services populated by JS -->
-        </div>
-      </div>
-    </section>
+  <!-- SERVICES -->
+  <h2 id="services" class="section-title">Our Services</h2>
+  <div class="service-banner" id="serviceBanner">3:2 Banner (Admin editable)</div>
 
-    <!-- Products Section -->
-    <section id="products">
-      <div class="container">
-        <h2 class="section-title">Our Products</h2>
-        <div class="products-grid" id="productsGrid">
-          <!-- Products populated by JS -->
+  <section class="services-rail" id="servicesGrid">
+    <!-- Example card 1 -->
+    <article class="card service-card">
+      <div class="service-img" style="background-image:url('');"></div>
+      <div class="service-body">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <strong>Physical Therapy</strong>
+          <span class="badge">from ₹400</span>
         </div>
+        <div class="muted" style="margin:6px 0 8px">Click to view tests/list</div>
+        <div class="service-list">
+          <div class="test-item"><span>Consultation</span><span>₹400</span></div>
+          <div class="test-item"><span>Session (45min)</span><span>₹600</span></div>
+        </div>
+        <button class="btn btn-outline" onclick="toggleService(this)">View list</button>
       </div>
-    </section>
+    </article>
+    <!-- Example card 2 -->
+    <article class="card service-card">
+      <div class="service-img" style="background-image:url('');"></div>
+      <div class="service-body">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <strong>Lab Tests</strong>
+          <span class="badge">from ₹200</span>
+        </div>
+        <div class="muted" style="margin:6px 0 8px">CBC, LFT, RFT, Lipid, more</div>
+        <div class="service-list">
+          <div class="test-item"><span>CBC</span><span>₹300</span></div>
+          <div class="test-item"><span>LFT</span><span>₹500</span></div>
+          <div class="test-item"><span>RFT</span><span>₹450</span></div>
+          <div class="test-item"><span>Lipid Profile</span><span>₹600</span></div>
+        </div>
+        <button class="btn btn-outline" onclick="toggleService(this)">View list</button>
+      </div>
+    </article>
+  </section>
 
-    <!-- Footer -->
-    <footer>
-      <div class="container">
-        <div class="footer-content">
-          <h3>Contact Us</h3>
-          <p>📞 <span id="footerPhone">+91 9641568109</span></p>
-          <p>✉️ Dr.ArpanDas.PT@gmail.com</p>
-          <p>📍 <a href="#" id="footerLocation" style="color:#ccc;">Our Location</a></p>
-        </div>
-        <div class="copyright">
-          <p>&copy; 2025 Physio - The Therapeutic Moves. All rights reserved.</p>
+  <!-- PRODUCTS -->
+  <h2 id="products" class="section-title">Our Products</h2>
+  <section id="productsList" style="display:grid;grid-template-columns:1fr;gap:12px">
+    <!-- Sample product 1 -->
+    <article class="card product-card">
+      <div class="product-img" style="background-image:url('');"></div>
+      <div class="product-body">
+        <strong>Lumbar Support Belt</strong>
+        <div class="muted" style="margin:6px 0 10px">Medical grade lumbar support for back pain relief</div>
+        <div class="price">₹1,200</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <a class="btn btn-whatsapp" target="_blank" href="https://wa.me/919641568109?text=I%20would%20like%20to%20buy%20Lumbar%20Support%20Belt.">Buy Now on WhatsApp</a>
         </div>
       </div>
-    </footer>
+    </article>
+    <!-- Sample product 2 -->
+    <article class="card product-card">
+      <div class="product-img" style="background-image:url('');"></div>
+      <div class="product-body">
+        <strong>Knee Support Brace</strong>
+        <div class="muted" style="margin:6px 0 10px">Adjustable knee brace for injury support and prevention</div>
+        <div class="price">₹800</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <a class="btn btn-whatsapp" target="_blank" href="https://wa.me/919641568109?text=I%20would%20like%20to%20buy%20Knee%20Support%20Brace.">Buy Now on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- MAP -->
+  <h2 class="section-title">Find Us</h2>
+  <div id="mapEmbed" class="card" style="overflow:hidden;border-radius:16px">
+    <!-- Admin can set mapEmbedUrl in Firebase to override -->
+    <iframe id="mapFrame" title="Clinic Map" src="https://www.google.com/maps?q=Kolkata&output=embed" width="100%" height="260" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
   </div>
 
-  <!-- Doctors Page -->
-  <div id="doctors-page" class="page">
-    <div class="page-header">
-      <h1>Our Doctors</h1>
-      <p>Expert healthcare professionals dedicated to your recovery</p>
-    </div>
-    <div class="container">
-      <div class="page-content">
-        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-        <div class="doctors-list" id="doctorsList"></div>
-      </div>
-    </div>
-  </div>
+  <!-- Footer -->
+  <footer style="text-align:center;color:var(--muted);padding:20px 6px">
+    © <span id="year"></span> Physio - The Therapeutic Moves · All rights reserved.
+  </footer>
+</main>
 
-  <!-- Services Page -->
-  <div id="services-page" class="page">
-    <div class="page-header">
-      <h1>Our Services</h1>
-      <p>Comprehensive physiotherapy and healthcare services</p>
-    </div>
-    <div class="container">
-      <div class="page-content">
-        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-        <div class="services-list" id="servicesList"></div>
-      </div>
-    </div>
-  </div>
+<!-- Floating quick actions -->
+<div class="fab-stack">
+  <a class="fab whatsapp" title="WhatsApp" target="_blank" aria-label="WhatsApp" id="fabWhatsApp">WA</a>
+  <a class="fab call" title="Call" href="tel:+919641568109" aria-label="Call">📞</a>
+  <a class="fab map" title="Map" href="#map" aria-label="Map">📍</a>
+</div>
 
-  <!-- Products Page -->
-  <div id="products-page" class="page">
-    <div class="page-header">
-      <h1>Our Products</h1>
-      <p>Quality medical equipment and support products</p>
+<!-- Admin Login Modal -->
+<div id="adminModal" class="modal" aria-hidden="true">
+  <div class="dialog">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3>Admin Login</h3>
+      <button class="btn btn-outline" onclick="toggleModal(false)" style="padding:6px 10px;border-radius:8px">×</button>
     </div>
-    <div class="container">
-      <div class="page-content">
-        <button class="back-button" onclick="showPage('home')">← Back to Home</button>
-        <div class="products-list" id="productsList"></div>
-      </div>
+    <input id="email" class="input" type="email" placeholder="Email" autocomplete="username" />
+    <div style="height:8px"></div>
+    <input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="admin-actions">
+      <button id="loginBtn" class="btn btn-primary" style="width:100%">Login</button>
+      <button id="logoutBtn" class="btn btn-outline" style="display:none;width:100%">Logout</button>
+    </div>
+    <div class="note" style="margin-top:10px">
+      After login, inline edit tools appear on each section to update: logo, hero slides, action buttons, doctors, services, products, and map link. Data is saved to Firebase Realtime Database under paths shown in comments.
     </div>
   </div>
+</div>
 
-  <!-- Doctor Detail Modal -->
-  <div id="doctorModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeDoctorModal()">&times;</span>
-      <div id="doctorDetails"></div>
+<!-- Inline admin edit toolbars (appear only when logged in) -->
+<div id="editTools" style="display:none">
+  <!-- Simple floating toolbar -->
+  <div id="toolbar" class="card" style="position:fixed;left:50%;transform:translateX(-50%);bottom:80px;z-index:80;padding:8px 10px;display:flex;gap:8px;align-items:center">
+    <button class="btn btn-outline" onclick="openEditor('brand')">Edit Logo/Brand</button>
+    <button class="btn btn-outline" onclick="openEditor('hero')">Edit Hero</button>
+    <button class="btn btn-outline" onclick="openEditor('actions')">Edit Actions</button>
+    <button class="btn btn-outline" onclick="openEditor('doctors')">Edit Doctors</button>
+    <button class="btn btn-outline" onclick="openEditor('services')">Edit Services</button>
+    <button class="btn btn-outline" onclick="openEditor('products')">Edit Products</button>
+    <button class="btn btn-outline" onclick="openEditor('map')">Edit Map</button>
+  </div>
+</div>
+
+<!-- Lightweight Editors (prompt-based) -->
+<div id="editorModal" class="modal" aria-hidden="true">
+  <div class="dialog">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 id="editorTitle">Editor</h3>
+      <button class="btn btn-outline" onclick="toggleEditor(false)" style="padding:6px 10px;border-radius:8px">×</button>
+    </div>
+    <textarea id="editorJson" class="input" style="height:220px;font-family:ui-monospace,Menlo,Consolas,monospace" placeholder='Enter JSON data...'></textarea>
+    <div class="note" style="margin:8px 0">
+      Paste JSON and Save. Examples are prefilled for each section. Images accept direct URLs (e.g., imgbb). All numbers should be plain numbers (no commas) where possible.
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEditor()">Save</button>
+      <button class="btn btn-outline" style="flex:1" onclick="loadSection(activeEditorKey,true)">Reload</button>
     </div>
   </div>
+</div>
 
-  <!-- Admin Login Modal -->
-  <div id="adminLoginModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeAdminLogin()">&times;</span>
-      <h2>Admin Login</h2>
-      <form onsubmit="adminLogin(event)">
-        <div class="form-group">
-          <label>Username:</label>
-          <input type="text" id="adminUsername" required>
-        </div>
-        <div class="form-group">
-          <label>Password:</label>
-          <input type="password" id="adminPassword" required>
-        </div>
-        <button type="submit" class="btn-admin">Login</button>
-      </form>
-    </div>
-  </div>
+<!-- SCRIPTS -->
+<script type="module">
+  // Firebase v10+ modular SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, onValue, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  <!-- Admin Panel -->
-  <div id="adminPanel" class="admin-panel">
-    <div class="admin-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
-        <h2>Admin Panel</h2>
-        <button onclick="closeAdminPanel()" class="btn-danger">Close</button>
-      </div>
+  // Your Firebase config (provided)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
+    authDomain: "clinic-bdf92.firebaseapp.com",
+    databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
+    projectId: "clinic-bdf92",
+    storageBucket: "clinic-bdf92.firebasestorage.app",
+    messagingSenderId: "302452317883",
+    appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
+    measurementId: "G-XZXEVNMVRS"
+  };
+  const app = initializeApp(firebaseConfig);
+  getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-      <!-- Basic Info Form -->
-      <div class="admin-form">
-        <h3>Basic Information</h3>
-        <div class="form-group">
-          <label>Clinic Name:</label>
-          <input type="text" id="adminClinicName" onchange="updateBasicInfoAdmin()">
-        </div>
-        <div class="form-group">
-          <label>Tagline:</label>
-          <input type="text" id="adminTagline" onchange="updateBasicInfoAdmin()">
-        </div>
-        <div class="form-group">
-          <label>Phone Number:</label>
-          <input type="text" id="adminPhone" onchange="updateBasicInfoAdmin()">
-        </div>
-        <div class="form-group">
-          <label>Location Link:</label>
-          <input type="url" id="adminLocation" onchange="updateBasicInfoAdmin()">
-        </div>
-        <div class="form-group">
-          <label>Logo Image URL:</label>
-          <input type="url" id="logoImageUrl" onchange="updateLogo()" placeholder="https://i.ibb.co/...">
-          <img id="logoPreview" class="image-preview" style="display:none;" alt="Logo Preview">
-        </div>
-        <div class="form-group">
-          <label>Hero Banner Image URL:</label>
-          <input type="url" id="heroBannerUrl" onchange="updateHeroBanner()" placeholder="https://i.ibb.co/...">
-          <img id="heroBannerPreview" class="image-preview" style="display:none;" alt="Hero Banner Preview">
-        </div>
-        <div class="form-group">
-          <label>Services Banner Image URL:</label>
-          <input type="url" id="servicesBannerUrl" onchange="updateServicesBanner()" placeholder="https://i.ibb.co/...">
-          <img id="servicesBannerPreview" class="image-preview" style="display:none;" alt="Services Banner Preview">
-        </div>
-      </div>
+  // Helpers
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
 
-      <!-- Doctors Management -->
-      <div class="admin-form">
-        <h3>Doctors Management</h3>
-        <div id="doctorsManagement"></div>
-        <button onclick="addDoctor()" class="btn-admin">Add New Doctor</button>
-      </div>
+  // Menu
+  const drawer = $('#drawer');
+  $('#openMenu').onclick = () => drawer.classList.add('open');
+  $('#closeMenu').onclick = () => drawer.classList.remove('open');
 
-      <!-- Services Management -->
-      <div class="admin-form">
-        <h3>Services Management</h3>
-        <div id="servicesManagement"></div>
-        <button onclick="addService()" class="btn-admin">Add New Service</button>
-      </div>
+  // Footer year
+  $('#year').textContent = new Date().getFullYear();
 
-      <!-- Products Management -->
-      <div class="admin-form">
-        <h3>Products Management</h3>
-        <div id="productsManagement"></div>
-        <button onclick="addProduct()" class="btn-admin">Add New Product</button>
-      </div>
+  // WhatsApp links
+  const clinicWA = "919641568109";
+  const bookMsg = encodeURIComponent("Hello, I would like to book an appointment with Physio - The Therapeutic Moves.");
+  $('#bookWhatsApp').href = `https://wa.me/${clinicWA}?text=${bookMsg}`;
+  $('#fabWhatsApp').href = `https://wa.me/${clinicWA}?text=${bookMsg}`;
+  $('#callNow').onclick = () => location.href = 'tel:+919641568109';
 
-      <!-- Messages Management -->
-      <div class="admin-form">
-        <h3>WhatsApp Messages</h3>
-        <div class="form-group">
-          <label>Appointment Booking Message:</label>
-          <textarea id="appointmentMessage" onchange="updateMessages()"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Doctor Booking Message Template:</label>
-          <textarea id="doctorBookingMessage" onchange="updateMessages()" placeholder="Use {doctorName} for doctor name"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Service Booking Message Template:</label>
-          <textarea id="serviceBookingMessage" onchange="updateMessages()" placeholder="Use {serviceName} for service name"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Product Purchase Message Template:</label>
-          <textarea id="productPurchaseMessage" onchange="updateMessages()" placeholder="Use {productName} for product name"></textarea>
-        </div>
-      </div>
+  // Hero slideshow autoplay
+  let slideIdx = 0;
+  setInterval(() => {
+    const slides = [...document.querySelectorAll('.slide')];
+    slides.forEach(s=>s.classList.remove('active'));
+    slideIdx = (slideIdx + 1) % slides.length;
+    slides[slideIdx].classList.add('active');
+  }, 3500);
 
-      <button onclick="saveAllData()" class="btn-admin">Save All Changes</button>
-    </div>
-  </div>
+  // Services toggle
+  window.toggleService = (btn) => {
+    const card = btn.closest('.service-card');
+    card.classList.toggle('open');
+    btn.textContent = card.classList.contains('open') ? 'Hide list' : 'View list';
+  };
 
-  <!-- Firebase + App Logic -->
-  <script type="module">
-    // Firebase CDN SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+  // Admin modal
+  const adminModal = $('#adminModal');
+  function toggleModal(show){ adminModal.classList.toggle('open', !!show); }
+  $('#adminLoginLink').onclick = (e)=>{ e.preventDefault(); toggleModal(true); drawer.classList.remove('open'); };
+  window.toggleModal = toggleModal;
 
-    // Your Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
-      authDomain: "clinic-bdf92.firebaseapp.com",
-      databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
-      projectId: "clinic-bdf92",
-      storageBucket: "clinic-bdf92.firebasestorage.app",
-      messagingSenderId: "302452317883",
-      appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
-      measurementId: "G-XZXEVNMVRS"
-    };
+  // Auth actions
+  $('#loginBtn').onclick = async ()=>{
+    const email = $('#email').value.trim();
+    const pass = $('#password').value;
+    try{
+      await signInWithEmailAndPassword(auth, email, pass);
+      toggleModal(false);
+    }catch(err){ alert(err.message); }
+  };
+  $('#logoutBtn').onclick = async ()=>{ await signOut(auth); };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getDatabase(app);
+  // State UI
+  const editTools = $('#editTools');
+  onAuthStateChanged(auth, (user)=>{
+    const loggedIn = !!user;
+    $('#loginBtn').style.display = loggedIn ? 'none' : 'inline-flex';
+    $('#logoutBtn').style.display = loggedIn ? 'inline-flex' : 'none';
+    editTools.style.display = loggedIn ? 'block' : 'none';
+  });
 
-    // WhatsApp Configuration
-    const WHATSAPP_NUMBER = '+919641568109';
+  // Data paths and loaders
+  // Realtime Database structure (all optional):
+  // clinic/brand: { name, tagline, logoUrl }
+  // clinic/heroSlides: [ { imageUrl }, ... ]
+  // clinic/actions: [ { label, iconUrl, href }, ... ]
+  // clinic/doctors: [ { name, qualification, fee, photoUrl, details }, ... ]
+  // clinic/services: [ { title, coverUrl, note, fromPrice, items:[{name,price}], }, ... ]
+  // clinic/products: [ { name, imageUrl, description, price, buyMessage }, ... ]
+  // clinic/mapEmbedUrl: "https://..."
+  async function loadSection(key, silent=false){
+    try{
+      const snap = await get(child(ref(db), `clinic/${key}`));
+      const data = snap.exists() ? snap.val() : null;
+      if(!silent) console.log(`Loaded ${key}`, data);
+      if(!data) return;
 
-    // Default Data (same structure as before)
-    let clinicData = {
-      basic: {
-        name: "Physio - The Therapeutic Moves",
-        tagline: "\"We add life in your days.\"",
-        phone: "+91 9641568109",
-        email: "Dr.ArpanDas.PT@gmail.com",
-        location: "#",
-        logoImage: "",
-        heroBannerImage: "",
-        servicesBannerImage: ""
+      if(key==='brand'){
+        if(data.logoUrl){ $('#logo').style.backgroundImage = `url(${data.logoUrl})`; $('#logo').style.backgroundSize='cover'; $('#logo').textContent=''; }
+        if(data.name) document.querySelector('.brand .name').textContent = data.name;
+        if(data.tagline) document.querySelector('.brand .tag').textContent = data.tagline;
+      }
+      if(key==='heroSlides'){
+        const box = $('#heroSlides'); box.innerHTML='';
+        (Array.isArray(data)?data:[]).forEach((s,i)=>{
+          const d = document.createElement('div');
+          d.className = 'slide'+(i===0?' active':'');
+          d.style.backgroundImage = s?.imageUrl ? `url('${s.imageUrl}')` : 'linear-gradient(135deg,#bfe9db,#eafbf6)';
+          box.appendChild(d);
+        });
+      }
+      if(key==='actions'){
+        const wrap = $('#actionButtons'); wrap.innerHTML='';
+        (Array.isArray(data)?data:[]).forEach(a=>{
+          const btn = document.createElement('a');
+          btn.className='action-btn'; btn.target='_blank'; btn.href = a.href||'#';
+          if(a.iconUrl){ const ic = document.createElement('img'); ic.src=a.iconUrl; btn.appendChild(ic); }
+          const t = document.createElement('span'); t.textContent = a.label||'Action'; btn.appendChild(t);
+          wrap.appendChild(btn);
+        });
+      }
+      if(key==='doctors'){
+        const rail = $('#doctorsRail'); rail.innerHTML='';
+        (Array.isArray(data)?data:[]).forEach(doc=>{
+          const card = document.createElement('article'); card.className='card doc-card';
+          const photo = document.createElement('div'); photo.className='doc-photo';
+          if(doc.photoUrl){ photo.style.backgroundImage=`url('${doc.photoUrl}')`; photo.style.backgroundSize='cover'; photo.style.backgroundPosition='center'; photo.textContent=''; }
+          else { photo.textContent='Photo'; }
+          const body = document.createElement('div'); body.className='doc-body';
+          body.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong>${doc.name||''}</strong>
+              ${doc.qualification?`<span class="pill">${doc.qualification}</span>`:''}
+              ${doc.fee?`<span class="fee">₹${doc.fee}</span>`:''}
+            </div>
+            <div class="doc-meta">${doc.details?`<span>${doc.details}</span>`:''}</div>
+          `;
+          const actions = document.createElement('div'); actions.className='doc-actions';
+          const waMsg = encodeURIComponent(`Hello, I would like to book an appointment with ${doc.name||'the doctor'}.`);
+          const wa = document.createElement('a'); wa.className='btn btn-primary'; wa.target='_blank'; wa.href=`https://wa.me/${clinicWA}?text=${waMsg}`; wa.textContent='WhatsApp';
+          const call = document.createElement('a'); call.className='btn btn-outline'; call.href='tel:+919641568109'; call.textContent='Call';
+          actions.append(wa, call); body.appendChild(actions);
+          card.append(photo, body); rail.appendChild(card);
+        });
+      }
+      if(key==='services'){
+        const grid = $('#servicesGrid'); grid.innerHTML='';
+        (Array.isArray(data)?data:[]).forEach(svc=>{
+          const card = document.createElement('article'); card.className='card service-card';
+          const img = document.createElement('div'); img.className='service-img';
+          if(svc.coverUrl) img.style.backgroundImage = `url('${svc.coverUrl}')`;
+          const body = document.createElement('div'); body.className='service-body';
+          const list = document.createElement('div'); list.className='service-list';
+          (svc.items||[]).forEach(it=>{
+            const row = document.createElement('div'); row.className='test-item';
+            row.innerHTML = `<span>${it.name||''}</span><span>${it.price?`₹${it.price}`:''}</span>`;
+            list.appendChild(row);
+          });
+          body.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <strong>${svc.title||'Service'}</strong>
+              ${svc.fromPrice?`<span class="badge">from ₹${svc.fromPrice}</span>`:''}
+            </div>
+            <div class="muted" style="margin:6px 0 8px">${svc.note||'Click to view list'}</div>
+          `;
+          const btn = document.createElement('button'); btn.className='btn btn-outline'; btn.textContent='View list'; btn.onclick=()=>toggleService(btn);
+          body.append(list, btn);
+          card.append(img, body); grid.appendChild(card);
+        });
+      }
+      if(key==='products'){
+        const list = $('#productsList'); list.innerHTML='';
+        (Array.isArray(data)?data:[]).forEach(p=>{
+          const card = document.createElement('article'); card.className='card product-card';
+          const img = document.createElement('div'); img.className='product-img';
+          if(p.imageUrl) img.style.backgroundImage = `url('${p.imageUrl}')`;
+          const body = document.createElement('div'); body.className='product-body';
+          const msg = encodeURIComponent(p.buyMessage || `I would like to buy ${p.name||'the product'}.`);
+          body.innerHTML = `
+            <strong>${p.name||'Product'}</strong>
+            <div class="muted" style="margin:6px 0 10px">${p.description||''}</div>
+            ${p.price?`<div class="price">₹${Number(p.price).toLocaleString('en-IN')}</div>`:''}
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <a class="btn btn-whatsapp" target="_blank" href="https://wa.me/${clinicWA}?text=${msg}">Buy Now on WhatsApp</a>
+            </div>
+          `;
+          card.append(img, body); list.appendChild(card);
+        });
+      }
+      if(key==='map'){
+        if(typeof data==='string'){ $('#mapFrame').src = data; }
+        if(data?.mapEmbedUrl){ $('#mapFrame').src = data.mapEmbedUrl; }
+      }
+      if(key==='serviceBanner'){
+        const el = $('#serviceBanner');
+        if(typeof data==='string'){ el.style.backgroundImage = `url('${data}')`; el.textContent=''; }
+        if(data?.imageUrl){ el.style.backgroundImage = `url('${data.imageUrl}')`; el.textContent=''; }
+      }
+    }catch(e){ console.warn('Load error', key, e); }
+  }
+
+  // Initial loads
+  ['brand','heroSlides','actions','doctors','services','products','map','serviceBanner'].forEach(k=>loadSection(k,true));
+
+  // Simple JSON editors
+  let activeEditorKey = null;
+  const editorModal = $('#editorModal');
+  function toggleEditor(show){ editorModal.classList.toggle('open', !!show); }
+  window.toggleEditor = toggleEditor;
+
+  function exampleJson(key){
+    const ex = {
+      brand: {
+        name:"Physio - The Therapeutic Moves",
+        tagline:"We add life in your days.",
+        logoUrl:"https://i.ibb.co/3WZQmL6/placeholder-logo.png"
       },
+      hero: [
+        {"imageUrl":"https://i.ibb.co/2k4dZ8C/hero1.jpg"},
+        {"imageUrl":"https://i.ibb.co/NjJqC6V/hero2.jpg"}
+      ],
+      actions: [
+        {"label":"WhatsApp","iconUrl":"https://i.ibb.co/18w8R3p/whatsapp.png","href":"https://wa.me/919641568109"},
+        {"label":"Website","iconUrl":"https://i.ibb.co/6wm0Q9k/link.png","href":"https://example.com"}
+      ],
       doctors: [
-        {
-          id: 1,
-          name: "Arpan Das",
-          qualification: "BPT",
-          fees: "₹500",
-          description: "Experienced physiotherapist specializing in sports injuries and rehabilitation.",
-          image: ""
-        },
-        {
-          id: 2,
-          name: "Jhunu Das",
-          qualification: "DPT",
-          fees: "₹600",
-          description: "Expert in neurological rehabilitation and pediatric physiotherapy.",
-          image: ""
-        },
-        {
-          id: 3,
-          name: "Apurba Das",
-          qualification: "DPT",
-          fees: "₹600",
-          description: "Specialist in orthopedic conditions and manual therapy.",
-          image: ""
-        }
+        {"name":"Arpan Das","qualification":"BPT","fee":400,"photoUrl":"","details":"Orthopedic & Sports Rehab"},
+        {"name":"Jhunu Das","qualification":"DPT","fee":400,"photoUrl":"","details":"Pediatric & Neuro"},
+        {"name":"Apurba Das","qualification":"DPT","fee":400,"photoUrl":"","details":"Home Care Available"}
       ],
       services: [
-        {
-          id: 1,
-          name: "Physical Therapy",
-          description: "Comprehensive physical rehabilitation services.",
-          price: "₹400",
-          subServices: [
-            { name: "Movement Therapy", price: "₹300" },
-            { name: "Strength Training", price: "₹400" },
-            { name: "Flexibility Training", price: "₹350" }
-          ]
-        },
-        {
-          id: 2,
-          name: "Lab Tests",
-          description: "Complete diagnostic laboratory services.",
-          price: "₹200",
-          subServices: [
-            { name: "CBC", price: "₹200" },
-            { name: "RFT", price: "₹500" },
-            { name: "LFT", price: "₹450" },
-            { name: "Lipid Profile", price: "₹350" }
-          ]
-        },
-        {
-          id: 3,
-          name: "Sports Rehabilitation",
-          description: "Recovery programs for sports-related injuries.",
-          price: "₹600",
-          subServices: [
-            { name: "Injury Assessment", price: "₹500" },
-            { name: "Recovery Planning", price: "₹600" },
-            { name: "Performance Enhancement", price: "₹800" }
-          ]
-        }
+        {"title":"Physical Therapy","coverUrl":"","note":"Click to view sessions","fromPrice":400,"items":[{"name":"Consultation","price":400},{"name":"Session (45min)","price":600}]},
+        {"title":"Lab Tests","coverUrl":"","note":"Popular blood tests","fromPrice":200,"items":[{"name":"CBC","price":300},{"name":"LFT","price":500},{"name":"RFT","price":450},{"name":"Lipid Profile","price":600}]}
       ],
       products: [
-        {
-          id: 1,
-          name: "Lumbar Support Belt",
-          description: "Medical grade lumbar support for back pain relief.",
-          price: "₹1200",
-          image: ""
-        },
-        {
-          id: 2,
-          name: "Knee Support Brace",
-          description: "Adjustable knee brace for injury support and prevention.",
-          price: "₹800",
-          image: ""
-        }
+        {"name":"Lumbar Support Belt","imageUrl":"","description":"Medical grade lumbar support for back pain relief","price":1200,"buyMessage":"I would like to buy Lumbar Support Belt."},
+        {"name":"Knee Support Brace","imageUrl":"","description":"Adjustable knee brace for injury support and prevention","price":800,"buyMessage":"I would like to buy Knee Support Brace."}
       ],
-      messages: {
-        appointment: "Hello, I would like to book an appointment with Physio - The Therapeutic Moves.",
-        doctorBooking: "Hello, I would like to book an appointment with Dr. {doctorName} at Physio - The Therapeutic Moves.",
-        serviceBooking: "Hello, I would like to book {serviceName} service at Physio - The Therapeutic Moves.",
-        productPurchase: "Hello, I would like to buy {productName} from Physio - The Therapeutic Moves."
-      },
-      updated_at: null
+      map: {"mapEmbedUrl":"https://www.google.com/maps?q=Kolkata&output=embed"},
+      serviceBanner: {"imageUrl":"https://i.ibb.co/02LxgqH/service-banner.jpg"}
     };
+    switch(key){
+      case 'brand': return ex.brand;
+      case 'hero': return ex.hero;
+      case 'actions': return ex.actions;
+      case 'doctors': return ex.doctors;
+      case 'services': return ex.services;
+      case 'products': return ex.products;
+      case 'map': return ex.map;
+      case 'serviceBanner': return ex.serviceBanner;
+      default: return {};
+    }
+  }
 
-    // Admin credentials
-    const adminCredentials = {
-      username: "PhysioArpan",
-      password: "PtApu@9932TM"
+  function openEditor(key){
+    activeEditorKey = key;
+    $('#editorTitle').textContent = `Edit ${key[0].toUpperCase()}${key.slice(1)}`;
+    let preset = exampleJson(key==='hero'?'hero':key);
+    $('#editorJson').value = JSON.stringify(preset, null, 2);
+    toggleEditor(true);
+  }
+  window.openEditor = openEditor;
+
+  async function saveEditor(){
+    if(!activeEditorKey) return;
+    let val;
+    try{
+      val = JSON.parse($('#editorJson').value);
+    }catch(e){
+      alert('Invalid JSON'); return;
+    }
+    let path = 'clinic/';
+    // Map editor keys to DB keys
+    const map = {
+      brand:'brand',
+      hero:'heroSlides',
+      actions:'actions',
+      doctors:'doctors',
+      services:'services',
+      products:'products',
+      map:'map',
+      serviceBanner:'serviceBanner'
     };
-
-    let lastScrollTop = 0;
-    let currentPage = 'home';
-
-    document.addEventListener('DOMContentLoaded', async function() {
-      showLoading(true);
-      await loadDataFromFirebase();
-      renderAllViews();
-      updateImages();
-      setupScrollHandler();
-      setupRealTimeUpdates();
-      showLoading(false);
-    });
-
-    // Loading indicator
-    function showLoading(show) {
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      loadingIndicator.style.display = show ? 'block' : 'none';
+    path += map[activeEditorKey] || activeEditorKey;
+    try{
+      await set(ref(db, path), val);
+      alert('Saved!');
+      toggleEditor(false);
+      // reload UI
+      const reloadKey = map[activeEditorKey] || activeEditorKey;
+      loadSection(reloadKey,true);
+    }catch(e){
+      alert('Save failed: '+e.message);
     }
+  }
+  window.saveEditor = saveEditor;
 
-    // Firebase: Load
-    async function loadDataFromFirebase() {
-      try {
-        const snapshot = await get(ref(db, "clinicData"));
-        if (snapshot.exists()) {
-          clinicData = snapshot.val();
-          console.log("Data loaded from Firebase");
-        } else {
-          await saveDataToFirebase();
-          console.log("Initial data created in Firebase");
-        }
-      } catch (error) {
-        console.error("Error loading data from Firebase:", error);
-        loadFromLocalStorage();
-      }
-    }
+  // Accessibility for closing modals via backdrop click
+  [adminModal, editorModal].forEach(m=>{
+    m.addEventListener('click', (e)=>{ if(e.target===m){ m.classList.remove('open'); } });
+  });
 
-    // Firebase: Save
-    async function saveDataToFirebase() {
-      try {
-        clinicData.updated_at = new Date().toISOString();
-        await set(ref(db, "clinicData"), clinicData);
-        saveToLocalStorage();
-        showUpdateIndicator();
-        console.log("Data saved to Firebase");
-        return true;
-      } catch (error) {
-        console.error("Error saving to Firebase:", error);
-        saveToLocalStorage();
-        return false;
-      }
-    }
+</script>
 
-    // Firebase: Realtime subscription
-    function setupRealTimeUpdates() {
-      const clinicRef = ref(db, "clinicData");
-      onValue(clinicRef, (snapshot) => {
-        if (snapshot.exists()) {
-          clinicData = snapshot.val();
-          renderAllViews();
-          updateImages();
-          showUpdateIndicator();
-          console.log("Realtime update received from Firebase!");
-        }
-      });
-    }
-
-    // Local storage fallback
-    function saveToLocalStorage() {
-      localStorage.setItem('clinicData', JSON.stringify(clinicData));
-    }
-    function loadFromLocalStorage() {
-      const saved = localStorage.getItem('clinicData');
-      if (saved) {
-        clinicData = JSON.parse(saved);
-        console.log("Loaded clinic data from localStorage");
-      }
-    }
-
-    // UI helpers
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.classList.toggle('active');
-    }
-
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-      currentPage = pageId;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function setupScrollHandler() {
-      const header = document.getElementById('header');
-      window.addEventListener('scroll', () => {
-        const st = window.pageYOffset || document.documentElement.scrollTop;
-        if (st > lastScrollTop && st > 100) {
-          header.classList.add('hidden');
-        } else {
-          header.classList.remove('hidden');
-        }
-        lastScrollTop = st <= 0 ? 0 : st;
-      }, { passive: true });
-    }
-
-    function showUpdateIndicator() {
-      const ui = document.getElementById('updateIndicator');
-      ui.classList.add('show');
-      setTimeout(() => ui.classList.remove('show'), 1500);
-    }
-
-    // Render functions
-    function renderAllViews() {
-      renderBasicInfo();
-      renderDoctorsHome();
-      renderServicesHome();
-      renderProductsHome();
-
-      renderDoctorsPage();
-      renderServicesPage();
-      renderProductsPage();
-
-      renderAdminForms();
-    }
-
-    function renderBasicInfo() {
-      document.getElementById('clinicName').textContent = clinicData.basic.name || '';
-      document.getElementById('heroTitle').textContent = clinicData.basic.name || '';
-      document.getElementById('heroTagline').textContent = clinicData.basic.tagline || '';
-      document.getElementById('phoneNumber').textContent = clinicData.basic.phone || '';
-      document.getElementById('footerPhone').textContent = clinicData.basic.phone || '';
-      const locLink1 = document.getElementById('locationLink');
-      const locLink2 = document.getElementById('footerLocation');
-      if (clinicData.basic.location) {
-        locLink1.href = clinicData.basic.location;
-        locLink2.href = clinicData.basic.location;
-      }
-    }
-
-    function updateImages() {
-      // Logo
-      const logoContainer = document.getElementById('logoContainer');
-      let logoImg = logoContainer.querySelector('img');
-      if (clinicData.basic.logoImage) {
-        if (!logoImg) {
-          logoImg = document.createElement('img');
-          logoContainer.innerHTML = '';
-          logoContainer.appendChild(logoImg);
-        }
-        logoImg.src = clinicData.basic.logoImage;
-        logoImg.alt = 'Logo';
-      } else {
-        // fallback to text
-        logoContainer.innerHTML = '<div class="logo-text" id="clinicName">' + (clinicData.basic.name || 'Physio - The Therapeutic Moves') + '</div>';
-      }
-
-      // Hero banner
-      const heroImg = document.getElementById('heroBannerImage');
-      if (clinicData.basic.heroBannerImage) {
-        heroImg.src = clinicData.basic.heroBannerImage;
-        heroImg.style.display = 'block';
-      } else {
-        heroImg.style.display = 'none';
-      }
-
-      // Services banner
-      const servicesBannerImage = document.getElementById('servicesBannerImage');
-      if (clinicData.basic.servicesBannerImage) {
-        servicesBannerImage.src = clinicData.basic.servicesBannerImage;
-        servicesBannerImage.style.display = 'block';
-      } else {
-        servicesBannerImage.style.display = 'none';
-      }
-    }
-
-    function renderDoctorsHome() {
-      const grid = document.getElementById('doctorsGrid');
-      grid.innerHTML = '';
-      clinicData.doctors.forEach(doc => {
-        const card = document.createElement('div');
-        card.className = 'doctor-card';
-        card.onclick = () => openDoctorModal(doc);
-
-        const avatar = document.createElement('div');
-        avatar.className = 'doctor-avatar';
-        if (doc.image) {
-          const img = document.createElement('img');
-          img.src = doc.image;
-          img.alt = doc.name;
-          avatar.appendChild(img);
-        } else {
-          avatar.textContent = doc.name ? doc.name[0] : '?';
-        }
-
-        const info = document.createElement('div');
-        info.className = 'doctor-info';
-        info.innerHTML = `
-          <h3>${doc.name}</h3>
-          <p>${doc.qualification || ''}</p>
-          <div class="doctor-fees">${doc.fees || ''}</div>
-          <button class="btn-book" onclick="event.stopPropagation(); bookDoctor('${encodeURIComponent(doc.name)}');">Book</button>
-        `;
-
-        card.appendChild(avatar);
-        card.appendChild(info);
-        grid.appendChild(card);
-      });
-    }
-
-    function renderServicesHome() {
-      const grid = document.getElementById('servicesGrid');
-      grid.innerHTML = '';
-      clinicData.services.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'service-card';
-        card.innerHTML = `
-          <h3>${s.name}</h3>
-          <p>${s.description || ''}</p>
-          <div class="service-price">${s.price || ''}</div>
-          <div class="sub-services">
-            <h4>Sub-services</h4>
-            ${Array.isArray(s.subServices) ? s.subServices.map(ss => `
-              <div class="sub-service-item">
-                <span class="sub-service-name">${ss.name}</span>
-                <span class="sub-service-price">${ss.price}</span>
-              </div>
-            `).join('') : ''}
-          </div>
-          <button class="btn-service" onclick="bookService('${encodeURIComponent(s.name)}')">Book Service</button>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function renderProductsHome() {
-      const grid = document.getElementById('productsGrid');
-      grid.innerHTML = '';
-      clinicData.products.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-          <div class="product-image">
-            ${p.image ? `<img src="${p.image}" alt="${p.name}"/>` : `<span>🛍️</span>`}
-          </div>
-          <div class="product-info">
-            <h3>${p.name}</h3>
-            <p>${p.description || ''}</p>
-            <div class="product-price">${p.price || ''}</div>
-            <button class="btn-service" onclick="buyProduct('${encodeURIComponent(p.name)}')">Buy via WhatsApp</button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function renderDoctorsPage() {
-      const list = document.getElementById('doctorsList');
-      list.innerHTML = '';
-      clinicData.doctors.forEach(doc => {
-        const card = document.createElement('div');
-        card.className = 'doctor-card doctor-card-horizontal';
-        const avatar = document.createElement('div');
-        avatar.className = 'doctor-avatar';
-        if (doc.image) {
-          const img = document.createElement('img');
-          img.src = doc.image; img.alt = doc.name;
-          avatar.appendChild(img);
-        } else {
-          avatar.textContent = doc.name ? doc.name[0] : '?';
-        }
-        const info = document.createElement('div');
-        info.className = 'doctor-info';
-        info.innerHTML = `
-          <h3>${doc.name}</h3>
-          <p>${doc.qualification || ''}</p>
-          <p>${doc.description || ''}</p>
-          <div class="doctor-fees">${doc.fees || ''}</div>
-          <button class="btn-book" onclick="bookDoctor('${encodeURIComponent(doc.name)}')">Book</button>
-        `;
-        card.appendChild(avatar);
-        card.appendChild(info);
-        list.appendChild(card);
-      });
-    }
-
-    function renderServicesPage() {
-      const list = document.getElementById('servicesList');
-      list.innerHTML = '';
-      clinicData.services.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'service-card';
-        card.innerHTML = `
-          <h3>${s.name}</h3>
-          <p>${s.description || ''}</p>
-          <div class="service-price">${s.price || ''}</div>
-          <div class="sub-services">
-            <h4>Sub-services</h4>
-            ${Array.isArray(s.subServices) ? s.subServices.map(ss => `
-              <div class="sub-service-item">
-                <span class="sub-service-name">${ss.name}</span>
-                <span class="sub-service-price">${ss.price}</span>
-              </div>
-            `).join('') : ''}
-          </div>
-          <button class="btn-service" onclick="bookService('${encodeURIComponent(s.name)}')">Book Service</button>
-        `;
-        list.appendChild(card);
-      });
-    }
-
-    function renderProductsPage() {
-      const list = document.getElementById('productsList');
-      list.innerHTML = '';
-      clinicData.products.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-          <div class="product-image">
-            ${p.image ? `<img src="${p.image}" alt="${p.name}"/>` : `<span>🛒</span>`}
-          </div>
-          <div class="product-info">
-            <h3>${p.name}</h3>
-            <p>${p.description || ''}</p>
-            <div class="product-price">${p.price || ''}</div>
-            <button class="btn-service" onclick="buyProduct('${encodeURIComponent(p.name)}')">Buy via WhatsApp</button>
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    }
-
-    // Admin UI rendering
-    function renderAdminForms() {
-      // Fill basic form with current values
-      document.getElementById('adminClinicName').value = clinicData.basic.name || '';
-      document.getElementById('adminTagline').value = clinicData.basic.tagline || '';
-      document.getElementById('adminPhone').value = clinicData.basic.phone || '';
-      document.getElementById('adminLocation').value = clinicData.basic.location || '';
-      document.getElementById('logoImageUrl').value = clinicData.basic.logoImage || '';
-      document.getElementById('heroBannerUrl').value = clinicData.basic.heroBannerImage || '';
-      document.getElementById('servicesBannerUrl').value = clinicData.basic.servicesBannerImage || '';
-
-      // Preview images
-      const logoPreview = document.getElementById('logoPreview');
-      if (clinicData.basic.logoImage) { logoPreview.src = clinicData.basic.logoImage; logoPreview.style.display = 'block'; }
-      else { logoPreview.style.display = 'none'; }
-
-      const heroBannerPreview = document.getElementById('heroBannerPreview');
-      if (clinicData.basic.heroBannerImage) { heroBannerPreview.src = clinicData.basic.heroBannerImage; heroBannerPreview.style.display = 'block'; }
-      else { heroBannerPreview.style.display = 'none'; }
-
-      const servicesBannerPreview = document.getElementById('servicesBannerPreview');
-      if (clinicData.basic.servicesBannerImage) { servicesBannerPreview.src = clinicData.basic.servicesBannerImage; servicesBannerPreview.style.display = 'block'; }
-      else { servicesBannerPreview.style.display = 'none'; }
-
-      // Doctors management
-      const dm = document.getElementById('doctorsManagement');
-      dm.innerHTML = '';
-      clinicData.doctors.forEach((doc, idx) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'sub-service-management';
-        wrap.innerHTML = `
-          <div class="form-group"><label>Name</label><input type="text" value="${doc.name}" data-type="doctor" data-field="name" data-index="${idx}"></div>
-          <div class="form-group"><label>Qualification</label><input type="text" value="${doc.qualification || ''}" data-type="doctor" data-field="qualification" data-index="${idx}"></div>
-          <div class="form-group"><label>Fees</label><input type="text" value="${doc.fees || ''}" data-type="doctor" data-field="fees" data-index="${idx}"></div>
-          <div class="form-group"><label>Description</label><textarea data-type="doctor" data-field="description" data-index="${idx}">${doc.description || ''}</textarea></div>
-          <div class="form-group"><label>Image URL</label><input type="url" value="${doc.image || ''}" data-type="doctor" data-field="image" data-index="${idx}"></div>
-          <button class="btn-admin" data-action="remove-doctor" data-index="${idx}">Remove</button>
-        `;
-        dm.appendChild(wrap);
-      });
-
-      dm.addEventListener('input', onAdminInlineChange);
-      dm.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t.dataset.action === 'remove-doctor') {
-          const i = Number(t.dataset.index);
-          clinicData.doctors.splice(i, 1);
-          renderAllViews();
-          saveToLocalStorage();
-        }
-      });
-
-      // Services management
-      const sm = document.getElementById('servicesManagement');
-      sm.innerHTML = '';
-      clinicData.services.forEach((s, idx) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'sub-service-management';
-        wrap.innerHTML = `
-          <div class="form-group"><label>Name</label><input type="text" value="${s.name}" data-type="service" data-field="name" data-index="${idx}"></div>
-          <div class="form-group"><label>Description</label><textarea data-type="service" data-field="description" data-index="${idx}">${s.description || ''}</textarea></div>
-          <div class="form-group"><label>Price</label><input type="text" value="${s.price || ''}" data-type="service" data-field="price" data-index="${idx}"></div>
-          <div class="form-group"><label>Sub-services JSON</label>
-            <textarea data-type="service" data-field="subServices" data-index="${idx}" placeholder='[{"name":"X","price":"₹100"}]'>${JSON.stringify(s.subServices || [])}</textarea>
-          </div>
-          <button class="btn-admin" data-action="remove-service" data-index="${idx}">Remove</button>
-        `;
-        sm.appendChild(wrap);
-      });
-
-      sm.addEventListener('input', onAdminInlineChange);
-      sm.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t.dataset.action === 'remove-service') {
-          const i = Number(t.dataset.index);
-          clinicData.services.splice(i, 1);
-          renderAllViews();
-          saveToLocalStorage();
-        }
-      });
-
-      // Products management
-      const pm = document.getElementById('productsManagement');
-      pm.innerHTML = '';
-      clinicData.products.forEach((p, idx) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'sub-service-management';
-        wrap.innerHTML = `
-          <div class="form-group"><label>Name</label><input type="text" value="${p.name}" data-type="product" data-field="name" data-index="${idx}"></div>
-          <div class="form-group"><label>Description</label><textarea data-type="product" data-field="description" data-index="${idx}">${p.description || ''}</textarea></div>
-          <div class="form-group"><label>Price</label><input type="text" value="${p.price || ''}" data-type="product" data-field="price" data-index="${idx}"></div>
-          <div class="form-group"><label>Image URL</label><input type="url" value="${p.image || ''}" data-type="product" data-field="image" data-index="${idx}"></div>
-          <button class="btn-admin" data-action="remove-product" data-index="${idx}">Remove</button>
-        `;
-        pm.appendChild(wrap);
-      });
-
-      pm.addEventListener('input', onAdminInlineChange);
-      pm.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t.dataset.action === 'remove-product') {
-          const i = Number(t.dataset.index);
-          clinicData.products.splice(i, 1);
-          renderAllViews();
-          saveToLocalStorage();
-        }
-      });
-
-      // Messages
-      document.getElementById('appointmentMessage').value = clinicData.messages?.appointment || '';
-      document.getElementById('doctorBookingMessage').value = clinicData.messages?.doctorBooking || '';
-      document.getElementById('serviceBookingMessage').value = clinicData.messages?.serviceBooking || '';
-      document.getElementById('productPurchaseMessage').value = clinicData.messages?.productPurchase || '';
-    }
-
-    function onAdminInlineChange(e) {
-      const el = e.target;
-      const type = el.dataset.type;
-      const field = el.dataset.field;
-      const index = Number(el.dataset.index);
-      if (!type || !field || Number.isNaN(index)) return;
-
-      if (type === 'doctor') {
-        clinicData.doctors[index][field] = el.value;
-      } else if (type === 'service') {
-        if (field === 'subServices') {
-          try {
-            clinicData.services[index][field] = JSON.parse(el.value || '[]');
-          } catch {
-            // ignore invalid JSON until corrected
-          }
-        } else {
-          clinicData.services[index][field] = el.value;
-        }
-      } else if (type === 'product') {
-        clinicData.products[index][field] = el.value;
-      }
-      saveToLocalStorage();
-    }
-
-    // Admin basic info handlers
-    window.updateBasicInfoAdmin = function() {
-      clinicData.basic.name = document.getElementById('adminClinicName').value;
-      clinicData.basic.tagline = document.getElementById('adminTagline').value;
-      clinicData.basic.phone = document.getElementById('adminPhone').value;
-      clinicData.basic.location = document.getElementById('adminLocation').value;
-      renderBasicInfo();
-      saveToLocalStorage();
-    }
-
-    window.updateLogo = function() {
-      const url = document.getElementById('logoImageUrl').value;
-      clinicData.basic.logoImage = url;
-      const prev = document.getElementById('logoPreview');
-      if (url) { prev.src = url; prev.style.display = 'block'; }
-      else { prev.style.display = 'none'; }
-      updateImages();
-      saveToLocalStorage();
-    }
-
-    window.updateHeroBanner = function() {
-      const url = document.getElementById('heroBannerUrl').value;
-      clinicData.basic.heroBannerImage = url;
-      const prev = document.getElementById('heroBannerPreview');
-      if (url) { prev.src = url; prev.style.display = 'block'; }
-      else { prev.style.display = 'none'; }
-      updateImages();
-      saveToLocalStorage();
-    }
-
-    window.updateServicesBanner = function() {
-      const url = document.getElementById('servicesBannerUrl').value;
-      clinicData.basic.servicesBannerImage = url;
-      const prev = document.getElementById('servicesBannerPreview');
-      if (url) { prev.src = url; prev.style.display = 'block'; }
-      else { prev.style.display = 'none'; }
-      updateImages();
-      saveToLocalStorage();
-    }
-
-    window.updateMessages = function() {
-      clinicData.messages.appointment = document.getElementById('appointmentMessage').value;
-      clinicData.messages.doctorBooking = document.getElementById('doctorBookingMessage').value;
-      clinicData.messages.serviceBooking = document.getElementById('serviceBookingMessage').value;
-      clinicData.messages.productPurchase = document.getElementById('productPurchaseMessage').value;
-      saveToLocalStorage();
-    }
-
-    // Admin actions
-    window.addDoctor = function() {
-      const nextId = clinicData.doctors.length ? Math.max(...clinicData.doctors.map(d => d.id || 0)) + 1 : 1;
-      clinicData.doctors.push({ id: nextId, name: "New Doctor", qualification: "", fees: "", description: "", image: "" });
-      renderAllViews();
-      saveToLocalStorage();
-    }
-
-    window.addService = function() {
-      const nextId = clinicData.services.length ? Math.max(...clinicData.services.map(s => s.id || 0)) + 1 : 1;
-      clinicData.services.push({ id: nextId, name: "New Service", description: "", price: "", subServices: [] });
-      renderAllViews();
-      saveToLocalStorage();
-    }
-
-    window.addProduct = function() {
-      const nextId = clinicData.products.length ? Math.max(...clinicData.products.map(p => p.id || 0)) + 1 : 1;
-      clinicData.products.push({ id: nextId, name: "New Product", description: "", price: "", image: "" });
-      renderAllViews();
-      saveToLocalStorage();
-    }
-
-    window.saveAllData = async function() {
-      showLoading(true);
-      const ok = await saveDataToFirebase();
-      showLoading(false);
-      if (!ok) alert('Failed to save to Firebase. Changes saved locally.');
-    }
-
-    // Auth-less Admin (as per original)
-    window.openAdminLogin = function() {
-      document.getElementById('adminLoginModal').style.display = 'block';
-    }
-    window.closeAdminLogin = function() {
-      document.getElementById('adminLoginModal').style.display = 'none';
-    }
-    window.adminLogin = function(e) {
-      e.preventDefault();
-      const u = document.getElementById('adminUsername').value;
-      const p = document.getElementById('adminPassword').value;
-      if (u === adminCredentials.username && p === adminCredentials.password) {
-        closeAdminLogin();
-        openAdminPanel();
-      } else {
-        alert('Invalid credentials');
-      }
-    }
-    window.openAdminPanel = function() {
-      document.getElementById('adminPanel').style.display = 'block';
-    }
-    window.closeAdminPanel = function() {
-      document.getElementById('adminPanel').style.display = 'none';
-    }
-
-    // Modal controls
-    window.openDoctorModal = function(doc) {
-      const modal = document.getElementById('doctorModal');
-      const details = document.getElementById('doctorDetails');
-      details.innerHTML = `
-        <h2>${doc.name}</h2>
-        <p>${doc.qualification || ''}</p>
-        <p>${doc.description || ''}</p>
-        <p><strong>Fees:</strong> ${doc.fees || ''}</p>
-        <button class="btn-book" onclick="bookDoctor('${encodeURIComponent(doc.name)}')">Book with ${doc.name}</button>
-      `;
-      modal.style.display = 'block';
-    }
-    window.closeDoctorModal = function() {
-      document.getElementById('doctorModal').style.display = 'none';
-    }
-
-    // Booking and WhatsApp helpers
-    function openWhatsApp(message) {
-      const text = encodeURIComponent(message);
-      const url = `https://wa.me/${WHATSAPP_NUMBER.replace('+','')}?text=${text}`;
-      window.open(url, '_blank');
-    }
-
-    window.bookAppointment = function() {
-      const msg = clinicData.messages?.appointment || "Hello, I would like to book an appointment.";
-      openWhatsApp(msg);
-    }
-
-    window.bookDoctor = function(encodedName) {
-      const name = decodeURIComponent(encodedName);
-      const template = clinicData.messages?.doctorBooking || "Hello, I would like to book an appointment with Dr. {doctorName}.";
-      const msg = template.replace('{doctorName}', name);
-      openWhatsApp(msg);
-    }
-
-    window.bookService = function(encodedService) {
-      const name = decodeURIComponent(encodedService);
-      const template = clinicData.messages?.serviceBooking || "Hello, I would like to book {serviceName} service.";
-      const msg = template.replace('{serviceName}', name);
-      openWhatsApp(msg);
-    }
-
-    window.buyProduct = function(encodedProduct) {
-      const name = decodeURIComponent(encodedProduct);
-      const template = clinicData.messages?.productPurchase || "Hello, I would like to buy {productName}.";
-      const msg = template.replace('{productName}', name);
-      openWhatsApp(msg);
-    }
-
-    // Close modals on outside click
-    window.onclick = function(event) {
-      const modals = ['doctorModal', 'adminLoginModal'];
-      modals.forEach(id => {
-        const modal = document.getElementById(id);
-        if (event.target === modal) modal.style.display = 'none';
-      });
-    }
-  </script>
+<!-- Non-module fallback: no JS needed beyond -->
+<noscript>
+  This site requires JavaScript to load dynamic content and admin editing. Please enable JavaScript.
+</noscript>
 </body>
 </html>
