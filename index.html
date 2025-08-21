@@ -49,6 +49,13 @@
             font-size: 0.9rem;
         }
 
+        .logo-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
         .logo-placeholder {
             width: 28px;
             height: 28px;
@@ -1074,7 +1081,7 @@
     <!-- Header -->
     <header class="header" id="header">
         <div class="logo">
-            <div class="logo-placeholder">LOGO</div>
+            <img src="https://via.placeholder.com/32x32/2c8577/ffffff?text=LOGO" alt="Logo" class="logo-img" id="clinicLogo">
             <span id="clinicName">Physio - The Therapeutic Moves</span>
         </div>
         <div class="hamburger" onclick="toggleMenu()">
@@ -1287,6 +1294,13 @@
                     </div>
                     <div class="form-row">
                         <div class="form-field">
+                            <label>Logo URL (imgbb, etc.)</label>
+                            <input type="url" id="adminLogoUrl" placeholder="https://i.ibb.co/..." oninput="previewImage(this, 'logoPreview')">
+                            <img id="logoPreview" class="image-preview" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
                             <label>Banner Image URL (imgbb, etc.)</label>
                             <input type="url" id="bannerImageUrl" placeholder="https://i.ibb.co/..." oninput="previewImage(this, 'bannerPreview')">
                             <img id="bannerPreview" class="image-preview" style="display: none;">
@@ -1331,7 +1345,7 @@
     <script type="module">
         // Firebase Configuration
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
-        import { getDatabase, ref, get, set, push, remove } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
+        import { getDatabase, ref, get, set, push, remove, update, onValue } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
 
         const firebaseConfig = {
@@ -1357,6 +1371,7 @@
                 tagline: '"We add life in your days."',
                 phone: "+91 9641568109",
                 email: "DrArpanDas.PT@gmail.com",
+                logoUrl: "",
                 bannerImageUrl: "",
                 bannerVideoUrl: ""
             },
@@ -1458,6 +1473,18 @@
             ]
         };
 
+        // Setup real-time listener for automatic updates
+        const siteRef = ref(database, 'site');
+        onValue(siteRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                window.siteData = { ...window.siteData, ...data };
+                renderSite();
+                updateAdminForm();
+                updateStats();
+            }
+        });
+
         // Header auto-hide functionality
         let lastScrollTop = 0;
         const header = document.getElementById('header');
@@ -1543,9 +1570,74 @@
 
         // Update Statistics
         function updateStats() {
-            document.getElementById('totalDoctors').textContent = window.siteData.doctors.length;
-            document.getElementById('totalServices').textContent = window.siteData.services.length;
-            document.getElementById('totalProducts').textContent = window.siteData.products.length;
+            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0;
+            document.getElementById('totalServices').textContent = window.siteData.services?.length || 0;
+            document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
+        }
+
+        // Update admin form with current data
+        function updateAdminForm() {
+            if (window.siteData.hero) {
+                const hero = window.siteData.hero;
+                document.getElementById('adminClinicName').value = hero.clinicName || '';
+                document.getElementById('adminTagline').value = hero.tagline || '';
+                document.getElementById('adminPhone').value = hero.phone || '';
+                document.getElementById('adminEmail').value = hero.email || '';
+                document.getElementById('adminLogoUrl').value = hero.logoUrl || '';
+                document.getElementById('bannerImageUrl').value = hero.bannerImageUrl || '';
+                document.getElementById('bannerVideoUrl').value = hero.bannerVideoUrl || '';
+
+                // Update logo if URL exists
+                if (hero.logoUrl) {
+                    const logoImg = document.getElementById('clinicLogo');
+                    if (logoImg) {
+                        logoImg.src = hero.logoUrl;
+                    }
+                    previewImage(document.getElementById('adminLogoUrl'), 'logoPreview');
+                }
+
+                if (hero.bannerImageUrl) {
+                    previewImage(document.getElementById('bannerImageUrl'), 'bannerPreview');
+                }
+            }
+        }
+
+        // FIXED UPDATE FUNCTION - This was causing the error
+        window.updateClinicInfo = async function() {
+            const heroData = {
+                clinicName: document.getElementById('adminClinicName').value.trim(),
+                title: document.getElementById('adminClinicName').value.trim(),
+                tagline: document.getElementById('adminTagline').value.trim(),
+                phone: document.getElementById('adminPhone').value.trim(),
+                email: document.getElementById('adminEmail').value.trim(),
+                logoUrl: document.getElementById('adminLogoUrl').value.trim(),
+                bannerImageUrl: document.getElementById('bannerImageUrl').value.trim(),
+                bannerVideoUrl: document.getElementById('bannerVideoUrl').value.trim()
+            };
+            
+            try {
+                // Use update() instead of set() to update only specific fields
+                await update(ref(database, 'site/hero'), heroData);
+                
+                // Update local data
+                window.siteData.hero = { ...window.siteData.hero, ...heroData };
+                
+                // Update UI immediately
+                renderHero();
+                
+                // Update logo if URL provided
+                if (heroData.logoUrl) {
+                    const logoImg = document.getElementById('clinicLogo');
+                    if (logoImg) {
+                        logoImg.src = heroData.logoUrl;
+                    }
+                }
+                
+                alert('Clinic information updated successfully!');
+            } catch (error) {
+                console.error('Error updating clinic information:', error);
+                alert('Error updating clinic information: ' + error.message);
+            }
         }
 
         // Render site content
@@ -1561,17 +1653,20 @@
         }
 
         function renderHero() {
-            document.getElementById('clinicName').textContent = window.siteData.hero.clinicName;
-            document.getElementById('heroTitle').textContent = window.siteData.hero.title;
-            document.getElementById('heroTagline').textContent = window.siteData.hero.tagline;
-            document.getElementById('phoneNumber').innerHTML = `📞 ${window.siteData.hero.phone}`;
+            if (window.siteData.hero) {
+                document.getElementById('clinicName').textContent = window.siteData.hero.clinicName;
+                document.getElementById('heroTitle').textContent = window.siteData.hero.title;
+                document.getElementById('heroTagline').textContent = window.siteData.hero.tagline;
+                document.getElementById('phoneNumber').innerHTML = `📞 ${window.siteData.hero.phone}`;
+            }
         }
 
         function renderDoctorsPreview() {
             const container = document.getElementById('doctorsPreview');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.doctors.slice(0, 3).forEach(doctor => {
+            window.siteData.doctors?.slice(0, 3).forEach(doctor => {
                 const doctorCard = document.createElement('div');
                 doctorCard.className = 'doctor-preview-card';
                 doctorCard.onclick = () => showDoctorDetails(doctor);
@@ -1591,9 +1686,10 @@
 
         function renderServicesPreview() {
             const container = document.getElementById('servicesPreview');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.services.slice(0, 3).forEach(service => {
+            window.siteData.services?.slice(0, 3).forEach(service => {
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-preview-card';
                 serviceCard.onclick = () => showServiceDetails(service);
@@ -1609,9 +1705,10 @@
 
         function renderProductsPreview() {
             const container = document.getElementById('productsPreview');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.products.slice(0, 3).forEach(product => {
+            window.siteData.products?.slice(0, 3).forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-preview-card';
                 
@@ -1633,9 +1730,10 @@
 
         function renderDoctors() {
             const container = document.getElementById('doctorsContainer');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.doctors.forEach(doctor => {
+            window.siteData.doctors?.forEach(doctor => {
                 const doctorCard = document.createElement('div');
                 doctorCard.className = 'doctor-card';
                 
@@ -1659,9 +1757,10 @@
 
         function renderServices() {
             const container = document.getElementById('servicesContainer');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.services.forEach(service => {
+            window.siteData.services?.forEach(service => {
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-card';
                 
@@ -1683,9 +1782,10 @@
 
         function renderProducts() {
             const container = document.getElementById('productsContainer');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.products.forEach(product => {
+            window.siteData.products?.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 
@@ -1711,14 +1811,14 @@
             renderDoctorsAdminList();
             renderServicesAdminList();
             renderProductsAdminList();
-            loadAdminFormData();
         }
 
         function renderDoctorsAdminList() {
             const container = document.getElementById('doctorsAdminList');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.doctors.forEach(doctor => {
+            window.siteData.doctors?.forEach(doctor => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.innerHTML = `
@@ -1737,9 +1837,10 @@
 
         function renderServicesAdminList() {
             const container = document.getElementById('servicesAdminList');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.services.forEach(service => {
+            window.siteData.services?.forEach(service => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.innerHTML = `
@@ -1758,9 +1859,10 @@
 
         function renderProductsAdminList() {
             const container = document.getElementById('productsAdminList');
+            if (!container) return;
             container.innerHTML = '';
             
-            window.siteData.products.forEach(product => {
+            window.siteData.products?.forEach(product => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.innerHTML = `
@@ -1777,57 +1879,20 @@
             });
         }
 
-        function loadAdminFormData() {
-            const hero = window.siteData.hero;
-            document.getElementById('adminClinicName').value = hero.clinicName || '';
-            document.getElementById('adminTagline').value = hero.tagline || '';
-            document.getElementById('adminPhone').value = hero.phone || '';
-            document.getElementById('adminEmail').value = hero.email || '';
-            document.getElementById('bannerImageUrl').value = hero.bannerImageUrl || '';
-            document.getElementById('bannerVideoUrl').value = hero.bannerVideoUrl || '';
-            
-            if (hero.bannerImageUrl) {
-                previewImage(document.getElementById('bannerImageUrl'), 'bannerPreview');
-            }
-        }
-
-        // Admin Functions
-        window.updateClinicInfo = async function() {
-            const heroData = {
-                clinicName: document.getElementById('adminClinicName').value,
-                title: document.getElementById('adminClinicName').value,
-                tagline: document.getElementById('adminTagline').value,
-                phone: document.getElementById('adminPhone').value,
-                email: document.getElementById('adminEmail').value,
-                bannerImageUrl: document.getElementById('bannerImageUrl').value,
-                bannerVideoUrl: document.getElementById('bannerVideoUrl').value
-            };
-            
-            try {
-                await set(ref(database, 'site/hero'), heroData);
-                window.siteData.hero = heroData;
-                renderHero();
-                alert('Clinic information updated successfully!');
-            } catch (error) {
-                alert('Error updating clinic information');
-                console.error(error);
-            }
-        }
-
         // Doctor Management
         window.addNewDoctor = function() {
             showEditModal('doctor', null);
         }
 
         window.editDoctor = function(id) {
-            const doctor = window.siteData.doctors.find(d => d.id === id);
+            const doctor = window.siteData.doctors?.find(d => d.id === id);
             showEditModal('doctor', doctor);
         }
 
         window.deleteDoctor = async function(id) {
             if (confirm('Are you sure you want to delete this doctor?')) {
                 window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id);
-                await set(ref(database, 'site/doctors'), window.siteData.doctors);
+                await update(ref(database, 'site'), { doctors: window.siteData.doctors });
                 renderAdminLists();
                 renderSite();
                 updateStats();
@@ -1840,14 +1905,14 @@
         }
 
         window.editService = function(id) {
-            const service = window.siteData.services.find(s => s.id === id);
+            const service = window.siteData.services?.find(s => s.id === id);
             showEditModal('service', service);
         }
 
         window.deleteService = async function(id) {
             if (confirm('Are you sure you want to delete this service?')) {
                 window.siteData.services = window.siteData.services.filter(s => s.id !== id);
-                await set(ref(database, 'site/services'), window.siteData.services);
+                await update(ref(database, 'site'), { services: window.siteData.services });
                 renderAdminLists();
                 renderSite();
                 updateStats();
@@ -1860,14 +1925,14 @@
         }
 
         window.editProduct = function(id) {
-            const product = window.siteData.products.find(p => p.id === id);
+            const product = window.siteData.products?.find(p => p.id === id);
             showEditModal('product', product);
         }
 
         window.deleteProduct = async function(id) {
             if (confirm('Are you sure you want to delete this product?')) {
                 window.siteData.products = window.siteData.products.filter(p => p.id !== id);
-                await set(ref(database, 'site/products'), window.siteData.products);
+                await update(ref(database, 'site'), { products: window.siteData.products });
                 renderAdminLists();
                 renderSite();
                 updateStats();
@@ -2034,7 +2099,7 @@
             }
             
             try {
-                await set(ref(database, 'site/doctors'), window.siteData.doctors);
+                await update(ref(database, 'site'), { doctors: window.siteData.doctors });
                 closeEditModal();
                 renderAdminLists();
                 renderSite();
@@ -2065,7 +2130,7 @@
             }
             
             try {
-                await set(ref(database, 'site/services'), window.siteData.services);
+                await update(ref(database, 'site'), { services: window.siteData.services });
                 closeEditModal();
                 renderAdminLists();
                 renderSite();
@@ -2095,7 +2160,7 @@
             }
             
             try {
-                await set(ref(database, 'site/products'), window.siteData.products);
+                await update(ref(database, 'site'), { products: window.siteData.products });
                 closeEditModal();
                 renderAdminLists();
                 renderSite();
@@ -2166,12 +2231,12 @@
             content.innerHTML = `
                 <p style="margin-bottom: 1rem; color: #666;">${service.description}</p>
                 <h4 style="color: #2c8577; margin-bottom: 1rem;">Available Tests & Treatments:</h4>
-                ${service.tests.map(test => `
+                ${service.tests?.map(test => `
                     <div class="test-item">
                         <span>${test.name}</span>
                         <span style="font-weight: 600; color: #2c8577;">${test.price}</span>
                     </div>
-                `).join('')}
+                `).join('') || ''}
             `;
             document.getElementById('serviceDetailsModal').style.display = 'block';
         }
@@ -2204,6 +2269,7 @@
                 document.querySelector('.main').style.display = 'none';
                 initAdminTabs();
                 renderAdminLists();
+                updateAdminForm();
             } catch (error) {
                 alert('Invalid credentials');
             }
