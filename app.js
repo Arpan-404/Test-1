@@ -1,8 +1,8 @@
-// 1. Configure MSAL with your specific App Registration details
+// 1. Configure MSAL for Multi-Tenant (Personal & Work/School accounts)
 const msalConfig = {
     auth: {
-        clientId: "f2269f4-7541-417a-9c6a-9c2a1df9e49b", // Application (client) ID from your screenshot
-        authority: "https://login.microsoftonline.com/cba5ba4c-03e2-41a8-a516-a50c6b962e5a", // Directory (tenant) ID from your screenshot
+        clientId: "f2269f4-7541-417a-9c6a-9c2a1df9e49b", // Your Application (client) ID
+        authority: "https://login.microsoftonline.com/common", // Changed to "common" to allow any Microsoft account
         redirectUri: "https://arpan-404.github.io/Test-1/" // Your live GitHub Pages URL
     }
 };
