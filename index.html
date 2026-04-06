@@ -1,26 +1,729 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M365 Photo Uploader</title>
-    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #uploadSection { display: none; margin-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<title>PhysioCare Tracker</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<style>
+
+body{
+background:#f3f4f6;
+}
+
+[contenteditable]:empty:before{
+content:attr(data-placeholder);
+color:#9ca3af;
+}
+
+.tableCell{
+
+min-height:28px;
+padding:4px;
+
+}
+
+@media print{
+
+body{
+
+background:white;
+
+}
+
+.noPrint{
+
+display:none;
+
+}
+
+.printHeader{
+
+display:block;
+
+}
+
+.printPage{
+
+width:210mm;
+min-height:297mm;
+
+}
+
+table{
+
+border-collapse:collapse;
+
+}
+
+td,th{
+
+border:none;
+padding:6px;
+
+}
+
+}
+
+.printHeader{
+
+display:none;
+
+}
+
+</style>
+
 </head>
+
 <body>
-    <h1>Upload a Photo to OneDrive</h1>
-    
-    <button id="loginBtn">Log in with Microsoft 365</button>
 
-    <div id="uploadSection">
-        <input type="file" id="photoInput" accept="image/*" />
-        <button id="uploadBtn">Upload Photo</button>
-        <p id="statusMessage"></p>
-    </div>
+<div id="root"></div>
 
-    <script src="app.js"></script>
+<script type="module">
+
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"
+
+import {
+getFirestore,
+collection,
+doc,
+setDoc,
+onSnapshot,
+addDoc
+}
+from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+
+import {
+
+getAuth,
+GoogleAuthProvider,
+signInWithPopup,
+onAuthStateChanged,
+signInWithCustomToken
+
+}
+from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"
+
+const firebaseConfig={
+
+apiKey:"AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
+authDomain:"patient-records-arpan.firebaseapp.com",
+projectId:"patient-records-arpan",
+storageBucket:"patient-records-arpan.firebasestorage.app",
+messagingSenderId:"599041105903",
+appId:"1:599041105903:web:7f0c1c10f38f12cc2ee01a",
+measurementId:"G-ZEE89YP3F3"
+
+}
+
+const app=initializeApp(firebaseConfig)
+
+window.db=getFirestore(app)
+
+window.auth=getAuth(app)
+
+window.GoogleAuthProvider=GoogleAuthProvider
+
+window.signInWithPopup=signInWithPopup
+
+window.onAuthStateChanged=onAuthStateChanged
+
+window.signInWithCustomToken=signInWithCustomToken
+
+window.collection=collection
+
+window.doc=doc
+
+window.setDoc=setDoc
+
+window.onSnapshot=onSnapshot
+
+window.addDoc=addDoc
+
+</script>
+
+<script type="text/babel">
+
+const JOINTS_DATA={
+
+'Cervical':[
+{name:'Flexion',type:'single',normal:'45°'},
+{name:'Extension',type:'single',normal:'45°'},
+{name:'Lat. Flexion',type:'bilateral',normal:'45°'},
+{name:'Rotation',type:'bilateral',normal:'60°'}
+],
+
+'Spine':[
+{name:'Flexion',type:'single',normal:'80°'},
+{name:'Extension',type:'single',normal:'25°'},
+{name:'Lat. Flexion',type:'bilateral',normal:'35°'},
+{name:'Rotation',type:'bilateral',normal:'45°'}
+],
+
+'Shoulder':[
+{name:'Flexion',type:'bilateral',normal:'180°'},
+{name:'Extension',type:'bilateral',normal:'60°'},
+{name:'Abduction',type:'bilateral',normal:'180°'},
+{name:'Adduction',type:'bilateral',normal:'50°'},
+{name:'Int. Rotation',type:'bilateral',normal:'70°'},
+{name:'Ext. Rotation',type:'bilateral',normal:'90°'}
+],
+
+'Elbow':[
+{name:'Flexion',type:'bilateral',normal:'150°'},
+{name:'Extension',type:'bilateral',normal:'0°'}
+],
+
+'Forearm':[
+{name:'Pronation',type:'bilateral',normal:'80°'},
+{name:'Supination',type:'bilateral',normal:'80°'}
+],
+
+'Wrist':[
+{name:'Flexion',type:'bilateral',normal:'80°'},
+{name:'Extension',type:'bilateral',normal:'70°'},
+{name:'Radial Dev.',type:'bilateral',normal:'20°'},
+{name:'Ulnar Dev.',type:'bilateral',normal:'30°'}
+],
+
+'Hip':[
+{name:'Flexion',type:'bilateral',normal:'120°'},
+{name:'Extension',type:'bilateral',normal:'30°'},
+{name:'Abduction',type:'bilateral',normal:'45°'},
+{name:'Adduction',type:'bilateral',normal:'30°'},
+{name:'Int. Rotation',type:'bilateral',normal:'45°'},
+{name:'Ext. Rotation',type:'bilateral',normal:'45°'}
+],
+
+'Knee':[
+{name:'Flexion',type:'bilateral',normal:'135°'},
+{name:'Extension',type:'bilateral',normal:'0°'}
+],
+
+'Ankle':[
+{name:'Dorsiflexion',type:'bilateral',normal:'20°'},
+{name:'Plantarflexion',type:'bilateral',normal:'50°'},
+{name:'Inversion',type:'bilateral',normal:'35°'},
+{name:'Eversion',type:'bilateral',normal:'15°'}
+]
+
+}
+
+function CustomTableEditor({data,setData}){
+
+function addRow(){
+
+let copy=[...data]
+
+copy.push(Array(copy[0].length).fill(""))
+
+setData(copy)
+
+}
+
+function addCol(){
+
+let copy=data.map(r=>[...r,""])
+
+setData(copy)
+
+}
+
+function update(r,c,val){
+
+let copy=[...data]
+
+copy[r][c]=val
+
+setData(copy)
+
+}
+
+return(
+
+<div>
+
+<table className="w-full border mt-2">
+
+<tbody>
+
+{data.map((row,r)=>(
+
+<tr key={r}>
+
+{row.map((cell,c)=>(
+
+<td key={c} className="border">
+
+<div
+
+contentEditable
+
+className="tableCell"
+
+data-placeholder="..."
+
+onInput={(e)=>update(r,c,e.target.innerText)}
+
+>
+
+{cell}
+
+</div>
+
+</td>
+
+))}
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+<div className="space-x-2 mt-2 noPrint">
+
+<button onClick={addRow}
+className="bg-blue-500 text-white px-2 py-1">
+
+Add Row
+
+</button>
+
+<button onClick={addCol}
+className="bg-green-500 text-white px-2 py-1">
+
+Add Col
+
+</button>
+
+</div>
+
+</div>
+
+)
+
+}
+
+function AddMetricModal({open,setOpen}){
+
+if(!open) return null
+
+return(
+
+<div className="fixed inset-0 bg-black/40 flex">
+
+<div className="bg-white p-6 m-auto w-96">
+
+<h2 className="font-bold mb-3">
+
+Add Metric
+
+</h2>
+
+<select className="border w-full">
+
+<option>ROM</option>
+<option>MMT</option>
+<option>ROM with VAS</option>
+<option>VAS</option>
+<option>Other</option>
+
+</select>
+
+<button
+onClick={()=>setOpen(false)}
+className="bg-blue-500 text-white px-3 py-1 mt-3">
+
+Close
+
+</button>
+
+</div>
+
+</div>
+
+)
+
+}
+
+function HomeView({patients,setSelected}){
+
+return(
+
+<div>
+
+<input
+placeholder="Search"
+className="border p-2 w-full mb-3"
+/>
+
+<table className="w-full bg-white">
+
+<thead>
+
+<tr className="bg-gray-200">
+
+<th>IP ID</th>
+<th>Name/Contact</th>
+<th>Diagnosis</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{patients.map(p=>(
+
+<tr key={p.id}
+onClick={()=>setSelected(p)}>
+
+<td>{p.ip}</td>
+
+<td>{p.name}</td>
+
+<td>{p.diagnosis}</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+</div>
+
+)
+
+}
+
+function PatientDetailView({patient,user}){
+
+const[assessment,setAssessment]=React.useState([
+["Date","Metric","R","L"]
+])
+
+const[treatment,setTreatment]=React.useState([
+["Date","Plan"]
+])
+
+const[modal,setModal]=React.useState(false)
+
+function save(){
+
+const path=
+`artifacts/github-physio-app/users/${user.uid}/patients/${patient.id}`
+
+setDoc(doc(db,path),{
+
+...patient,
+assessment,
+treatment
+
+})
+
+alert("Saved")
+
+}
+
+return(
+
+<div className="printPage">
+
+<div className="printHeader mb-4">
+
+<h1 style={{
+color:"#1e40af",
+fontStyle:"italic",
+fontSize:"28px"
+}}>
+
+Dr. Arpan Das (PT)
+
+</h1>
+
+<p>BPT (KPC Medical College and Hospital)</p>
+
+<p>Consultant Physiotherapist</p>
+
+<p>Phone: +91 9641568109</p>
+
+</div>
+
+<div className="noPrint flex justify-between">
+
+<button
+onClick={()=>window.print()}
+className="bg-gray-700 text-white px-3 py-1">
+
+Print
+
+</button>
+
+<button
+onClick={save}
+className="bg-blue-600 text-white px-3 py-1">
+
+Save to Cloud
+
+</button>
+
+</div>
+
+<div className="grid grid-cols-2 gap-3 mt-3">
+
+<input
+defaultValue={patient.name}
+placeholder="Name"
+className="border p-2"
+/>
+
+<input
+placeholder="Age"
+className="border p-2"
+/>
+
+<input
+placeholder="Gender"
+className="border p-2"
+/>
+
+<input
+placeholder="Contact"
+className="border p-2"
+/>
+
+</div>
+
+<h3 className="font-bold mt-4">
+
+Chief Complaints
+
+</h3>
+
+<div
+contentEditable
+data-placeholder="Chief complaints"
+className="border p-2 min-h-16"
+/>
+
+<h3 className="font-bold mt-4">
+
+History
+
+</h3>
+
+<div
+contentEditable
+data-placeholder="History"
+className="border p-2 min-h-16"
+/>
+
+<h3 className="font-bold mt-4">
+
+Assessment
+
+</h3>
+
+<CustomTableEditor
+data={assessment}
+setData={setAssessment}
+/>
+
+<h3 className="font-bold mt-4">
+
+Diagnosis
+
+</h3>
+
+<div
+contentEditable
+data-placeholder="Diagnosis"
+className="border p-2"
+/>
+
+<h3 className="font-bold mt-4">
+
+Treatment
+
+</h3>
+
+<CustomTableEditor
+data={treatment}
+setData={setTreatment}
+/>
+
+<h3 className="font-bold mt-4">
+
+Reassessment Tracker
+
+</h3>
+
+<CustomTableEditor
+data={assessment}
+setData={setAssessment}
+/>
+
+<button
+onClick={()=>setModal(true)}
+className="bg-purple-600 text-white px-3 py-1 mt-3 noPrint">
+
+Add Metric
+
+</button>
+
+<AddMetricModal
+open={modal}
+setOpen={setModal}
+/>
+
+</div>
+
+)
+
+}
+
+function App(){
+
+const[user,setUser]=React.useState(null)
+
+const[patients,setPatients]=React.useState([])
+
+const[selected,setSelected]=React.useState(null)
+
+React.useEffect(()=>{
+
+onAuthStateChanged(auth,(u)=>{
+
+if(u){
+
+setUser(u)
+
+const ref=collection(
+db,
+`artifacts/github-physio-app/users/${u.uid}/patients`
+)
+
+onSnapshot(ref,(snap)=>{
+
+let arr=[]
+
+snap.forEach(d=>{
+
+arr.push({id:d.id,...d.data()})
+
+})
+
+setPatients(arr)
+
+})
+
+}
+
+})
+
+},[])
+
+function login(){
+
+const provider=new GoogleAuthProvider()
+
+signInWithPopup(auth,provider)
+
+}
+
+function newPatient(){
+
+let id=String(patients.length+1)
+.padStart(4,'0')
+
+setSelected({
+
+id:Date.now().toString(),
+ip:id,
+name:"New Patient"
+
+})
+
+}
+
+if(!user){
+
+return(
+
+<div className="p-10">
+
+<button
+onClick={login}
+className="bg-blue-600 text-white px-4 py-2">
+
+Login with Google
+
+</button>
+
+</div>
+
+)
+
+}
+
+return(
+
+<div className="p-6">
+
+{!selected &&(
+
+<div>
+
+<button
+onClick={newPatient}
+className="bg-green-600 text-white px-3 py-1 mb-3">
+
+New Patient
+
+</button>
+
+<HomeView
+patients={patients}
+setSelected={setSelected}
+/>
+
+</div>
+
+)}
+
+{selected &&(
+
+<PatientDetailView
+patient={selected}
+user={user}
+/>
+
+)}
+
+</div>
+
+)
+
+}
+
+ReactDOM.createRoot(
+document.getElementById('root')
+).render(<App/>)
+
+</script>
+
 </body>
 </html>
