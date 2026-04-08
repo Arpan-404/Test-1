@@ -22,49 +22,8 @@
         }
 
         /* ================================
-           LOADING & SKELETON STYLES
+           SKELETON STYLES (Modern Loading)
            ================================ */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
-        }
-
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e8f5f3;
-            border-top: 4px solid #2c8577;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-overlay p {
-            color: #2c8577;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
         .skeleton-loader {
             display: flex;
             gap: 1rem;
@@ -324,7 +283,7 @@
         }
 
         .booking-content h1 {
-            display: none; /* Hidden by default as requested previously */
+            display: none; /* Hidden by default */
             font-size: 2.2rem;
             margin-bottom: 1rem;
             font-weight: 700;
@@ -593,12 +552,6 @@
 <body>
     <!-- Toast Notification -->
     <div id="toastNotification"></div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <p>Loading...</p>
-    </div>
 
     <!-- Header -->
     <header class="header" id="header">
@@ -898,7 +851,7 @@
         import { getDatabase, ref, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
-        // Firebase Configuration (from prompt)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -915,13 +868,12 @@
         const auth = getAuth(app);
 
         // State Management
-        window.loadingState = { isLoading: true };
         window.currentServiceId = null;
         let activeSubServiceIndex = null;
         let lastScrollTop = 0;
         window.currentPage = 'home';
 
-        // Base/Default Data including requested Electrotherapy
+        // Base/Default Data
         window.siteData = {
             hero: {
                 clinicName: "Physio - The Therapeutic Moves",
@@ -941,14 +893,14 @@
                     id: 1, title: "Physical Therapy", description: "Comprehensive rehabilitation.", icon: "🏃‍♂️", bannerImageUrl: "",
                     tests: [
                         { id: 1, name: "Movement Assessment", price: "₹300" },
-                        { id: 2, name: "Electrotherapy Session", price: "₹400" } // Requested inclusion
+                        { id: 2, name: "Electrotherapy Session", price: "₹400" } 
                     ]
                 }
             ],
             products: []
         };
 
-        // Custom UI Utilities (Replacing alert, confirm)
+        // Custom UI Utilities 
         window.showToast = function(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
             toast.textContent = message;
@@ -983,30 +935,17 @@
                 updateStats();
                 updateHeroBackground();
                 hideSkeletons();
-                hideLoadingOverlay();
             } catch (error) {
                 console.error('Data process error:', error);
                 hideSkeletons();
-                hideLoadingOverlay();
             }
         }, (error) => {
             console.error('Firebase DB read failed. Default data will be used.', error);
             renderSite();
             hideSkeletons();
-            hideLoadingOverlay();
         });
 
         // UI Helpers
-        function hideLoadingOverlay() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay && window.loadingState.isLoading) {
-                overlay.classList.add('hidden');
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 500);
-                window.loadingState.isLoading = false;
-            }
-        }
-
         function hideSkeletons() {
             ['doctorsSkeleton', 'servicesSkeleton', 'productsSkeleton'].forEach(id => {
                 const el = document.getElementById(id);
@@ -1025,7 +964,6 @@
         // Navigation (SPA Routing)
         const header = document.getElementById('header');
         window.addEventListener('scroll', () => {
-            if (window.loadingState.isLoading) return;
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             if (scrollTop > lastScrollTop && scrollTop > 80) header.classList.add('hidden');
             else header.classList.remove('hidden');
@@ -1108,55 +1046,64 @@
         function renderDoctorsPreview() {
             const container = document.getElementById('doctorsPreview');
             if (!container) return;
-            container.innerHTML = '';
-            window.siteData.doctors?.forEach(doctor => {
-                const docCard = document.createElement('div');
-                docCard.className = 'doctor-preview-card';
-                docCard.onclick = () => showDoctorDetails(doctor);
-                const avatar = doctor.photoUrl ? `<div class="doctor-preview-avatar"><img src="${doctor.photoUrl}" loading="lazy"></div>` : '<div class="doctor-preview-avatar">👨‍⚕️</div>';
-                docCard.innerHTML = `${avatar}<div class="doctor-preview-name">${doctor.name}</div><div class="doctor-preview-qualification">${doctor.qualification}</div>`;
-                container.appendChild(docCard);
-            });
+            // Retain Skeletons if no data, else populate
+            if(window.siteData.doctors && window.siteData.doctors.length > 0) {
+               container.innerHTML = '';
+               window.siteData.doctors.forEach(doctor => {
+                   const docCard = document.createElement('div');
+                   docCard.className = 'doctor-preview-card';
+                   docCard.onclick = () => showDoctorDetails(doctor);
+                   const avatar = doctor.photoUrl ? `<div class="doctor-preview-avatar"><img src="${doctor.photoUrl}" loading="lazy"></div>` : '<div class="doctor-preview-avatar">👨‍⚕️</div>';
+                   docCard.innerHTML = `${avatar}<div class="doctor-preview-name">${doctor.name}</div><div class="doctor-preview-qualification">${doctor.qualification}</div>`;
+                   container.appendChild(docCard);
+               });
+            }
         }
 
         function renderServicesPreview() {
             const container = document.getElementById('servicesPreview');
             if (!container) return;
-            container.innerHTML = '';
-            window.siteData.services?.slice(0, 3).forEach(service => {
-                const card = document.createElement('div');
-                card.className = 'service-preview-card';
-                const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
-                card.innerHTML = `
-                    ${img}
-                    <div class="service-preview-title">${service.title}</div>
-                    <div class="service-preview-description">${service.description.substring(0,60)}...</div>
-                    <div class="service-buttons">
-                        <button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})">Details</button>
-                        <button class="btn btn-primary" onclick="buyService('${service.title}')">Book</button>
-                    </div>`;
-                container.appendChild(card);
-            });
+            if(window.siteData.services && window.siteData.services.length > 0) {
+                container.innerHTML = '';
+                window.siteData.services.slice(0, 3).forEach(service => {
+                    const card = document.createElement('div');
+                    card.className = 'service-preview-card';
+                    const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
+                    card.innerHTML = `
+                        ${img}
+                        <div class="service-preview-title">${service.title}</div>
+                        <div class="service-preview-description">${service.description.substring(0,60)}...</div>
+                        <div class="service-buttons">
+                            <button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})">Details</button>
+                            <button class="btn btn-primary" onclick="buyService('${service.title}')">Book</button>
+                        </div>`;
+                    container.appendChild(card);
+                });
+            }
         }
 
         function renderProductsPreview() {
             const container = document.getElementById('productsPreview');
             if (!container) return;
-            container.innerHTML = '';
-            window.siteData.products?.slice(0, 3).forEach(product => {
-                const card = document.createElement('div');
-                card.className = 'product-preview-card';
-                const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                card.innerHTML = `
-                    ${photo}
-                    <div class="service-preview-title">${product.name}</div>
-                    <div class="product-preview-price">${product.price}</div>
-                    <div class="product-preview-buttons">
-                        <button class="btn btn-secondary" onclick="viewProductInternal(${product.id})">View</button>
-                        <button class="btn btn-primary" onclick="buyProduct('${product.name}')">Buy</button>
-                    </div>`;
-                container.appendChild(card);
-            });
+            if(window.siteData.products && window.siteData.products.length > 0) {
+                container.innerHTML = '';
+                window.siteData.products.slice(0, 3).forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'product-preview-card';
+                    const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
+                    card.innerHTML = `
+                        ${photo}
+                        <div class="service-preview-title">${product.name}</div>
+                        <div class="product-preview-price">${product.price}</div>
+                        <div class="product-preview-buttons">
+                            <button class="btn btn-secondary" onclick="viewProductInternal(${product.id})">View</button>
+                            <button class="btn btn-primary" onclick="buyProduct('${product.name}')">Buy</button>
+                        </div>`;
+                    container.appendChild(card);
+                });
+            } else if (window.siteData.products?.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; width:100%;">No products available yet.</p>';
+            }
         }
 
         function renderDoctors() {
@@ -1537,6 +1484,10 @@
                 }
             });
         }
+        
+        // Initial setup for empty default states
+        renderSite();
     </script>
 </body>
 </html>
+
