@@ -58,7 +58,7 @@
         .booking-content .tagline { font-size: 1.2rem; margin-bottom: 1.5rem; color: #666; font-style: italic; }
         .btn { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; font-size: 0.95rem; margin: 0.5rem; will-change: transform; }
         .btn:hover { background: #245a4f; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(44, 133, 119, 0.3); }
-        .btn:disabled { background: #a5c3be; cursor: not-allowed; transform: none; box-shadow: none; } /* Added disabled state */
+        .btn:disabled { background: #a5c3be; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-primary { background: #2c8577; color: white; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; }
@@ -425,9 +425,10 @@
         </div>
     </div>
 
+    <!-- IMPORTANT: Added 'set' to Firebase Database imports -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getDatabase, ref, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+        import { getDatabase, ref, update, set, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
         // Firebase Configuration
@@ -477,7 +478,7 @@
            ======================================================== */
         window.uploadToCloudinary = async function(file) {
             const cloudName = 'dyuni0dx5';
-            const uploadPreset = 'Physio_uploads'; // <--- EXACT MATCH TO YOUR SCREENSHOT
+            const uploadPreset = 'Physio_uploads'; 
 
             const formData = new FormData();
             formData.append('file', file);
@@ -507,7 +508,6 @@
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
             
-            // Check file size (max 10MB to prevent mobile crashes)
             if (file.size > 10 * 1024 * 1024) {
                 window.showToast('File is too large. Maximum size is 10MB.', 'error');
                 input.value = '';
@@ -515,8 +515,6 @@
             }
 
             window.showToast('Uploading image securely... Please wait.', 'success');
-            
-            // Disable Save buttons so user can't save until upload finishes
             const saveButtons = document.querySelectorAll('.btn-primary');
             saveButtons.forEach(btn => { if(btn.textContent.includes('Save')) btn.disabled = true; });
 
@@ -531,9 +529,8 @@
                 window.showToast('Image uploaded successfully! You can now click Save.');
             } catch (e) {
                 window.showToast('Upload failed: ' + e.message, 'error');
-                input.value = ''; // Reset the input so they can try again
+                input.value = ''; 
             } finally {
-                // Re-enable Save buttons
                 saveButtons.forEach(btn => btn.disabled = false);
             }
         };
@@ -793,23 +790,23 @@
             if (!window.siteData.services) return;
             const s = window.siteData.services.find(s => s.id === window.currentServiceId);
             if (!s.tests) s.tests = []; s.tests.push({ id: Date.now(), name, price });
-            await update(ref(database, 'site/services'), window.siteData.services);
+            await set(ref(database, 'site/services'), window.siteData.services);
             document.getElementById('newSubServiceName').value = ''; document.getElementById('newSubServicePrice').value = ''; renderSubServicesList(s.tests); window.showToast('Added successfully');
         }
 
         window.openEditSubService = function(index) { activeSubServiceIndex = index; const s = window.siteData.services.find(s => s.id === window.currentServiceId); const test = s.tests[index]; document.getElementById('editSubName').value = test.name; document.getElementById('editSubPrice').value = test.price; document.getElementById('editSubServiceModal').style.display = 'block'; }
-        document.getElementById('saveSubServiceBtn').onclick = async function() { const name = document.getElementById('editSubName').value, price = document.getElementById('editSubPrice').value; if(name && price) { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests[activeSubServiceIndex] = { ...s.tests[activeSubServiceIndex], name, price }; await update(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); document.getElementById('editSubServiceModal').style.display = 'none'; window.showToast('Updated successfully'); } }
-        window.deleteSubService = function(index) { window.showConfirm("Delete this sub-service?", async () => { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests.splice(index, 1); await update(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); window.showToast('Deleted successfully'); }); }
+        document.getElementById('saveSubServiceBtn').onclick = async function() { const name = document.getElementById('editSubName').value, price = document.getElementById('editSubPrice').value; if(name && price) { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests[activeSubServiceIndex] = { ...s.tests[activeSubServiceIndex], name, price }; await set(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); document.getElementById('editSubServiceModal').style.display = 'none'; window.showToast('Updated successfully'); } }
+        window.deleteSubService = function(index) { window.showConfirm("Delete this sub-service?", async () => { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests.splice(index, 1); await set(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); window.showToast('Deleted successfully'); }); }
 
         window.addNewDoctor = () => window.showEditModal('doctor', null);
         window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d => d.id === id));
-        window.deleteDoctor = (id) => window.showConfirm('Delete doctor?', async () => { window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id); await update(ref(database, 'site/doctors'), window.siteData.doctors); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
+        window.deleteDoctor = (id) => window.showConfirm('Delete doctor?', async () => { window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id); await set(ref(database, 'site/doctors'), window.siteData.doctors); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
         window.addNewService = () => window.showEditModal('service', null);
         window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s => s.id === id));
-        window.deleteService = (id) => window.showConfirm('Delete service?', async () => { window.siteData.services = window.siteData.services.filter(s => s.id !== id); await update(ref(database, 'site/services'), window.siteData.services); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
+        window.deleteService = (id) => window.showConfirm('Delete service?', async () => { window.siteData.services = window.siteData.services.filter(s => s.id !== id); await set(ref(database, 'site/services'), window.siteData.services); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
         window.addNewProduct = () => window.showEditModal('product', null);
         window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p => p.id === id));
-        window.deleteProduct = (id) => window.showConfirm('Delete product?', async () => { window.siteData.products = window.siteData.products.filter(p => p.id !== id); await update(ref(database, 'site/products'), window.siteData.products); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
+        window.deleteProduct = (id) => window.showConfirm('Delete product?', async () => { window.siteData.products = window.siteData.products.filter(p => p.id !== id); await set(ref(database, 'site/products'), window.siteData.products); renderAdminLists(); renderSite(); updateStats(); window.showToast('Deleted'); });
 
         window.showEditModal = function(type, item) {
             const modal = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`;
@@ -862,29 +859,52 @@
         }
         window.closeEditModal = () => document.getElementById('editModal').style.display = 'none';
 
-        // Protected save functions handling empty DB states safely
+        // Protected save functions using 'set' for arrays
         window.saveDoctor = async (id) => {
             if (!window.siteData.doctors) window.siteData.doctors = [];
             const data = { id: id||Date.now(), name: document.getElementById('eName').value, qualification: document.getElementById('eQual').value, fees: document.getElementById('eFees').value, photoUrl: document.getElementById('ePhoto').value, details: document.getElementById('eDetails').value };
             const index = window.siteData.doctors.findIndex(d=>d.id===id);
             if(index > -1) window.siteData.doctors[index] = data; else window.siteData.doctors.push(data);
-            try { await update(ref(database, 'site/doctors'), window.siteData.doctors); window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); } catch(e) { window.showToast('Error saving','error'); }
+            
+            try { 
+                await set(ref(database, 'site/doctors'), window.siteData.doctors); 
+                window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); 
+            } catch(e) { 
+                console.error(e);
+                window.showToast('Error saving: ' + e.message, 'error'); 
+            }
         }
+        
         window.saveService = async (id) => {
             if (!window.siteData.services) window.siteData.services = [];
             const oldT = id ? (window.siteData.services.find(s=>s.id===id)?.tests || []) : [];
             const data = { id: id||Date.now(), title: document.getElementById('eTitle').value, icon: document.getElementById('eIcon').value, description: document.getElementById('eDesc').value, bannerImageUrl: document.getElementById('eBanner').value, tests: oldT };
             const index = window.siteData.services.findIndex(s=>s.id===id);
             if(index > -1) window.siteData.services[index] = data; else window.siteData.services.push(data);
-            try { await update(ref(database, 'site/services'), window.siteData.services); window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); } catch(e) { window.showToast('Error saving','error'); }
+            
+            try { 
+                await set(ref(database, 'site/services'), window.siteData.services); 
+                window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); 
+            } catch(e) { 
+                console.error(e);
+                window.showToast('Error saving: ' + e.message, 'error'); 
+            }
         }
+        
         window.saveProduct = async (id) => {
             if (!window.siteData.products) window.siteData.products = [];
             const imgs = document.getElementById('eGals').value ? document.getElementById('eGals').value.split(',').map(s=>s.trim()).filter(Boolean) : [];
             const data = { id: id||Date.now(), name: document.getElementById('ePName').value, price: document.getElementById('ePrice').value, description: document.getElementById('ePDesc').value, profilePhoto: document.getElementById('ePhotoM').value, images: imgs };
             const index = window.siteData.products.findIndex(p=>p.id===id);
             if(index > -1) window.siteData.products[index] = data; else window.siteData.products.push(data);
-            try { await update(ref(database, 'site/products'), window.siteData.products); window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); } catch(e) { window.showToast('Error saving','error'); }
+            
+            try { 
+                await set(ref(database, 'site/products'), window.siteData.products); 
+                window.closeEditModal(); renderAdminLists(); renderSite(); updateStats(); window.showToast('Saved!'); 
+            } catch(e) { 
+                console.error(e);
+                window.showToast('Error saving: ' + e.message, 'error'); 
+            }
         }
 
         window.onclick = function(e) {
@@ -894,5 +914,4 @@
     </script>
 </body>
 </html>
-
 
