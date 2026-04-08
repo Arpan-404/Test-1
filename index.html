@@ -8,447 +8,91 @@
         /* ================================
            RESET & BASE STYLES
            ================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #e8f5f3 0%, #f8f9fa 100%);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #e8f5f3 0%, #f8f9fa 100%); }
 
         /* ================================
            SKELETON STYLES (Modern Loading)
            ================================ */
-        .skeleton-loader {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .skeleton-loader.hidden {
-            display: none;
-        }
-
-        .skeleton-card {
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 20px;
-            flex-shrink: 0;
-        }
-
-        .services-skeleton {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .skeleton-service-card {
-            height: 200px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 15px;
-        }
-
-        .products-skeleton {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-
-        .skeleton-product-card {
-            height: 200px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 15px;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
+        .skeleton-loader { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .skeleton-loader.hidden { display: none; }
+        .skeleton-card { width: 140px; height: 140px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 20px; flex-shrink: 0; }
+        .services-skeleton { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .skeleton-service-card { height: 200px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 15px; }
+        .products-skeleton { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .skeleton-product-card { height: 200px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 15px; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
         /* ================================
            HEADER & NAVIGATION
            ================================ */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 0.5rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease-in-out;
-            height: 60px;
-        }
-
-        .header.hidden {
-            transform: translateY(-100%);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #2c8577;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .logo-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: #2c8577;
-            margin: 2px 0;
-            transition: 0.3s;
-            border-radius: 2px;
-        }
-
-        .mobile-menu {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 280px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
-            transition: right 0.3s ease;
-            padding: 2rem 0;
-        }
-
-        .mobile-menu.active {
-            right: 0;
-        }
-
-        .mobile-menu ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .mobile-menu ul li {
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-size: 1.1rem;
-        }
-
-        .mobile-menu ul li:hover {
-            background: #f8f9fa;
-        }
-
-        .mobile-menu ul li:last-child {
-            margin-top: 2rem;
-            background: #e8f5f3;
-            color: #2c8577;
-            font-weight: 600;
-        }
-
-        .close-menu {
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #2c8577;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s ease-in-out; height: 60px; }
+        .header.hidden { transform: translateY(-100%); }
+        .logo { display: flex; align-items: center; gap: 10px; color: #2c8577; font-weight: 700; font-size: 1.1rem; }
+        .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 5px; }
+        .hamburger span { width: 25px; height: 3px; background: #2c8577; margin: 2px 0; transition: 0.3s; border-radius: 2px; }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu ul { list-style: none; padding: 0; }
+        .mobile-menu ul li { padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.3s; font-size: 1.1rem; }
+        .mobile-menu ul li:hover { background: #f8f9fa; }
+        .mobile-menu ul li:last-child { margin-top: 2rem; background: #e8f5f3; color: #2c8577; font-weight: 600; }
+        .close-menu { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #2c8577; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .overlay.active { opacity: 1; visibility: visible; }
 
         /* ================================
-           MAIN LAYOUT
+           MAIN LAYOUT & HERO
            ================================ */
-        .main {
-            margin-top: 60px;
-        }
-
-        .page {
-            display: none;
-            min-height: calc(100vh - 60px);
-            padding: 1rem;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-top: 1rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            color: #2c8577;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .back-btn {
-            position: fixed;
-            top: 70px;
-            left: 1rem;
-            background: #2c8577;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(44, 133, 119, 0.3);
-        }
-
-        .back-btn:hover {
-            background: #245a4f;
-            transform: translateY(-2px);
-        }
-
-        /* ================================
-           HERO SECTION
-           ================================ */
-        .hero {
-            width: 100%;
-            aspect-ratio: 2/1;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #2c8577 0%, #4a9b8c 100%);
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-        }
-
-        /* ================================
-           BOOKING SECTION
-           ================================ */
-        .booking-section {
-            background: white;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .booking-content h1 {
-            display: none; /* Hidden by default */
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            color: #2c8577;
-        }
-
-        .booking-content .tagline {
-            font-size: 1.2rem;
-            margin-bottom: 1.5rem;
-            color: #666;
-            font-style: italic;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.9rem 1.8rem;
-            background: #2c8577;
-            color: white;
-            text-decoration: none;
-            border-radius: 40px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-            margin: 0.5rem;
-            will-change: transform;
-        }
-
-        .btn:hover {
-            background: #245a4f;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(44, 133, 119, 0.3);
-        }
-
+        .main { margin-top: 60px; }
+        .page { display: none; min-height: calc(100vh - 60px); padding: 1rem; }
+        .page.active { display: block; }
+        .page-header { text-align: center; margin-bottom: 2rem; padding-top: 1rem; }
+        .page-title { font-size: 2rem; color: #2c8577; margin-bottom: 1rem; font-weight: 700; }
+        .back-btn { position: fixed; top: 70px; left: 1rem; background: #2c8577; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s; z-index: 100; box-shadow: 0 4px 15px rgba(44, 133, 119, 0.3); }
+        .back-btn:hover { background: #245a4f; transform: translateY(-2px); }
+        .hero { width: 100%; aspect-ratio: 2/1; position: relative; overflow: hidden; background: linear-gradient(135deg, #2c8577 0%, #4a9b8c 100%); background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 12px; margin-bottom: 1rem; }
+        .booking-section { background: white; padding: 2rem 1.5rem; text-align: center; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        .booking-content h1 { display: none; font-size: 2.2rem; margin-bottom: 1rem; font-weight: 700; color: #2c8577; }
+        .booking-content .tagline { font-size: 1.2rem; margin-bottom: 1.5rem; color: #666; font-style: italic; }
+        .btn { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; font-size: 0.95rem; margin: 0.5rem; will-change: transform; }
+        .btn:hover { background: #245a4f; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(44, 133, 119, 0.3); }
         .btn-primary { background: #2c8577; color: white; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-danger:hover { background: #c82333; }
         .btn-large { padding: 1.2rem 2.5rem; font-size: 1.1rem; }
-
-        .booking-content .phone-number {
-            margin-top: 1rem;
-            font-size: 1.1rem;
-            color: #2c8577;
-            font-weight: 600;
-        }
+        .booking-content .phone-number { margin-top: 1rem; font-size: 1.1rem; color: #2c8577; font-weight: 600; }
+        .section-title { text-align: center; font-size: 1.8rem; color: #2c8577; margin-bottom: 1.5rem; font-weight: 700; }
+        .view-all-btn { background: #2c8577; color: white; padding: 0.6rem 1.2rem; border-radius: 20px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: block; width: fit-content; margin: 1rem auto; font-size: 0.9rem; border: none; }
 
         /* ================================
-           SECTION STYLES
+           PREVIEW & FULL LISTS
            ================================ */
-        .section-title {
-            text-align: center;
-            font-size: 1.8rem;
-            color: #2c8577;
-            margin-bottom: 1.5rem;
-            font-weight: 700;
-        }
-
-        .view-all-btn {
-            background: #2c8577;
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: block;
-            width: fit-content;
-            margin: 1rem auto;
-            font-size: 0.9rem;
-            border: none;
-        }
-
-        /* ================================
-           PREVIEW LISTS
-           ================================ */
-        .doctors-preview, .services-preview, .products-preview {
-            margin-bottom: 3rem;
-        }
-
-        .doctors-preview-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 1rem;
-            padding: 0.5rem 1rem;
-            scrollbar-width: none;
-        }
+        .doctors-preview, .services-preview, .products-preview { margin-bottom: 3rem; }
+        .doctors-preview-container { display: flex; overflow-x: auto; gap: 1rem; padding: 0.5rem 1rem; scrollbar-width: none; }
         .doctors-preview-container::-webkit-scrollbar { display: none; }
-
-        .doctor-preview-card {
-            width: 150px;
-            flex-shrink: 0;
-            background: white;
-            border-radius: 20px;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-        }
-
-        .doctor-preview-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%);
-            margin: 0 auto 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: #2c8577;
-        }
+        .doctor-preview-card { width: 150px; flex-shrink: 0; background: white; border-radius: 20px; padding: 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; }
+        .doctor-preview-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #2c8577; }
         .doctor-preview-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .doctor-preview-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
         .doctor-preview-qualification { color: #666; font-size: 0.8rem; }
-
-        .services-preview-grid, .products-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 0 1rem;
-        }
-
-        .service-preview-card, .product-preview-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            transition: transform 0.3s ease;
-        }
-        
+        .services-preview-grid, .products-preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 0 1rem; }
+        .service-preview-card, .product-preview-card { background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; }
         .service-preview-card:hover, .product-preview-card:hover { transform: translateY(-3px); }
-        
         .service-preview-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
         .service-preview-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
         .service-preview-description { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
-
-        .product-profile-photo {
-            width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;
-            display: flex; align-items: center; justify-content: center; background: #f8f9fa;
-        }
+        .product-profile-photo { width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; background: #f8f9fa; }
         .product-profile-photo img { width: 100%; height: 100%; object-fit: cover; }
         .product-no-photo { background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); font-size: 3rem; color:#2c8577; }
         .product-preview-price { color: #2c8577; font-weight: 700; font-size: 1.3rem; margin-bottom: 1rem; }
-
-        .service-buttons, .product-preview-buttons, .product-buttons {
-            display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center;
-        }
-        .service-buttons .btn, .product-preview-buttons .btn, .product-buttons .btn {
-            flex: 1; padding: 0.6rem 0.5rem; font-size: 0.85rem; text-align: center;
-        }
-
-        /* ================================
-           FULL PAGE CONTAINERS
-           ================================ */
-        .doctors-container, .services-container, .products-container {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;
-        }
-
-        .doctor-card, .service-card, .product-card {
-            background: white; border-radius: 18px; padding: 1.8rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
+        .service-buttons, .product-preview-buttons, .product-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
+        .service-buttons .btn, .product-preview-buttons .btn, .product-buttons .btn { flex: 1; padding: 0.6rem 0.5rem; font-size: 0.85rem; text-align: center; }
+        .doctors-container, .services-container, .products-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem; }
+        .doctor-card, .service-card, .product-card { background: white; border-radius: 18px; padding: 1.8rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
         .doctor-avatar { width: 120px; height: 120px; border-radius: 50%; background: #e8f5f3; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
         .doctor-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .doctor-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -457,21 +101,10 @@
         /* ================================
            MODALS & OVERLAYS
            ================================ */
-        .modal {
-            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem;
-        }
-
-        .modal-content {
-            background-color: white; margin: auto; padding: 2rem; border-radius: 15px;
-            width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
+        .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
         .close:hover { color: #2c8577; }
-
-        /* Specific Modals */
         .product-view-content { max-width: 900px; padding: 1rem; }
         .product-view-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .main-product-image { width: 100%; height: 350px; border-radius: 12px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
@@ -481,18 +114,10 @@
         .product-thumbnail.active { border-color: #2c8577; }
         .product-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
         .product-view-price { font-size: 2.2rem; font-weight: 700; color: #2c8577; margin: 1rem 0; }
-
         .test-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0; }
         .test-item-price { font-weight: 600; color: #2c8577; }
         .btn-buy-small { background: #2c8577; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-left: 10px; }
-
-        /* Toast Notifications */
-        #toastNotification {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
-            border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px;
-            transform: translateX(-50%); font-size: 1rem; transition: visibility 0s, opacity 0.3s linear; opacity: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+        #toastNotification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; transition: visibility 0s, opacity 0.3s linear; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         #toastNotification.show { visibility: visible; opacity: 1; }
         #toastNotification.error { background-color: #dc3545; }
 
@@ -501,8 +126,9 @@
            ================================ */
         .form-group, .form-row { margin-bottom: 1rem; }
         .form-field { display: flex; flex-direction: column; }
-        .form-field label, .form-group label { margin-bottom: 0.5rem; font-weight: 600; color: #495057; }
-        .form-field input, .form-field textarea, .form-group input { width: 100%; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 8px; font-size: 1rem; }
+        .form-field label, .form-group label { margin-bottom: 0.5rem; font-weight: 600; color: #495057; display: block;}
+        .form-field input[type="text"], .form-field input[type="tel"], .form-field input[type="email"], .form-field input[type="url"], .form-field input[type="password"], .form-field textarea, .form-group input[type="text"], .form-group input[type="password"] { width: 100%; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 8px; font-size: 1rem; }
+        .form-field input[type="file"], .form-group input[type="file"] { margin-bottom: 0.5rem; }
         .form-field input:focus, .form-group input:focus { outline: none; border-color: #2c8577; }
         .form-row.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
@@ -521,7 +147,7 @@
         .stat-number { font-size: 2.5rem; font-weight: bold; color: #2c8577; margin-bottom: 0.5rem; }
 
         .form-section { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .image-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 0.5rem; display: none; }
+        .image-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 0.5rem; display: none; object-fit: cover; }
 
         .item-list { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
         .item { padding: 1.2rem; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
@@ -550,23 +176,18 @@
     </style>
 </head>
 <body>
-    <!-- Toast Notification -->
     <div id="toastNotification"></div>
 
-    <!-- Header -->
     <header class="header" id="header">
         <div class="logo">
             <img src="https://via.placeholder.com/40x40/2c8577/ffffff?text=PT" alt="Logo" class="logo-img" id="clinicLogo" loading="lazy">
             <span id="clinicName">Physio Clinic</span>
         </div>
         <div class="hamburger" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
         </div>
     </header>
 
-    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <button class="close-menu" onclick="toggleMenu()">&times;</button>
         <ul>
@@ -579,12 +200,9 @@
     </div>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <!-- Main Content -->
     <main class="main" id="mainContent">
-        <!-- Home Page -->
         <div class="page active" id="homePage">
             <section class="hero" id="heroSection"></section>
-
             <section class="booking-section">
                 <div class="booking-content">
                     <h1 id="heroTitle">Therapeutic Moves</h1>
@@ -593,57 +211,45 @@
                     <div class="phone-number" id="phoneNumber">📞 +91 9641568109</div>
                 </div>
             </section>
-
             <section class="doctors-preview">
                 <h2 class="section-title">Our Expert Team</h2>
                 <div class="doctors-preview-container" id="doctorsPreview">
                     <div class="skeleton-loader" id="doctorsSkeleton">
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
                     </div>
                 </div>
                 <button class="view-all-btn" onclick="showPage('doctors')">View All Doctors</button>
             </section>
-
             <section class="services-preview">
                 <h2 class="section-title">Our Services</h2>
                 <div class="services-preview-grid" id="servicesPreview">
                     <div class="skeleton-loader services-skeleton" id="servicesSkeleton">
-                        <div class="skeleton-service-card"></div>
-                        <div class="skeleton-service-card"></div>
+                        <div class="skeleton-service-card"></div><div class="skeleton-service-card"></div>
                     </div>
                 </div>
                 <button class="view-all-btn" onclick="showPage('services')">View All Services</button>
             </section>
-
             <section class="products-preview">
                 <h2 class="section-title">Our Products</h2>
                 <div class="products-preview-grid" id="productsPreview">
                     <div class="skeleton-loader products-skeleton" id="productsSkeleton">
-                        <div class="skeleton-product-card"></div>
-                        <div class="skeleton-product-card"></div>
+                        <div class="skeleton-product-card"></div><div class="skeleton-product-card"></div>
                     </div>
                 </div>
                 <button class="view-all-btn" onclick="showPage('products')">View All Products</button>
             </section>
         </div>
 
-        <!-- Doctors Page -->
         <div class="page" id="doctorsPage">
             <button class="back-btn" onclick="showPage('home')">← Back</button>
             <div class="page-header"><h1 class="page-title">Our Doctors</h1></div>
             <div class="doctors-container" id="doctorsContainer"></div>
         </div>
-
-        <!-- Services Page -->
         <div class="page" id="servicesPage">
             <button class="back-btn" onclick="showPage('home')">← Back</button>
             <div class="page-header"><h1 class="page-title">Our Services</h1></div>
             <div class="services-container" id="servicesContainer"></div>
         </div>
-
-        <!-- Products Page -->
         <div class="page" id="productsPage">
             <button class="back-btn" onclick="showPage('home')">← Back</button>
             <div class="page-header"><h1 class="page-title">Our Products</h1></div>
@@ -651,8 +257,6 @@
         </div>
     </main>
 
-    <!-- Modals -->
-    <!-- Custom Confirm Modal -->
     <div id="customConfirmModal" class="modal" style="z-index: 4000;">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3>
@@ -663,7 +267,6 @@
         </div>
     </div>
 
-    <!-- Product View -->
     <div id="productViewModal" class="modal">
         <div class="modal-content product-view-content">
             <span class="close" onclick="closeProductView()">&times;</span>
@@ -682,7 +285,6 @@
         </div>
     </div>
 
-    <!-- Doctor Details -->
     <div id="doctorDetailsModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close" onclick="closeDoctorDetails()">&times;</span>
@@ -695,7 +297,6 @@
         </div>
     </div>
 
-    <!-- Service Details -->
     <div id="serviceDetailsModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeServiceDetails()">&times;</span>
@@ -704,26 +305,18 @@
         </div>
     </div>
 
-    <!-- Admin Login -->
     <div id="adminModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <span class="close" onclick="closeAdminModal()">&times;</span>
             <h2 style="color: #2c8577; margin-bottom: 1.5rem; text-align:center;">Admin Login</h2>
             <form id="adminLoginForm">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="adminEmailInput" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="adminPassword" required>
-                </div>
+                <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="adminPassword" required></div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:1rem;">Login</button>
             </form>
         </div>
     </div>
 
-    <!-- Edit General Form Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeEditModal()">&times;</span>
@@ -732,36 +325,27 @@
         </div>
     </div>
 
-    <!-- Sub Services List Modal -->
     <div id="subServicesModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSubServicesModal()">&times;</span>
             <h3 id="subServicesTitle" style="color:#2c8577; margin-bottom:1rem;">Manage Sub-Services</h3>
             <div id="subServicesList" style="max-height: 300px; overflow-y:auto; margin-bottom: 1.5rem;"></div>
-            
             <div style="border-top: 1px solid #eee; padding-top:1rem;">
                 <h4 style="margin-bottom:1rem;">Add New</h4>
                 <div class="form-row two-col">
-                    <input type="text" id="newSubServiceName" placeholder="Test name" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:6px;">
-                    <input type="text" id="newSubServicePrice" placeholder="Price (e.g. ₹500)" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:6px;">
+                    <input type="text" id="newSubServiceName" placeholder="Test name" class="form-group">
+                    <input type="text" id="newSubServicePrice" placeholder="Price (e.g. ₹500)" class="form-group">
                 </div>
                 <button class="btn btn-primary" onclick="addSubService()">Add Sub-Service</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Single Sub Service Modal -->
     <div id="editSubServiceModal" class="modal" style="z-index: 3100;">
         <div class="modal-content" style="max-width: 400px;">
             <h3 style="color:#2c8577; margin-bottom:1rem;">Edit Sub-Service</h3>
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="editSubName">
-            </div>
-            <div class="form-group">
-                <label>Price</label>
-                <input type="text" id="editSubPrice">
-            </div>
+            <div class="form-group"><label>Name</label><input type="text" id="editSubName"></div>
+            <div class="form-group"><label>Price</label><input type="text" id="editSubPrice"></div>
             <div style="display:flex; gap:1rem; margin-top:1.5rem;">
                 <button id="saveSubServiceBtn" class="btn btn-primary" style="flex:1;">Save</button>
                 <button onclick="document.getElementById('editSubServiceModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button>
@@ -769,7 +353,6 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
     <div class="admin-dashboard" id="adminDashboard">
         <header class="admin-header">
             <h2 style="color:#2c8577;">Admin Dashboard</h2>
@@ -784,7 +367,6 @@
         </nav>
 
         <div class="admin-content">
-            <!-- Clinic Info Panel -->
             <div class="tab-panel active" id="clinic-panel">
                 <div class="stats-grid">
                     <div class="stat-card"><div class="stat-number" id="totalDoctors">0</div><div style="color:#666;">Doctors</div></div>
@@ -799,45 +381,42 @@
                         <div class="form-field"><label>Phone (Display)</label><input type="tel" id="adminPhone"></div>
                     </div>
                     <div class="form-row two-col">
-                        <div class="form-field">
-                            <label>WhatsApp Number</label>
-                            <input type="tel" id="adminWhatsApp" placeholder="+91XXXXXXXXXX">
-                            <small style="color:#999; margin-top:4px;">Receives booking requests</small>
-                        </div>
+                        <div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp" placeholder="+91XXXXXXXXXX"><small style="color:#999; margin-top:4px;">Receives booking requests</small></div>
                         <div class="form-field"><label>Email</label><input type="email" id="adminEmail"></div>
                     </div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
+                    
                     <div class="form-row">
                         <div class="form-field">
-                            <label>Logo URL</label>
-                            <input type="url" id="adminLogoUrl" oninput="previewImage(this, 'logoPreview')">
+                            <label>Logo Upload</label>
+                            <input type="file" accept="image/*" onchange="handleImageUpload(this, 'adminLogoUrl', 'logoPreview')">
+                            <input type="hidden" id="adminLogoUrl">
                             <img id="logoPreview" class="image-preview">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-field">
-                            <label>Hero Banner Image URL</label>
-                            <input type="url" id="bannerImageUrl" oninput="previewImage(this, 'bannerPreview')">
+                            <label>Hero Banner Image Upload</label>
+                            <input type="file" accept="image/*" onchange="handleImageUpload(this, 'bannerImageUrl', 'bannerPreview')">
+                            <input type="hidden" id="bannerImageUrl">
                             <img id="bannerPreview" class="image-preview">
                         </div>
                     </div>
+                    
                     <button class="btn btn-primary" onclick="updateClinicInfo()">Save Changes</button>
                 </div>
             </div>
 
-            <!-- Doctors Panel -->
             <div class="tab-panel" id="doctors-panel">
                 <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="addNewDoctor()">+ Add Doctor</button>
                 <div class="item-list" id="doctorsAdminList"></div>
             </div>
 
-            <!-- Services Panel -->
             <div class="tab-panel" id="services-panel">
                 <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="addNewService()">+ Add Service</button>
                 <div class="item-list" id="servicesAdminList"></div>
             </div>
 
-            <!-- Products Panel -->
             <div class="tab-panel" id="products-panel">
                 <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="addNewProduct()">+ Add Product</button>
                 <div class="item-list" id="productsAdminList"></div>
@@ -845,7 +424,6 @@
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
@@ -862,45 +440,22 @@
             appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
             measurementId: "G-XZXEVNMVRS"
         };
-
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const auth = getAuth(app);
 
-        // State Management
         window.currentServiceId = null;
         let activeSubServiceIndex = null;
         let lastScrollTop = 0;
         window.currentPage = 'home';
 
-        // Base/Default Data
         window.siteData = {
-            hero: {
-                clinicName: "Physio - The Therapeutic Moves",
-                title: "Therapeutic Moves",
-                tagline: '"We add life in your days."',
-                phone: "+91 9641568109",
-                whatsappNumber: "+919641568109",
-                email: "DrArpanDas.PT@gmail.com",
-                logoUrl: "",
-                bannerImageUrl: ""
-            },
-            doctors: [
-                { id: 1, name: "Dr. Arpan Das", qualification: "BPT", fees: "₹500", details: "Experienced physiotherapist specializing in sports injuries.", photoUrl: "" }
-            ],
-            services: [
-                {
-                    id: 1, title: "Physical Therapy", description: "Comprehensive rehabilitation.", icon: "🏃‍♂️", bannerImageUrl: "",
-                    tests: [
-                        { id: 1, name: "Movement Assessment", price: "₹300" },
-                        { id: 2, name: "Electrotherapy Session", price: "₹400" } 
-                    ]
-                }
-            ],
+            hero: { clinicName: "Physio - The Therapeutic Moves", title: "Therapeutic Moves", tagline: '"We add life in your days."', phone: "+91 9641568109", whatsappNumber: "+919641568109", email: "DrArpanDas.PT@gmail.com", logoUrl: "", bannerImageUrl: "" },
+            doctors: [ { id: 1, name: "Dr. Arpan Das", qualification: "BPT", fees: "₹500", details: "Experienced physiotherapist.", photoUrl: "" } ],
+            services: [ { id: 1, title: "Physical Therapy", description: "Comprehensive rehabilitation.", icon: "🏃‍♂️", bannerImageUrl: "", tests: [ { id: 1, name: "Movement Assessment", price: "₹300" } ] } ],
             products: []
         };
 
-        // Custom UI Utilities 
         window.showToast = function(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
             toast.textContent = message;
@@ -912,56 +467,89 @@
             const modal = document.getElementById('customConfirmModal');
             document.getElementById('confirmMsg').textContent = msg;
             modal.style.display = 'block';
-            
-            document.getElementById('confirmYesBtn').onclick = () => {
-                modal.style.display = 'none';
-                callback();
-            };
-            document.getElementById('confirmNoBtn').onclick = () => {
-                modal.style.display = 'none';
-            };
+            document.getElementById('confirmYesBtn').onclick = () => { modal.style.display = 'none'; callback(); };
+            document.getElementById('confirmNoBtn').onclick = () => { modal.style.display = 'none'; };
         }
 
-        // Firebase Initialization & Listening
+        /* ========================================================
+           SAFE CLOUDINARY IMAGE UPLOAD LOGIC (UNSIGNED)
+           ======================================================== */
+        window.uploadToCloudinary = async function(file) {
+            const cloudName = 'dyuni0dx5';
+            const uploadPreset = 'Physio_uploads'; // <--- SAFE UNSIGNED PRESET
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorDetails = await response.json();
+                console.error('Cloudinary error details:', errorDetails);
+                throw new Error('Cloudinary Upload Failed');
+            }
+            
+            const data = await response.json();
+            return data.secure_url;
+        };
+
+        window.handleImageUpload = async function(input, hiddenFieldId, previewId) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            
+            window.showToast('Uploading image securely...', 'success');
+            
+            try {
+                const url = await window.uploadToCloudinary(file);
+                document.getElementById(hiddenFieldId).value = url;
+                
+                const preview = document.getElementById(previewId);
+                preview.src = url;
+                preview.style.display = 'block';
+                
+                window.showToast('Image uploaded successfully!');
+            } catch (e) {
+                console.error(e);
+                window.showToast('Upload failed. Please try again.', 'error');
+            }
+        };
+
+        window.handleGalleryUpload = async function(input, textareaId) {
+            if (!input.files || input.files.length === 0) return;
+            window.showToast('Uploading gallery images...', 'success');
+            
+            const urls = [];
+            try {
+                for (let i = 0; i < input.files.length; i++) {
+                    const url = await window.uploadToCloudinary(input.files[i]);
+                    urls.push(url);
+                }
+                const existing = document.getElementById(textareaId).value;
+                const combined = existing ? existing + ', ' + urls.join(', ') : urls.join(', ');
+                document.getElementById(textareaId).value = combined;
+                
+                window.showToast('Gallery updated successfully!');
+            } catch (e) {
+                console.error(e);
+                window.showToast('Gallery upload failed.', 'error');
+            }
+        };
+
         const siteRef = ref(database, 'site');
         onValue(siteRef, (snapshot) => {
             try {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    window.siteData = { ...window.siteData, ...data };
-                }
-                renderSite();
-                updateAdminForm();
-                updateStats();
-                updateHeroBackground();
-                hideSkeletons();
-            } catch (error) {
-                console.error('Data process error:', error);
-                hideSkeletons();
-            }
-        }, (error) => {
-            console.error('Firebase DB read failed. Default data will be used.', error);
-            renderSite();
-            hideSkeletons();
-        });
+                if (snapshot.exists()) window.siteData = { ...window.siteData, ...snapshot.val() };
+                renderSite(); updateAdminForm(); updateStats(); updateHeroBackground(); hideSkeletons();
+            } catch (error) { hideSkeletons(); }
+        }, (error) => { hideSkeletons(); renderSite(); });
 
-        // UI Helpers
-        function hideSkeletons() {
-            ['doctorsSkeleton', 'servicesSkeleton', 'productsSkeleton'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('hidden');
-            });
-        }
+        function hideSkeletons() { ['doctorsSkeleton', 'servicesSkeleton', 'productsSkeleton'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }); }
+        function getWhatsAppNumber() { return window.siteData.hero?.whatsappNumber || "+919641568109"; }
 
-        function getWhatsAppNumber() {
-            return window.siteData.hero?.whatsappNumber || "+919641568109";
-        }
-
-        function isImageUrl(url) {
-            return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url) || url.includes('i.ibb.co') || url.includes('imgur.com');
-        }
-
-        // Navigation (SPA Routing)
         const header = document.getElementById('header');
         window.addEventListener('scroll', () => {
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -978,33 +566,16 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.toggleMenu = function() {
-            document.getElementById('mobileMenu').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-        }
+        window.toggleMenu = function() { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
 
         function initAdminTabs() {
-            const tabs = document.querySelectorAll('.admin-tab');
-            const panels = document.querySelectorAll('.tab-panel');
+            const tabs = document.querySelectorAll('.admin-tab'), panels = document.querySelectorAll('.tab-panel');
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    panels.forEach(p => p.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+                    tabs.forEach(t => t.classList.remove('active')); panels.forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
                 });
             });
-        }
-
-        window.previewImage = function(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.value && isImageUrl(input.value)) {
-                preview.src = input.value;
-                preview.style.display = 'block';
-                preview.onerror = () => preview.style.display = 'none';
-            } else {
-                preview.style.display = 'none';
-            }
         }
 
         function updateStats() {
@@ -1013,46 +584,30 @@
             document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
         }
 
-        // Rendering Engine
         function renderSite() {
-            renderHero();
-            renderDoctorsPreview();
-            renderServicesPreview();
-            renderProductsPreview();
-            renderDoctors();
-            renderServices();
-            renderProducts();
-            renderAdminLists();
-        }
-
-        function renderHero() {
             if (window.siteData.hero) {
                 document.getElementById('clinicName').textContent = window.siteData.hero.clinicName;
                 document.getElementById('heroTitle').textContent = window.siteData.hero.title;
                 document.getElementById('heroTagline').textContent = window.siteData.hero.tagline;
                 document.getElementById('phoneNumber').innerHTML = `📞 ${window.siteData.hero.phone}`;
+                if(window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
             }
+            renderDoctorsPreview(); renderServicesPreview(); renderProductsPreview();
+            renderDoctors(); renderServices(); renderProducts(); renderAdminLists();
         }
 
         function updateHeroBackground() {
             const heroSection = document.getElementById('heroSection');
-            if (window.siteData.hero?.bannerImageUrl) {
-                heroSection.style.backgroundImage = `url('${window.siteData.hero.bannerImageUrl}')`;
-            } else {
-                heroSection.style.backgroundImage = 'linear-gradient(135deg, #2c8577 0%, #4a9b8c 100%)';
-            }
+            if (window.siteData.hero?.bannerImageUrl) heroSection.style.backgroundImage = `url('${window.siteData.hero.bannerImageUrl}')`;
+            else heroSection.style.backgroundImage = 'linear-gradient(135deg, #2c8577 0%, #4a9b8c 100%)';
         }
 
         function renderDoctorsPreview() {
-            const container = document.getElementById('doctorsPreview');
-            if (!container) return;
-            // Retain Skeletons if no data, else populate
+            const container = document.getElementById('doctorsPreview'); if (!container) return;
             if(window.siteData.doctors && window.siteData.doctors.length > 0) {
                container.innerHTML = '';
                window.siteData.doctors.forEach(doctor => {
-                   const docCard = document.createElement('div');
-                   docCard.className = 'doctor-preview-card';
-                   docCard.onclick = () => showDoctorDetails(doctor);
+                   const docCard = document.createElement('div'); docCard.className = 'doctor-preview-card'; docCard.onclick = () => showDoctorDetails(doctor);
                    const avatar = doctor.photoUrl ? `<div class="doctor-preview-avatar"><img src="${doctor.photoUrl}" loading="lazy"></div>` : '<div class="doctor-preview-avatar">👨‍⚕️</div>';
                    docCard.innerHTML = `${avatar}<div class="doctor-preview-name">${doctor.name}</div><div class="doctor-preview-qualification">${doctor.qualification}</div>`;
                    container.appendChild(docCard);
@@ -1061,134 +616,72 @@
         }
 
         function renderServicesPreview() {
-            const container = document.getElementById('servicesPreview');
-            if (!container) return;
+            const container = document.getElementById('servicesPreview'); if (!container) return;
             if(window.siteData.services && window.siteData.services.length > 0) {
                 container.innerHTML = '';
                 window.siteData.services.slice(0, 3).forEach(service => {
-                    const card = document.createElement('div');
-                    card.className = 'service-preview-card';
+                    const card = document.createElement('div'); card.className = 'service-preview-card';
                     const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
-                    card.innerHTML = `
-                        ${img}
-                        <div class="service-preview-title">${service.title}</div>
-                        <div class="service-preview-description">${service.description.substring(0,60)}...</div>
-                        <div class="service-buttons">
-                            <button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})">Details</button>
-                            <button class="btn btn-primary" onclick="buyService('${service.title}')">Book</button>
-                        </div>`;
+                    card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description.substring(0,60)}...</div><div class="service-buttons"><button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})">Details</button><button class="btn btn-primary" onclick="buyService('${service.title}')">Book</button></div>`;
                     container.appendChild(card);
                 });
             }
         }
 
         function renderProductsPreview() {
-            const container = document.getElementById('productsPreview');
-            if (!container) return;
+            const container = document.getElementById('productsPreview'); if (!container) return;
             if(window.siteData.products && window.siteData.products.length > 0) {
                 container.innerHTML = '';
                 window.siteData.products.slice(0, 3).forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = 'product-preview-card';
+                    const card = document.createElement('div'); card.className = 'product-preview-card';
                     const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                    card.innerHTML = `
-                        ${photo}
-                        <div class="service-preview-title">${product.name}</div>
-                        <div class="product-preview-price">${product.price}</div>
-                        <div class="product-preview-buttons">
-                            <button class="btn btn-secondary" onclick="viewProductInternal(${product.id})">View</button>
-                            <button class="btn btn-primary" onclick="buyProduct('${product.name}')">Buy</button>
-                        </div>`;
+                    card.innerHTML = `${photo}<div class="service-preview-title">${product.name}</div><div class="product-preview-price">${product.price}</div><div class="product-preview-buttons"><button class="btn btn-secondary" onclick="viewProductInternal(${product.id})">View</button><button class="btn btn-primary" onclick="buyProduct('${product.name}')">Buy</button></div>`;
                     container.appendChild(card);
                 });
-            } else if (window.siteData.products?.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#666; width:100%;">No products available yet.</p>';
-            }
+            } else { container.innerHTML = '<p style="text-align:center; color:#666; width:100%;">No products available.</p>'; }
         }
 
         function renderDoctors() {
-            const c = document.getElementById('doctorsContainer');
-            if (!c) return;
-            c.innerHTML = '';
+            const c = document.getElementById('doctorsContainer'); if (!c) return; c.innerHTML = '';
             window.siteData.doctors?.forEach(d => {
-                const el = document.createElement('div');
-                el.className = 'doctor-card';
+                const el = document.createElement('div'); el.className = 'doctor-card';
                 const av = d.photoUrl ? `<div class="doctor-avatar"><img src="${d.photoUrl}" loading="lazy"></div>` : `<div class="doctor-avatar">👨‍⚕️</div>`;
-                el.innerHTML = `${av}<div class="doctor-name">${d.name}</div><div class="doctor-qualification">${d.qualification}</div>
-                    <div class="doctor-fees">${d.fees}</div><p style="color:#666; margin-bottom:1rem;">${d.details}</p>
-                    <button class="btn btn-primary" onclick="bookDoctorAppointment('${d.name}')">Book Appointment</button>`;
+                el.innerHTML = `${av}<div class="doctor-name">${d.name}</div><div class="doctor-qualification">${d.qualification}</div><div class="doctor-fees">${d.fees}</div><p style="color:#666; margin-bottom:1rem;">${d.details}</p><button class="btn btn-primary" onclick="bookDoctorAppointment('${d.name}')">Book Appointment</button>`;
                 c.appendChild(el);
             });
         }
 
         function renderServices() {
-            const c = document.getElementById('servicesContainer');
-            if (!c) return;
-            c.innerHTML = '';
+            const c = document.getElementById('servicesContainer'); if (!c) return; c.innerHTML = '';
             window.siteData.services?.forEach(s => {
-                const el = document.createElement('div');
-                el.className = 'service-card';
-                const img = s.bannerImageUrl ? `<div class="service-image" style="background-image:url('${s.bannerImageUrl}')"></div>` : `<div class="service-image">${s.icon}</div>`;
-                el.innerHTML = `${img}<div class="service-preview-title">${s.title}</div><p style="color:#666; margin-bottom:1rem;">${s.description}</p>
-                    <div class="service-buttons">
-                        <button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(s).replace(/"/g, '&quot;')})">View Details</button>
-                        <button class="btn btn-primary" onclick="buyService('${s.title}')">Book Now</button>
-                    </div>`;
+                const el = document.createElement('div'); el.className = 'service-card';
+                const img = s.bannerImageUrl ? `<div style="height:150px; background-image:url('${s.bannerImageUrl}'); background-size:cover; border-radius:12px; margin-bottom:1rem;"></div>` : `<div class="service-preview-icon">${s.icon}</div>`;
+                el.innerHTML = `${img}<div class="service-preview-title">${s.title}</div><p style="color:#666; margin-bottom:1rem;">${s.description}</p><div class="service-buttons"><button class="btn btn-secondary" onclick="showServiceDetails(${JSON.stringify(s).replace(/"/g, '&quot;')})">View Details</button><button class="btn btn-primary" onclick="buyService('${s.title}')">Book Now</button></div>`;
                 c.appendChild(el);
             });
         }
 
         function renderProducts() {
-            const c = document.getElementById('productsContainer');
-            if (!c) return;
-            c.innerHTML = '';
+            const c = document.getElementById('productsContainer'); if (!c) return; c.innerHTML = '';
             window.siteData.products?.forEach(p => {
-                const el = document.createElement('div');
-                el.className = 'product-card';
+                const el = document.createElement('div'); el.className = 'product-card';
                 const img = p.profilePhoto ? `<div class="product-profile-photo"><img src="${p.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                el.innerHTML = `${img}<div class="service-preview-title">${p.name}</div><p style="color:#666;">${p.description.substring(0, 80)}...</p>
-                    <div class="product-preview-price" style="margin-top:1rem;">${p.price}</div>
-                    <div class="product-buttons">
-                        <button class="btn btn-secondary" onclick="viewProductInternal(${p.id})">Details</button>
-                        <button class="btn btn-primary" onclick="buyProduct('${p.name}')">Buy Now</button>
-                    </div>`;
+                el.innerHTML = `${img}<div class="service-preview-title">${p.name}</div><p style="color:#666;">${p.description.substring(0, 80)}...</p><div class="product-preview-price" style="margin-top:1rem;">${p.price}</div><div class="product-buttons"><button class="btn btn-secondary" onclick="viewProductInternal(${p.id})">Details</button><button class="btn btn-primary" onclick="buyProduct('${p.name}')">Buy Now</button></div>`;
                 c.appendChild(el);
             });
         }
 
-        // WhatsApp Integrations
-        window.bookAppointment = function() {
-            const msg = encodeURIComponent(`Hello, I would like to book a general appointment with Physio Clinic.`);
-            window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=${msg}`, '_blank');
-        }
-        window.bookDoctorAppointment = function(docName) {
-            const msg = encodeURIComponent(`Hello, I would like to book an appointment specifically with ${docName}.`);
-            window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=${msg}`, '_blank');
-        }
-        window.buyService = function(name) {
-            const msg = encodeURIComponent(`Hello, I would like to book the ${name} service.`);
-            window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=${msg}`, '_blank');
-        }
-        window.buySubService = function(name, price) {
-            const msg = encodeURIComponent(`Hello, I am interested in booking "${name}" (${price}).`);
-            window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=${msg}`, '_blank');
-        }
-        window.buyProduct = function(name) {
-            const msg = encodeURIComponent(`Hello, I would like to purchase the ${name}. Please let me know how to proceed.`);
-            window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=${msg}`, '_blank');
-        }
+        window.bookAppointment = function() { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(`Hello, I would like to book a general appointment.`), '_blank'); }
+        window.bookDoctorAppointment = function(docName) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(`Hello, I would like to book an appointment with ${docName}.`), '_blank'); }
+        window.buyService = function(name) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(`Hello, I would like to book the ${name} service.`), '_blank'); }
+        window.buySubService = function(name, price) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(`Hello, I am interested in booking "${name}" (${price}).`), '_blank'); }
+        window.buyProduct = function(name) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(`Hello, I would like to purchase the ${name}.`), '_blank'); }
 
-        // Detail Modals
         window.showDoctorDetails = function(doctor) {
-            document.getElementById('modalDoctorName').textContent = doctor.name;
-            document.getElementById('modalDoctorQualification').textContent = doctor.qualification;
-            document.getElementById('modalDoctorFees').textContent = `Fee: ${doctor.fees}`;
-            document.getElementById('modalDoctorDetails').textContent = doctor.details;
-            
+            document.getElementById('modalDoctorName').textContent = doctor.name; document.getElementById('modalDoctorQualification').textContent = doctor.qualification;
+            document.getElementById('modalDoctorFees').textContent = `Fee: ${doctor.fees}`; document.getElementById('modalDoctorDetails').textContent = doctor.details;
             const avatar = document.getElementById('modalDoctorAvatar');
-            if (doctor.photoUrl) avatar.innerHTML = `<img src="${doctor.photoUrl}">`;
-            else avatar.innerHTML = '👨‍⚕️';
-            
+            if (doctor.photoUrl) avatar.innerHTML = `<img src="${doctor.photoUrl}">`; else avatar.innerHTML = '👨‍⚕️';
             document.getElementById('modalBookingBtn').onclick = () => { bookDoctorAppointment(doctor.name); closeDoctorDetails(); };
             document.getElementById('doctorDetailsModal').style.display = 'block';
         }
@@ -1197,241 +690,116 @@
         window.showServiceDetails = function(service) {
             document.getElementById('serviceDetailsTitle').textContent = service.title;
             const content = document.getElementById('serviceDetailsContent');
-            content.innerHTML = `
-                <p style="margin-bottom:1.5rem; color:#666; line-height:1.6;">${service.description}</p>
-                <h4 style="color:#2c8577; margin-bottom:1rem;">Available Tests & Treatments:</h4>
-                ${service.tests && service.tests.length > 0 ? service.tests.map(test => `
-                    <div class="test-item">
-                        <span>${test.name}</span>
-                        <div><span class="test-item-price">${test.price}</span><button class="btn-buy-small" onclick="buySubService('${test.name}', '${test.price}')">Book</button></div>
-                    </div>`).join('') : '<p style="color:#999;">No sub-services listed.</p>'}`;
+            content.innerHTML = `<p style="margin-bottom:1.5rem; color:#666; line-height:1.6;">${service.description}</p><h4 style="color:#2c8577; margin-bottom:1rem;">Available Tests & Treatments:</h4>
+                ${service.tests && service.tests.length > 0 ? service.tests.map(test => `<div class="test-item"><span>${test.name}</span><div><span class="test-item-price">${test.price}</span><button class="btn-buy-small" onclick="buySubService('${test.name}', '${test.price}')">Book</button></div></div>`).join('') : '<p style="color:#999;">No sub-services listed.</p>'}`;
             document.getElementById('serviceDetailsModal').style.display = 'block';
         }
         window.closeServiceDetails = () => document.getElementById('serviceDetailsModal').style.display = 'none';
 
         window.viewProductInternal = function(productId) {
-            const product = window.siteData.products.find(p => p.id === productId);
-            if (!product) return;
-            const modal = document.getElementById('productViewModal');
-            
-            document.getElementById('productViewName').textContent = product.name;
-            document.getElementById('productViewPrice').textContent = product.price;
-            document.getElementById('productViewDescription').textContent = product.description;
+            const product = window.siteData.products.find(p => p.id === productId); if (!product) return;
+            document.getElementById('productViewName').textContent = product.name; document.getElementById('productViewPrice').textContent = product.price; document.getElementById('productViewDescription').textContent = product.description;
             document.getElementById('productViewBuyBtn').onclick = () => { buyProduct(product.name); closeProductView(); };
-            
-            const mainImg = document.getElementById('mainProductImage');
-            const thumbs = document.getElementById('productImageThumbnails');
-            
+            const mainImg = document.getElementById('mainProductImage'), thumbs = document.getElementById('productImageThumbnails');
             if (product.images && product.images.length > 0) {
                 mainImg.innerHTML = `<img src="${product.images[0]}">`;
-                thumbs.innerHTML = product.images.map((img, i) => `
-                    <div class="product-thumbnail ${i===0?'active':''}" onclick="document.getElementById('mainProductImage').innerHTML='<img src=&quot;${img}&quot;>'; document.querySelectorAll('.product-thumbnail').forEach(t=>t.classList.remove('active')); this.classList.add('active');"><img src="${img}"></div>
-                `).join('');
-            } else if (product.profilePhoto) {
-                mainImg.innerHTML = `<img src="${product.profilePhoto}">`;
-                thumbs.innerHTML = '';
-            } else {
-                mainImg.innerHTML = '<span style="font-size:3rem; color:#ccc;">No Image</span>';
-                thumbs.innerHTML = '';
-            }
-            modal.style.display = 'block';
+                thumbs.innerHTML = product.images.map((img, i) => `<div class="product-thumbnail ${i===0?'active':''}" onclick="document.getElementById('mainProductImage').innerHTML='<img src=&quot;${img}&quot;>'; document.querySelectorAll('.product-thumbnail').forEach(t=>t.classList.remove('active')); this.classList.add('active');"><img src="${img}"></div>`).join('');
+            } else if (product.profilePhoto) { mainImg.innerHTML = `<img src="${product.profilePhoto}">`; thumbs.innerHTML = '';
+            } else { mainImg.innerHTML = '<span style="font-size:3rem; color:#ccc;">No Image</span>'; thumbs.innerHTML = ''; }
+            document.getElementById('productViewModal').style.display = 'block';
         }
         window.closeProductView = () => document.getElementById('productViewModal').style.display = 'none';
 
-        // Admin Auth
-        window.showAdminLogin = function() {
-            document.getElementById('adminModal').style.display = 'block';
-            if (document.getElementById('mobileMenu').classList.contains('active')) toggleMenu();
-        }
+        window.showAdminLogin = function() { document.getElementById('adminModal').style.display = 'block'; if (document.getElementById('mobileMenu').classList.contains('active')) toggleMenu(); }
         window.closeAdminModal = () => document.getElementById('adminModal').style.display = 'none';
 
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('adminEmailInput').value;
-            const password = document.getElementById('adminPassword').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                document.getElementById('adminModal').style.display = 'none';
-                document.getElementById('adminDashboard').classList.add('active');
-                document.getElementById('mainContent').style.display = 'none';
-                initAdminTabs();
-                updateAdminForm();
-                showToast('Logged in successfully!');
-            } catch (error) {
-                showToast('Invalid credentials. Please check Firebase rules & auth.', 'error');
-            }
+            const email = document.getElementById('adminEmailInput').value; const password = document.getElementById('adminPassword').value;
+            try { await signInWithEmailAndPassword(auth, email, password); document.getElementById('adminModal').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); document.getElementById('mainContent').style.display = 'none'; initAdminTabs(); updateAdminForm(); showToast('Logged in successfully!'); } 
+            catch (error) { showToast('Invalid credentials.', 'error'); }
         });
 
-        window.logout = function() {
-            signOut(auth);
-            document.getElementById('adminDashboard').classList.remove('active');
-            document.getElementById('mainContent').style.display = 'block';
-            showToast('Logged out successfully');
-        }
+        window.logout = function() { signOut(auth); document.getElementById('adminDashboard').classList.remove('active'); document.getElementById('mainContent').style.display = 'block'; showToast('Logged out successfully'); }
 
-        // Admin Form Handlers
         function updateAdminForm() {
-            if (!window.siteData.hero) return;
-            const h = window.siteData.hero;
-            document.getElementById('adminClinicName').value = h.clinicName || '';
-            document.getElementById('adminTagline').value = h.tagline || '';
-            document.getElementById('adminPhone').value = h.phone || '';
-            document.getElementById('adminWhatsApp').value = h.whatsappNumber || '';
-            document.getElementById('adminEmail').value = h.email || '';
+            if (!window.siteData.hero) return; const h = window.siteData.hero;
+            document.getElementById('adminClinicName').value = h.clinicName || ''; document.getElementById('adminTagline').value = h.tagline || '';
+            document.getElementById('adminPhone').value = h.phone || ''; document.getElementById('adminWhatsApp').value = h.whatsappNumber || ''; document.getElementById('adminEmail').value = h.email || '';
+            
             document.getElementById('adminLogoUrl').value = h.logoUrl || '';
+            const logoPreview = document.getElementById('logoPreview');
+            logoPreview.src = h.logoUrl || ''; logoPreview.style.display = h.logoUrl ? 'block' : 'none';
+
             document.getElementById('bannerImageUrl').value = h.bannerImageUrl || '';
+            const bannerPreview = document.getElementById('bannerPreview');
+            bannerPreview.src = h.bannerImageUrl || ''; bannerPreview.style.display = h.bannerImageUrl ? 'block' : 'none';
         }
 
         window.updateClinicInfo = async function() {
             const heroData = {
-                clinicName: document.getElementById('adminClinicName').value.trim(),
-                title: document.getElementById('adminClinicName').value.trim(),
-                tagline: document.getElementById('adminTagline').value.trim(),
-                phone: document.getElementById('adminPhone').value.trim(),
-                whatsappNumber: document.getElementById('adminWhatsApp').value.trim(),
-                email: document.getElementById('adminEmail').value.trim(),
-                logoUrl: document.getElementById('adminLogoUrl').value.trim(),
-                bannerImageUrl: document.getElementById('bannerImageUrl').value.trim()
+                clinicName: document.getElementById('adminClinicName').value.trim(), title: document.getElementById('adminClinicName').value.trim(), tagline: document.getElementById('adminTagline').value.trim(),
+                phone: document.getElementById('adminPhone').value.trim(), whatsappNumber: document.getElementById('adminWhatsApp').value.trim(), email: document.getElementById('adminEmail').value.trim(),
+                logoUrl: document.getElementById('adminLogoUrl').value.trim(), bannerImageUrl: document.getElementById('bannerImageUrl').value.trim()
             };
-            try {
-                await update(ref(database, 'site/hero'), heroData);
-                window.siteData.hero = { ...window.siteData.hero, ...heroData };
-                renderSite();
-                updateHeroBackground();
-                showToast('Clinic info updated successfully!');
-            } catch (error) {
-                showToast('Error updating info: ' + error.message, 'error');
-            }
+            try { await update(ref(database, 'site/hero'), heroData); window.siteData.hero = { ...window.siteData.hero, ...heroData }; renderSite(); updateHeroBackground(); showToast('Clinic info updated successfully!'); } 
+            catch (error) { showToast('Error updating info: ' + error.message, 'error'); }
         }
 
         function renderAdminLists() {
-            // Doctors
-            const dc = document.getElementById('doctorsAdminList');
-            dc.innerHTML = '';
-            window.siteData.doctors?.forEach(d => {
-                const el = document.createElement('div'); el.className = 'item';
-                el.innerHTML = `<div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div>
-                    <div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteDoctor(${d.id})">Delete</button></div>`;
-                dc.appendChild(el);
-            });
-            // Services
-            const sc = document.getElementById('servicesAdminList');
-            sc.innerHTML = '';
-            window.siteData.services?.forEach(s => {
-                const el = document.createElement('div'); el.className = 'item';
-                el.innerHTML = `<div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} tests</p></div>
-                    <div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteService(${s.id})">Delete</button></div>`;
-                sc.appendChild(el);
-            });
-            // Products
-            const pc = document.getElementById('productsAdminList');
-            pc.innerHTML = '';
-            window.siteData.products?.forEach(p => {
-                const el = document.createElement('div'); el.className = 'item';
-                el.innerHTML = `<div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div>
-                    <div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteProduct(${p.id})">Delete</button></div>`;
-                pc.appendChild(el);
-            });
+            const dc = document.getElementById('doctorsAdminList'); dc.innerHTML = '';
+            window.siteData.doctors?.forEach(d => { const el = document.createElement('div'); el.className = 'item'; el.innerHTML = `<div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteDoctor(${d.id})">Delete</button></div>`; dc.appendChild(el); });
+            const sc = document.getElementById('servicesAdminList'); sc.innerHTML = '';
+            window.siteData.services?.forEach(s => { const el = document.createElement('div'); el.className = 'item'; el.innerHTML = `<div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} tests</p></div><div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteService(${s.id})">Delete</button></div>`; sc.appendChild(el); });
+            const pc = document.getElementById('productsAdminList'); pc.innerHTML = '';
+            window.siteData.products?.forEach(p => { const el = document.createElement('div'); el.className = 'item'; el.innerHTML = `<div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteProduct(${p.id})">Delete</button></div>`; pc.appendChild(el); });
         }
 
-        // Sub Service Admin Management
-        window.manageSubServices = function(id) {
-            window.currentServiceId = id;
-            const s = window.siteData.services.find(s => s.id === id);
-            document.getElementById('subServicesTitle').textContent = `Manage: ${s.title}`;
-            renderSubServicesList(s.tests || []);
-            document.getElementById('subServicesModal').style.display = 'block';
-        }
+        window.manageSubServices = function(id) { window.currentServiceId = id; const s = window.siteData.services.find(s => s.id === id); document.getElementById('subServicesTitle').textContent = `Manage: ${s.title}`; renderSubServicesList(s.tests || []); document.getElementById('subServicesModal').style.display = 'block'; }
         window.closeSubServicesModal = () => document.getElementById('subServicesModal').style.display = 'none';
 
         function renderSubServicesList(tests) {
             const c = document.getElementById('subServicesList');
-            c.innerHTML = tests.length ? tests.map((t, i) => `
-                <div class="sub-service-item">
-                    <div><div class="sub-service-name">${t.name}</div><div class="sub-service-price">${t.price}</div></div>
-                    <div><button class="btn btn-secondary btn-buy-small" onclick="openEditSubService(${i})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteSubService(${i})">Del</button></div>
-                </div>`).join('') : '<p style="color:#999; text-align:center; padding:1rem;">No sub-services</p>';
+            c.innerHTML = tests.length ? tests.map((t, i) => `<div class="sub-service-item"><div><div class="sub-service-name">${t.name}</div><div class="sub-service-price">${t.price}</div></div><div><button class="btn btn-secondary btn-buy-small" onclick="openEditSubService(${i})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="deleteSubService(${i})">Del</button></div></div>`).join('') : '<p style="color:#999; text-align:center; padding:1rem;">No sub-services</p>';
         }
 
         window.addSubService = async function() {
-            const name = document.getElementById('newSubServiceName').value.trim();
-            const price = document.getElementById('newSubServicePrice').value.trim();
+            const name = document.getElementById('newSubServiceName').value.trim(), price = document.getElementById('newSubServicePrice').value.trim();
             if (!name || !price) { showToast('Please enter name and price', 'error'); return; }
             const s = window.siteData.services.find(s => s.id === window.currentServiceId);
-            if (!s.tests) s.tests = [];
-            s.tests.push({ id: Date.now(), name, price });
+            if (!s.tests) s.tests = []; s.tests.push({ id: Date.now(), name, price });
             await update(ref(database, 'site/services'), window.siteData.services);
-            document.getElementById('newSubServiceName').value = ''; document.getElementById('newSubServicePrice').value = '';
-            renderSubServicesList(s.tests); showToast('Added successfully');
+            document.getElementById('newSubServiceName').value = ''; document.getElementById('newSubServicePrice').value = ''; renderSubServicesList(s.tests); showToast('Added successfully');
         }
 
-        window.openEditSubService = function(index) {
-            activeSubServiceIndex = index;
-            const s = window.siteData.services.find(s => s.id === window.currentServiceId);
-            const test = s.tests[index];
-            document.getElementById('editSubName').value = test.name;
-            document.getElementById('editSubPrice').value = test.price;
-            document.getElementById('editSubServiceModal').style.display = 'block';
-        }
+        window.openEditSubService = function(index) { activeSubServiceIndex = index; const s = window.siteData.services.find(s => s.id === window.currentServiceId); const test = s.tests[index]; document.getElementById('editSubName').value = test.name; document.getElementById('editSubPrice').value = test.price; document.getElementById('editSubServiceModal').style.display = 'block'; }
+        document.getElementById('saveSubServiceBtn').onclick = async function() { const name = document.getElementById('editSubName').value, price = document.getElementById('editSubPrice').value; if(name && price) { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests[activeSubServiceIndex] = { ...s.tests[activeSubServiceIndex], name, price }; await update(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); document.getElementById('editSubServiceModal').style.display = 'none'; showToast('Updated successfully'); } }
+        window.deleteSubService = function(index) { showConfirm("Delete this sub-service?", async () => { const s = window.siteData.services.find(s => s.id === window.currentServiceId); s.tests.splice(index, 1); await update(ref(database, 'site/services'), window.siteData.services); renderSubServicesList(s.tests); showToast('Deleted successfully'); }); }
 
-        document.getElementById('saveSubServiceBtn').onclick = async function() {
-            const name = document.getElementById('editSubName').value;
-            const price = document.getElementById('editSubPrice').value;
-            if(name && price) {
-                const s = window.siteData.services.find(s => s.id === window.currentServiceId);
-                s.tests[activeSubServiceIndex] = { ...s.tests[activeSubServiceIndex], name, price };
-                await update(ref(database, 'site/services'), window.siteData.services);
-                renderSubServicesList(s.tests);
-                document.getElementById('editSubServiceModal').style.display = 'none';
-                showToast('Updated successfully');
-            }
-        }
-
-        window.deleteSubService = function(index) {
-            showConfirm("Delete this sub-service?", async () => {
-                const s = window.siteData.services.find(s => s.id === window.currentServiceId);
-                s.tests.splice(index, 1);
-                await update(ref(database, 'site/services'), window.siteData.services);
-                renderSubServicesList(s.tests); showToast('Deleted successfully');
-            });
-        }
-
-        // Main Entities Admin logic
         window.addNewDoctor = () => showEditModal('doctor', null);
         window.editDoctor = (id) => showEditModal('doctor', window.siteData.doctors.find(d => d.id === id));
-        window.deleteDoctor = (id) => showConfirm('Delete doctor?', async () => {
-            window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id);
-            await update(ref(database, 'site/doctors'), window.siteData.doctors);
-            renderAdminLists(); renderSite(); updateStats(); showToast('Deleted');
-        });
-
+        window.deleteDoctor = (id) => showConfirm('Delete doctor?', async () => { window.siteData.doctors = window.siteData.doctors.filter(d => d.id !== id); await update(ref(database, 'site/doctors'), window.siteData.doctors); renderAdminLists(); renderSite(); updateStats(); showToast('Deleted'); });
         window.addNewService = () => showEditModal('service', null);
         window.editService = (id) => showEditModal('service', window.siteData.services.find(s => s.id === id));
-        window.deleteService = (id) => showConfirm('Delete service?', async () => {
-            window.siteData.services = window.siteData.services.filter(s => s.id !== id);
-            await update(ref(database, 'site/services'), window.siteData.services);
-            renderAdminLists(); renderSite(); updateStats(); showToast('Deleted');
-        });
-
+        window.deleteService = (id) => showConfirm('Delete service?', async () => { window.siteData.services = window.siteData.services.filter(s => s.id !== id); await update(ref(database, 'site/services'), window.siteData.services); renderAdminLists(); renderSite(); updateStats(); showToast('Deleted'); });
         window.addNewProduct = () => showEditModal('product', null);
         window.editProduct = (id) => showEditModal('product', window.siteData.products.find(p => p.id === id));
-        window.deleteProduct = (id) => showConfirm('Delete product?', async () => {
-            window.siteData.products = window.siteData.products.filter(p => p.id !== id);
-            await update(ref(database, 'site/products'), window.siteData.products);
-            renderAdminLists(); renderSite(); updateStats(); showToast('Deleted');
-        });
+        window.deleteProduct = (id) => showConfirm('Delete product?', async () => { window.siteData.products = window.siteData.products.filter(p => p.id !== id); await update(ref(database, 'site/products'), window.siteData.products); renderAdminLists(); renderSite(); updateStats(); showToast('Deleted'); });
 
         function showEditModal(type, item) {
-            const modal = document.getElementById('editModal');
-            document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`;
+            const modal = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`;
             const content = document.getElementById('editModalContent');
             
             if (type === 'doctor') {
                 content.innerHTML = `
                     <div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div>
-                    <div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div>
-                    <div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div>
-                    <div class="form-group"><label>Photo URL</label><input type="url" id="ePhoto" value="${item?.photoUrl||''}"></div>
+                    <div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div>
+                    <div class="form-group">
+                        <label>Photo Upload</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(this, 'ePhoto', 'ePhotoPreview')">
+                        <input type="hidden" id="ePhoto" value="${item?.photoUrl||''}">
+                        <img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}">
+                    </div>
                     <div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div>
                     <button class="btn btn-primary" onclick="saveDoctor(${item?.id||'null'})" style="width:100%;">Save Doctor</button>`;
             } else if (type === 'service') {
@@ -1439,15 +807,30 @@
                     <div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div>
                     <div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div>
                     <div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div>
-                    <div class="form-group"><label>Banner Image URL</label><input type="url" id="eBanner" value="${item?.bannerImageUrl||''}"></div>
+                    <div class="form-group">
+                        <label>Banner Image</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(this, 'eBanner', 'eBannerPreview')">
+                        <input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}">
+                        <img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}">
+                    </div>
                     <button class="btn btn-primary" onclick="saveService(${item?.id||'null'})" style="width:100%;">Save Service</button>`;
             } else if (type === 'product') {
                 content.innerHTML = `
                     <div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div>
                     <div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div>
                     <div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div>
-                    <div class="form-group"><label>Main Photo URL</label><input type="url" id="ePhotoM" value="${item?.profilePhoto||''}"></div>
-                    <div class="form-group"><label>Gallery (comma separated URLs)</label><textarea id="eGals" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${(item?.images||[]).join(', ')}</textarea></div>
+                    <div class="form-group">
+                        <label>Main Photo Upload</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')">
+                        <input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}">
+                        <img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}">
+                    </div>
+                    <div class="form-group">
+                        <label>Gallery Upload (Multiple Photos)</label>
+                        <input type="file" accept="image/*" multiple onchange="handleGalleryUpload(this, 'eGals')">
+                        <textarea id="eGals" class="form-group" style="width:100%; border-radius:6px; padding:8px; font-size:0.8rem; background:#f4f4f4;" readonly>${(item?.images||[]).join(', ')}</textarea>
+                        <button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('eGals').value=''" style="margin-top:5px;">Clear Gallery Links</button>
+                    </div>
                     <button class="btn btn-primary" onclick="saveProduct(${item?.id||'null'})" style="width:100%;">Save Product</button>`;
             }
             modal.style.display = 'block';
@@ -1472,22 +855,10 @@
             try { await update(ref(database, 'site/products'), window.siteData.products); closeEditModal(); renderAdminLists(); renderSite(); updateStats(); showToast('Saved!'); } catch(e) { showToast('Error','error'); }
         }
 
-        // Global Window click
         window.onclick = function(e) {
             const modals = ['adminModal','serviceDetailsModal','doctorDetailsModal','editModal','productViewModal','subServicesModal','customConfirmModal','editSubServiceModal'];
-            modals.forEach(id => {
-                const m = document.getElementById(id);
-                if (e.target == m) {
-                    m.style.display = 'none';
-                    if (id === 'productViewModal') closeProductView();
-                    if (id === 'subServicesModal') closeSubServicesModal();
-                }
-            });
+            modals.forEach(id => { const m = document.getElementById(id); if (e.target == m) { m.style.display = 'none'; if (id === 'productViewModal') closeProductView(); if (id === 'subServicesModal') closeSubServicesModal(); } });
         }
-        
-        // Initial setup for empty default states
-        renderSite();
     </script>
 </body>
 </html>
-
