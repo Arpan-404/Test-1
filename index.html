@@ -26,7 +26,7 @@
            ================================ */
         .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.4rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s ease-in-out; height: 55px; gap: 10px; }
         .header.hidden { transform: translateY(-100%); }
-        .logo { display: flex; align-items: center; gap: 8px; color: #2c8577; font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+        .logo { display: flex; align-items: center; gap: 8px; color: #2c8577; font-weight: 700; font-size: 1.05rem; white-space: nowrap; text-decoration: none; }
         .logo-img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
         
         .search-container { flex-grow: 1; display: flex; justify-content: flex-end; position: relative; }
@@ -34,7 +34,7 @@
         .search-input:focus { max-width: 350px; background: white; border-color: #2c8577; box-shadow: 0 0 0 3px rgba(44, 133, 119, 0.1); }
         .search-results { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; max-height: 70vh; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1002; display: none; padding: 1rem; border: 1px solid #f0f0f0; }
         .search-results.active { display: block; }
-        .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; }
+        .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; text-decoration: none; color: inherit; }
         .search-result-item:hover { background: #f8f9fa; }
         .search-result-item:last-child { border-bottom: none; }
         .search-category-title { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; font-weight: bold; }
@@ -44,9 +44,9 @@
         .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
         .mobile-menu.active { right: 0; }
         .mobile-menu ul { list-style: none; padding: 0; }
-        .mobile-menu ul li { padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.3s; font-size: 1.1rem; }
-        .mobile-menu ul li:hover { background: #f8f9fa; }
-        .mobile-menu ul li:last-child { margin-top: 2rem; background: #e8f5f3; color: #2c8577; font-weight: 600; }
+        .mobile-menu ul li a { display: block; padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.3s; font-size: 1.1rem; text-decoration: none; color: #333; }
+        .mobile-menu ul li a:hover { background: #f8f9fa; }
+        .mobile-menu ul li.admin-link a { margin-top: 2rem; background: #e8f5f3; color: #2c8577; font-weight: 600; }
         .close-menu { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #2c8577; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .overlay.active { opacity: 1; visibility: visible; }
@@ -55,12 +55,15 @@
            MAIN LAYOUT & HERO SLIDER
            ================================ */
         .main { margin-top: 55px; }
-        .page { display: none; min-height: calc(100vh - 55px); padding: 1rem; }
+        .page { display: none; min-height: calc(100vh - 55px); padding: 1rem; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .page-header { text-align: center; margin-bottom: 2rem; padding-top: 1rem; }
         .page-title { font-size: 2rem; color: #2c8577; margin-bottom: 1rem; font-weight: 700; }
-        .back-btn { position: fixed; top: 65px; left: 1rem; background: #2c8577; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s; z-index: 100; box-shadow: 0 4px 15px rgba(44, 133, 119, 0.3); }
-        .back-btn:hover { background: #245a4f; transform: translateY(-2px); }
+        
+        .back-btn { display: inline-block; background: #e8f5f3; color: #2c8577; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; text-decoration: none; margin-bottom: 1.5rem; }
+        .back-btn:hover { background: #d1f2eb; }
         
         .hero-container { width: 100%; aspect-ratio: 16/7; position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 1rem; background: #e8f5f3; }
         .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out; }
@@ -75,13 +78,13 @@
         .booking-content h1 { display: none; font-size: 2.2rem; margin-bottom: 1rem; font-weight: 700; color: #2c8577; }
         .booking-content .tagline { font-size: 1.1rem; margin-bottom: 0.8rem; color: #666; font-style: italic; line-height: 1.2; }
         
-        .btn { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; font-size: 0.95rem; margin: 0.2rem; will-change: transform; }
+        .btn { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; font-size: 0.95rem; margin: 0.2rem; will-change: transform; text-align: center; }
         .btn:hover { background: #245a4f; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(44, 133, 119, 0.3); }
         .btn:disabled { background: #a5c3be; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-primary { background: #2c8577; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary { background: #e8f5f3; color: #2c8577; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-booking-main { padding: 0.6rem 1.2rem; font-size: 0.95rem; margin-bottom: 0.2rem; } /* Slimmer button */
+        .btn-booking-main { padding: 0.6rem 1.2rem; font-size: 0.95rem; margin-bottom: 0.2rem; }
         
         .booking-content .phone-number { margin-top: 0.6rem; font-size: 1.05rem; color: #2c8577; font-weight: 600; }
         .section-title { text-align: center; font-size: 1.8rem; color: #2c8577; margin-bottom: 1.5rem; font-weight: 700; }
@@ -92,17 +95,17 @@
            ================================ */
         .doctors-preview, .services-preview, .products-preview { margin-bottom: 3rem; }
         
-        /* Shared horizontal scrolling container classes */
         .doctors-preview-container, .services-preview-container, .products-preview-container { display: flex; overflow-x: auto; gap: 1rem; padding: 0.5rem 1rem; scrollbar-width: none; }
         .doctors-preview-container::-webkit-scrollbar, .services-preview-container::-webkit-scrollbar, .products-preview-container::-webkit-scrollbar { display: none; }
         
-        .doctor-preview-card { width: 140px; flex-shrink: 0; background: white; border-radius: 20px; padding: 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; }
+        .doctor-preview-card { width: 140px; flex-shrink: 0; background: white; border-radius: 20px; padding: 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; text-decoration: none; color: inherit; display: block; transition: transform 0.2s; }
+        .doctor-preview-card:hover { transform: translateY(-3px); }
         .doctor-preview-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #2c8577; }
         .doctor-preview-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .doctor-preview-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
         .doctor-preview-qualification { color: #666; font-size: 0.8rem; }
         
-        .service-preview-card, .product-preview-card { width: 260px; flex-shrink: 0; background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; }
+        .service-preview-card, .product-preview-card { width: 260px; flex-shrink: 0; background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
         .service-preview-card:hover, .product-preview-card:hover { transform: translateY(-3px); }
         .service-preview-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
         .service-preview-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -111,24 +114,22 @@
         .product-profile-photo img { width: 100%; height: 100%; object-fit: cover; }
         .product-no-photo { background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); font-size: 3rem; color:#2c8577; }
         .product-preview-price { color: #2c8577; font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem; }
-        .service-buttons, .product-preview-buttons, .product-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
+        .service-buttons, .product-preview-buttons, .product-buttons { display: flex; gap: 0.5rem; margin-top: auto; justify-content: center; }
         .service-buttons .btn, .product-preview-buttons .btn, .product-buttons .btn { flex: 1; padding: 0.6rem 0.5rem; font-size: 0.85rem; text-align: center; }
         
         .doctors-container, .services-container, .products-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem; }
-        .doctor-card, .service-card, .product-card { background: white; border-radius: 18px; padding: 1.8rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        .doctor-card, .service-card, .product-card { background: white; border-radius: 18px; padding: 1.8rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06); display: flex; flex-direction: column; }
         .doctor-avatar { width: 120px; height: 120px; border-radius: 50%; background: #e8f5f3; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
         .doctor-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .doctor-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem; }
         .doctor-fees { color: #2c8577; font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; }
 
         /* ================================
-           MODALS & OVERLAYS
+           DETAIL PAGES (Replacing Modals)
            ================================ */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
-        .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
-        .close:hover { color: #2c8577; }
-        .product-view-content { max-width: 900px; padding: 1rem; }
+        .detail-page-content { background: white; border-radius: 18px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+        
+        /* Product Detail Specifics */
         .product-view-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .main-product-image { width: 100%; height: 350px; border-radius: 12px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
         .main-product-image img { width: 100%; height: 100%; object-fit: cover; }
@@ -137,9 +138,20 @@
         .product-thumbnail.active { border-color: #2c8577; }
         .product-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
         .product-view-price { font-size: 2.2rem; font-weight: 700; color: #2c8577; margin: 1rem 0; }
+        
+        /* Service Detail Specifics */
+        .service-detail-banner { width: 100%; height: 250px; border-radius: 12px; object-fit: cover; margin-bottom: 1.5rem; background: #e8f5f3; display: flex; align-items: center; justify-content: center; font-size: 4rem; }
         .test-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0; }
         .test-item-price { font-weight: 600; color: #2c8577; }
         .btn-buy-small { background: #2c8577; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-left: 10px; }
+
+        /* ================================
+           ADMIN MODALS & OVERLAYS
+           ================================ */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
+        .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
+        .close:hover { color: #2c8577; }
         #toastNotification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; transition: visibility 0s, opacity 0.3s linear; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         #toastNotification.show { visibility: visible; opacity: 1; }
         #toastNotification.error { background-color: #dc3545; }
@@ -195,9 +207,10 @@
             .item-actions { width: 100%; justify-content: flex-start; }
             .sub-service-item { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
             .modal-content { top: 5%; transform: none; margin-bottom: 5%; }
+            .detail-page-content { padding: 1.5rem; }
         }
         @media (max-width: 480px) {
-            .logo span { display: none; } /* Hide clinic text on very small screens to give search space */
+            .logo span { display: none; } 
             .search-input { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
             .search-input:focus { max-width: 250px; }
         }
@@ -207,10 +220,10 @@
     <div id="toastNotification"></div>
 
     <header class="header" id="header">
-        <div class="logo">
+        <a href="#/home" class="logo">
             <img src="https://via.placeholder.com/40x40/2c8577/ffffff?text=PT" alt="Logo" class="logo-img" id="clinicLogo" loading="lazy">
             <span id="clinicName">Physio Clinic</span>
-        </div>
+        </a>
         <div class="search-container">
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
@@ -224,16 +237,17 @@
     <div class="mobile-menu" id="mobileMenu">
         <button class="close-menu" onclick="window.toggleMenu()">&times;</button>
         <ul>
-            <li onclick="window.showPage('home')">Home</li>
-            <li onclick="window.showPage('doctors')">Doctors</li>
-            <li onclick="window.showPage('services')">Services</li>
-            <li onclick="window.showPage('products')">Products</li>
-            <li onclick="window.showAdminLogin()">Admin Login</li>
+            <li><a href="#/home" onclick="window.toggleMenu()">Home</a></li>
+            <li><a href="#/doctors" onclick="window.toggleMenu()">Doctors</a></li>
+            <li><a href="#/services" onclick="window.toggleMenu()">Services</a></li>
+            <li><a href="#/products" onclick="window.toggleMenu()">Products</a></li>
+            <li class="admin-link"><a onclick="window.showAdminLogin(); window.toggleMenu();">Admin Login</a></li>
         </ul>
     </div>
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <main class="main" id="mainContent">
+        <!-- HOME PAGE -->
         <div class="page active" id="homePage">
             <div class="hero-container" id="heroSection">
                 <!-- Slider track injected via JS -->
@@ -253,50 +267,102 @@
                         <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
                     </div>
                 </div>
-                <button class="view-all-btn" onclick="window.showPage('doctors')">View All Doctors</button>
+                <a href="#/doctors" class="view-all-btn">View All Doctors</a>
             </section>
             
             <section class="services-preview">
                 <h2 class="section-title">Our Services</h2>
-                <!-- Changed to use the new horizontal container -->
                 <div class="services-preview-container" id="servicesPreview">
                     <div class="skeleton-loader services-skeleton" id="servicesSkeleton">
                         <div class="skeleton-service-card"></div><div class="skeleton-service-card"></div><div class="skeleton-service-card"></div>
                     </div>
                 </div>
-                <button class="view-all-btn" onclick="window.showPage('services')">View All Services</button>
+                <a href="#/services" class="view-all-btn">View All Services</a>
             </section>
             
             <section class="products-preview">
                 <h2 class="section-title">Our Products</h2>
-                <!-- Changed to use the new horizontal container -->
                 <div class="products-preview-container" id="productsPreview">
                     <div class="skeleton-loader products-skeleton" id="productsSkeleton">
                         <div class="skeleton-product-card"></div><div class="skeleton-product-card"></div><div class="skeleton-product-card"></div>
                     </div>
                 </div>
-                <button class="view-all-btn" onclick="window.showPage('products')">View All Products</button>
+                <a href="#/products" class="view-all-btn">View All Products</a>
             </section>
         </div>
 
+        <!-- LIST PAGES -->
         <div class="page" id="doctorsPage">
-            <button class="back-btn" onclick="window.showPage('home')">← Back</button>
+            <a href="#/home" class="back-btn">← Back to Home</a>
             <div class="page-header"><h1 class="page-title">Our Doctors</h1></div>
             <div class="doctors-container" id="doctorsContainer"></div>
         </div>
         <div class="page" id="servicesPage">
-            <button class="back-btn" onclick="window.showPage('home')">← Back</button>
+            <a href="#/home" class="back-btn">← Back to Home</a>
             <div class="page-header"><h1 class="page-title">Our Services</h1></div>
             <div class="services-container" id="servicesContainer"></div>
         </div>
         <div class="page" id="productsPage">
-            <button class="back-btn" onclick="window.showPage('home')">← Back</button>
+            <a href="#/home" class="back-btn">← Back to Home</a>
             <div class="page-header"><h1 class="page-title">Our Products</h1></div>
             <div class="products-container" id="productsContainer"></div>
         </div>
+
+        <!-- DETAIL PAGES (These replace the Modals) -->
+        <div class="page" id="doctorDetailPage">
+            <a href="javascript:history.back()" class="back-btn">← Go Back</a>
+            <div class="detail-page-content" style="text-align: center;">
+                <div class="doctor-avatar" id="pageDoctorAvatar" style="margin:0 auto 1rem;"></div>
+                <h2 id="pageDoctorName" style="color: #2c8577; margin-bottom: 0.5rem; font-size: 2rem;"></h2>
+                <p id="pageDoctorQualification" style="color: #666; margin-bottom: 0.5rem; font-weight:bold; font-size: 1.1rem;"></p>
+                <p id="pageDoctorFees" style="color: #2c8577; font-size: 1.3rem; margin-bottom: 1.5rem; font-weight: bold;"></p>
+                <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+                    <h3 style="color:#333; margin-bottom: 0.5rem;">About</h3>
+                    <p id="pageDoctorDetails" style="color: #666; margin-bottom: 2rem; line-height: 1.8;"></p>
+                </div>
+                <button class="btn btn-primary btn-large" id="pageBookingBtn" style="padding: 1rem 3rem; font-size: 1.1rem;">Book Appointment</button>
+            </div>
+        </div>
+
+        <div class="page" id="serviceDetailPage">
+            <a href="javascript:history.back()" class="back-btn">← Go Back</a>
+            <div class="detail-page-content">
+                <div id="pageServiceBanner" class="service-detail-banner"></div>
+                <h1 id="pageServiceTitle" style="color: #2c8577; margin-bottom: 1rem; font-size: 2rem;"></h1>
+                <p id="pageServiceDesc" style="color:#666; line-height:1.8; margin-bottom: 2rem; font-size: 1.05rem;"></p>
+                
+                <div id="pageServiceTestsContainer">
+                    <!-- Tests injected here -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="btn btn-primary btn-large" id="pageServiceBookBtn" style="padding: 1rem 3rem; font-size: 1.1rem;">Book This Service</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="productDetailPage">
+            <a href="javascript:history.back()" class="back-btn">← Go Back</a>
+            <div class="detail-page-content">
+                <div class="product-view-layout">
+                    <div>
+                        <div class="main-product-image" id="pageProductMainImg"></div>
+                        <div class="product-image-thumbnails" id="pageProductThumbs"></div>
+                    </div>
+                    <div>
+                        <h1 id="pageProductName" style="color:#2c8577; margin-bottom:0.5rem; font-size:2rem;"></h1>
+                        <div class="product-view-price" id="pageProductPrice"></div>
+                        <h3 style="color:#333; margin-bottom: 0.5rem; margin-top: 1rem;">Description</h3>
+                        <p id="pageProductDesc" style="color:#666; margin-bottom:2.5rem; line-height:1.8;"></p>
+                        <button class="btn btn-primary" style="width:100%; padding:1rem; font-size: 1.1rem;" id="pageProductBuyBtn">🛒 Buy via WhatsApp</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- Modals -->
+    <!-- Admin & Utility Modals (Keep these as modals since they are forms/alerts) -->
     <div id="customConfirmModal" class="modal" style="z-index: 4000;">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3>
@@ -304,44 +370,6 @@
                 <button id="confirmYesBtn" class="btn btn-danger">Yes, proceed</button>
                 <button id="confirmNoBtn" class="btn btn-secondary">Cancel</button>
             </div>
-        </div>
-    </div>
-
-    <div id="productViewModal" class="modal">
-        <div class="modal-content product-view-content">
-            <span class="close" onclick="window.closeProductView()">&times;</span>
-            <div class="product-view-layout">
-                <div>
-                    <div class="main-product-image" id="mainProductImage"></div>
-                    <div class="product-image-thumbnails" id="productImageThumbnails"></div>
-                </div>
-                <div>
-                    <h2 id="productViewName" style="color:#2c8577; margin-bottom:0.5rem; font-size:1.8rem;"></h2>
-                    <div class="product-view-price" id="productViewPrice"></div>
-                    <p id="productViewDescription" style="color:#666; margin-bottom:2rem; line-height:1.6;"></p>
-                    <button class="btn btn-primary" style="width:100%; padding:1rem;" id="productViewBuyBtn">🛒 Buy via WhatsApp</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="doctorDetailsModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close" onclick="window.closeDoctorDetails()">&times;</span>
-            <div class="doctor-avatar" id="modalDoctorAvatar" style="margin:0 auto 1rem;"></div>
-            <h2 id="modalDoctorName" style="color: #2c8577; margin-bottom: 0.5rem;"></h2>
-            <p id="modalDoctorQualification" style="color: #666; margin-bottom: 0.5rem; font-weight:bold;"></p>
-            <p id="modalDoctorFees" style="color: #2c8577; font-size: 1.2rem; margin-bottom: 1rem;"></p>
-            <p id="modalDoctorDetails" style="color: #666; margin-bottom: 1.5rem;"></p>
-            <button class="btn btn-primary" id="modalBookingBtn">Book Appointment</button>
-        </div>
-    </div>
-
-    <div id="serviceDetailsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="window.closeServiceDetails()">&times;</span>
-            <h2 id="serviceDetailsTitle" style="color: #2c8577; margin-bottom: 1rem;"></h2>
-            <div id="serviceDetailsContent"></div>
         </div>
     </div>
 
@@ -478,7 +506,6 @@
         import { getDatabase, ref, update, set, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -486,8 +513,7 @@
             projectId: "clinic-bdf92",
             storageBucket: "clinic-bdf92.firebasestorage.app",
             messagingSenderId: "302452317883",
-            appId: "1:302452317883:web:6585bf22ea1a7f3a96939e",
-            measurementId: "G-XZXEVNMVRS"
+            appId: "1:302452317883:web:6585bf22ea1a7f3a96939e"
         };
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
@@ -496,18 +522,161 @@
         window.currentServiceId = null;
         let activeSubServiceIndex = null;
         let lastScrollTop = 0;
-        window.currentPage = 'home';
         let slideIndex = 0;
         let slideInterval;
+        let dataLoaded = false; // Flag to track if Firebase data is ready
 
         window.siteData = {
             hero: { clinicName: "Physio - The Therapeutic Moves", title: "Therapeutic Moves", tagline: '"We add life in your days."', phone: "+91 9641568109", whatsappNumber: "+919641568109", email: "DrArpanDas.PT@gmail.com", logoUrl: "", sliderImages: [] },
             settings: { whatsappTemplates: { general: "Hello, I would like to book a general appointment.", doctor: "Hello, I would like to book an appointment with {doctorName}.", service: "Hello, I would like to book the {serviceName} service.", subService: "Hello, I am interested in booking '{subServiceName}' ({price}).", product: "Hello, I would like to purchase the {productName}." } },
-            doctors: [],
-            services: [],
-            products: []
+            doctors: [], services: [], products: []
         };
 
+        // Utility: Convert Name to URL Slug (e.g., "Arpan Das" -> "arpan-das")
+        window.slugify = function(text) {
+            return text.toString().toLowerCase().trim()
+                .replace(/\s+/g, '-')           // Replace spaces with -
+                .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+                .replace(/\-\-+/g, '-');        // Replace multiple - with single -
+        }
+
+        /* ========================================================
+           ROUTING SYSTEM
+           ======================================================== */
+        window.handleRoute = function() {
+            // Wait for data to load before rendering detail pages
+            if (!dataLoaded) return; 
+
+            const hash = window.location.hash || '#/home';
+            const parts = hash.split('/');
+            const route = parts[1]; // home, doctors, doctor, services, service, etc.
+            const slug = parts[2];  // the-doctor-name
+
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+
+            // Show appropriate page based on route
+            if (route === 'home' || !route) {
+                document.getElementById('homePage').classList.add('active');
+            } else if (route === 'doctors') {
+                document.getElementById('doctorsPage').classList.add('active');
+            } else if (route === 'services') {
+                document.getElementById('servicesPage').classList.add('active');
+            } else if (route === 'products') {
+                document.getElementById('productsPage').classList.add('active');
+            } else if (route === 'doctor' && slug) {
+                renderDoctorDetailPage(slug);
+            } else if (route === 'service' && slug) {
+                renderServiceDetailPage(slug);
+            } else if (route === 'product' && slug) {
+                renderProductDetailPage(slug);
+            } else {
+                // Fallback
+                document.getElementById('homePage').classList.add('active');
+            }
+            
+            // Scroll to top on route change
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Listen for URL hash changes
+        window.addEventListener('hashchange', window.handleRoute);
+
+        // Firebase Listener
+        const siteRef = ref(database, 'site');
+        onValue(siteRef, (snapshot) => {
+            try {
+                if (snapshot.exists()) window.siteData = { ...window.siteData, ...snapshot.val() };
+                dataLoaded = true; // Data is ready
+                renderSite(); 
+                updateAdminForm(); 
+                updateStats(); 
+                updateHeroBackground(); 
+                hideSkeletons();
+                window.handleRoute(); // Trigger router now that data is loaded
+            } catch (error) { hideSkeletons(); }
+        }, (error) => { hideSkeletons(); dataLoaded = true; renderSite(); window.handleRoute(); });
+
+
+        /* ========================================================
+           RENDER DETAIL PAGES (Routing Actions)
+           ======================================================== */
+        function renderDoctorDetailPage(slug) {
+            const doctor = window.siteData.doctors.find(d => window.slugify(d.name) === slug);
+            if (!doctor) { window.location.hash = '#/doctors'; return; } // Go back if not found
+
+            document.getElementById('pageDoctorName').textContent = doctor.name; 
+            document.getElementById('pageDoctorQualification').textContent = doctor.qualification;
+            document.getElementById('pageDoctorFees').textContent = `Consultation Fee: ${doctor.fees}`; 
+            document.getElementById('pageDoctorDetails').textContent = doctor.details;
+            
+            const avatar = document.getElementById('pageDoctorAvatar');
+            if (doctor.photoUrl) avatar.innerHTML = `<img src="${doctor.photoUrl}">`; else avatar.innerHTML = '👨‍⚕️';
+            
+            document.getElementById('pageBookingBtn').onclick = () => window.bookDoctorAppointment(doctor.name);
+            document.getElementById('doctorDetailPage').classList.add('active');
+        }
+
+        function renderServiceDetailPage(slug) {
+            const service = window.siteData.services.find(s => window.slugify(s.title) === slug);
+            if (!service) { window.location.hash = '#/services'; return; }
+
+            document.getElementById('pageServiceTitle').textContent = service.title;
+            document.getElementById('pageServiceDesc').textContent = service.description;
+            
+            const banner = document.getElementById('pageServiceBanner');
+            if (service.bannerImageUrl) {
+                banner.innerHTML = `<img src="${service.bannerImageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+            } else {
+                banner.innerHTML = service.icon || '⚕️';
+            }
+
+            const testsContainer = document.getElementById('pageServiceTestsContainer');
+            if (service.tests && service.tests.length > 0) {
+                let html = `<h3 style="color:#2c8577; margin-bottom:1rem; margin-top:2rem; border-top:1px solid #eee; padding-top:1.5rem;">Available Tests & Treatments</h3>`;
+                html += service.tests.map(test => `
+                    <div class="test-item" style="background:#f8f9fa; padding:1.2rem; border-radius:8px; margin-bottom:0.8rem; border:none;">
+                        <span style="font-weight:600; font-size:1.1rem;">${test.name}</span>
+                        <div>
+                            <span class="test-item-price" style="font-size:1.1rem;">${test.price}</span>
+                            <button class="btn btn-secondary btn-buy-small" style="padding: 0.6rem 1.2rem;" onclick="window.buySubService('${test.name}', '${test.price}')">Book Test</button>
+                        </div>
+                    </div>
+                `).join('');
+                testsContainer.innerHTML = html;
+            } else {
+                testsContainer.innerHTML = ''; // Clean if no sub-services
+            }
+
+            document.getElementById('pageServiceBookBtn').onclick = () => window.buyService(service.title);
+            document.getElementById('serviceDetailPage').classList.add('active');
+        }
+
+        function renderProductDetailPage(slug) {
+            const product = window.siteData.products.find(p => window.slugify(p.name) === slug);
+            if (!product) { window.location.hash = '#/products'; return; }
+
+            document.getElementById('pageProductName').textContent = product.name; 
+            document.getElementById('pageProductPrice').textContent = product.price; 
+            document.getElementById('pageProductDesc').textContent = product.description;
+            document.getElementById('pageProductBuyBtn').onclick = () => window.buyProduct(product.name);
+            
+            const mainImg = document.getElementById('pageProductMainImg'), thumbs = document.getElementById('pageProductThumbs');
+            if (product.images && product.images.length > 0) {
+                mainImg.innerHTML = `<img src="${product.images[0]}">`;
+                thumbs.innerHTML = product.images.map((img, i) => `<div class="product-thumbnail ${i===0?'active':''}" onclick="document.getElementById('pageProductMainImg').innerHTML='<img src=&quot;${img}&quot;>'; document.querySelectorAll('#pageProductThumbs .product-thumbnail').forEach(t=>t.classList.remove('active')); this.classList.add('active');"><img src="${img}"></div>`).join('');
+            } else if (product.profilePhoto) { 
+                mainImg.innerHTML = `<img src="${product.profilePhoto}">`; thumbs.innerHTML = '';
+            } else { 
+                mainImg.innerHTML = '<span style="font-size:4rem; color:#ccc;">📦</span>'; thumbs.innerHTML = ''; 
+            }
+            
+            document.getElementById('productDetailPage').classList.add('active');
+        }
+
+        /* ========================================================
+           OTHER UTILITIES & SEARCH
+           ======================================================== */
         window.showToast = function(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
             toast.textContent = message;
@@ -523,25 +692,22 @@
             document.getElementById('confirmNoBtn').onclick = () => { modal.style.display = 'none'; };
         }
 
-        /* ========================================================
-           SEARCH FUNCTIONALITY
-           ======================================================== */
         window.handleSearch = function() {
             const query = document.getElementById('globalSearch').value.toLowerCase();
             const resultsContainer = document.getElementById('searchResults');
-            
             if (!query) { resultsContainer.classList.remove('active'); return; }
 
             let html = '';
             
+            // Link to Hash Routes in Search Results
             const docs = window.siteData.doctors?.filter(d => d.name.toLowerCase().includes(query) || d.qualification.toLowerCase().includes(query)) || [];
             if(docs.length) {
                 html += '<div class="search-category-title">Doctors</div>';
                 docs.forEach(d => {
                     const av = d.photoUrl ? `<img src="${d.photoUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : '👨‍⚕️';
-                    html += `<div class="search-result-item" onclick="window.showDoctorDetails(window.siteData.doctors.find(doc=>doc.id===${d.id})); document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
+                    html += `<a href="#/doctor/${window.slugify(d.name)}" class="search-result-item" onclick="document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
                         ${av} <div><div style="font-weight:600;font-size:0.95rem;">${d.name}</div><div style="font-size:0.8rem;color:#666;">${d.qualification}</div></div>
-                    </div>`;
+                    </a>`;
                 });
             }
 
@@ -549,9 +715,9 @@
             if(servs.length) {
                 html += '<div class="search-category-title" style="margin-top:15px;">Services</div>';
                 servs.forEach(s => {
-                    html += `<div class="search-result-item" onclick="window.showServiceDetails(window.siteData.services.find(srv=>srv.id===${s.id})); document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
+                    html += `<a href="#/service/${window.slugify(s.title)}" class="search-result-item" onclick="document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
                         <span style="font-size:1.2rem;">${s.icon||'⚕️'}</span> <div style="font-weight:600;">${s.title}</div>
-                    </div>`;
+                    </a>`;
                 });
             }
 
@@ -560,9 +726,9 @@
                 html += '<div class="search-category-title" style="margin-top:15px;">Products</div>';
                 prods.forEach(p => {
                     const img = p.profilePhoto ? `<img src="${p.profilePhoto}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">` : '📦';
-                    html += `<div class="search-result-item" onclick="window.viewProductInternal(${p.id}); document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
+                    html += `<a href="#/product/${window.slugify(p.name)}" class="search-result-item" onclick="document.getElementById('globalSearch').value=''; document.getElementById('searchResults').classList.remove('active');">
                         ${img} <div><div style="font-weight:600;">${p.name}</div><div style="color:#2c8577;font-size:0.85rem;">${p.price}</div></div>
-                    </div>`;
+                    </a>`;
                 });
             }
 
@@ -570,66 +736,6 @@
             resultsContainer.innerHTML = html;
             resultsContainer.classList.add('active');
         }
-
-        /* ========================================================
-           SAFE CLOUDINARY IMAGE UPLOAD LOGIC
-           ======================================================== */
-        window.uploadToCloudinary = async function(file) {
-            const cloudName = 'dyuni0dx5';
-            const uploadPreset = 'Physio_uploads'; 
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', uploadPreset);
-
-            try {
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Server rejected the file.');
-                const data = await response.json();
-                return data.secure_url;
-            } catch (err) { throw new Error("Network error or invalid Cloudinary settings."); }
-        };
-
-        window.handleImageUpload = async function(input, hiddenFieldId, previewId) {
-            if (!input.files || input.files.length === 0) return;
-            const file = input.files[0];
-            if (file.size > 10 * 1024 * 1024) { window.showToast('File too large (Max 10MB).', 'error'); input.value = ''; return; }
-            window.showToast('Uploading image securely... Please wait.', 'success');
-            const saveBtns = document.querySelectorAll('.btn-primary'); saveBtns.forEach(btn => btn.disabled = true);
-            try {
-                const url = await window.uploadToCloudinary(file);
-                document.getElementById(hiddenFieldId).value = url;
-                const preview = document.getElementById(previewId);
-                if(preview) { preview.src = url; preview.style.display = 'block'; }
-                window.showToast('Image uploaded successfully!');
-            } catch (e) { window.showToast('Upload failed: ' + e.message, 'error'); input.value = ''; } 
-            finally { saveBtns.forEach(btn => btn.disabled = false); }
-        };
-
-        window.handleGalleryUpload = async function(input, textareaId) {
-            if (!input.files || input.files.length === 0) return;
-            window.showToast('Uploading images...', 'success');
-            const saveBtns = document.querySelectorAll('.btn-primary'); saveBtns.forEach(btn => btn.disabled = true);
-            const urls = [];
-            try {
-                for (let i = 0; i < input.files.length; i++) {
-                    const url = await window.uploadToCloudinary(input.files[i]);
-                    urls.push(url);
-                }
-                const existing = document.getElementById(textareaId).value;
-                document.getElementById(textareaId).value = existing ? existing + ', ' + urls.join(', ') : urls.join(', ');
-                window.showToast('Images uploaded successfully!');
-            } catch (e) { window.showToast('Upload failed: ' + e.message, 'error'); } 
-            finally { saveBtns.forEach(btn => btn.disabled = false); }
-        };
-
-        const siteRef = ref(database, 'site');
-        onValue(siteRef, (snapshot) => {
-            try {
-                if (snapshot.exists()) window.siteData = { ...window.siteData, ...snapshot.val() };
-                renderSite(); updateAdminForm(); updateStats(); updateHeroBackground(); hideSkeletons();
-            } catch (error) { hideSkeletons(); }
-        }, (error) => { hideSkeletons(); renderSite(); });
 
         function hideSkeletons() { ['doctorsSkeleton', 'servicesSkeleton', 'productsSkeleton'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }); }
         function getWhatsAppNumber() { return window.siteData.hero?.whatsappNumber || "+919641568109"; }
@@ -642,31 +748,7 @@
             lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
         }, { passive: true });
 
-        window.showPage = function(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId + 'Page').classList.add('active');
-            window.currentPage = pageId;
-            if (document.getElementById('mobileMenu').classList.contains('active')) window.toggleMenu();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         window.toggleMenu = function() { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
-
-        function initAdminTabs() {
-            const tabs = document.querySelectorAll('.admin-tab'), panels = document.querySelectorAll('.tab-panel');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active')); panels.forEach(p => p.classList.remove('active'));
-                    tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
-                });
-            });
-        }
-
-        function updateStats() {
-            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0;
-            document.getElementById('totalServices').textContent = window.siteData.services?.length || 0;
-            document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
-        }
 
         function renderSite() {
             if (window.siteData.hero) {
@@ -708,20 +790,22 @@
             if(images.length <= 1) return;
             slideIndex = (slideIndex + step + images.length) % images.length;
             document.getElementById('sliderTrack').style.transform = `translateX(-${slideIndex * 100}%)`;
-            startSlider(images.length); // reset interval
+            startSlider(images.length);
         }
 
-        function startSlider(len) {
-            clearInterval(slideInterval);
-            if(len > 1) { slideInterval = setInterval(() => { window.moveSlide(1); }, 1500); }
-        }
+        function startSlider(len) { clearInterval(slideInterval); if(len > 1) { slideInterval = setInterval(() => { window.moveSlide(1); }, 1500); } }
 
+        /* ========================================================
+           RENDER LISTS & PREVIEWS (Linking to Hash Routes)
+           ======================================================== */
         function renderDoctorsPreview() {
             const container = document.getElementById('doctorsPreview'); if (!container) return;
             if(window.siteData.doctors && window.siteData.doctors.length > 0) {
                container.innerHTML = '';
                window.siteData.doctors.forEach(doctor => {
-                   const docCard = document.createElement('div'); docCard.className = 'doctor-preview-card'; docCard.onclick = () => window.showDoctorDetails(doctor);
+                   const docCard = document.createElement('a'); // Changed to <a> tag
+                   docCard.className = 'doctor-preview-card'; 
+                   docCard.href = `#/doctor/${window.slugify(doctor.name)}`; // Hash Link
                    const avatar = doctor.photoUrl ? `<div class="doctor-preview-avatar"><img src="${doctor.photoUrl}" loading="lazy"></div>` : '<div class="doctor-preview-avatar">👨‍⚕️</div>';
                    docCard.innerHTML = `${avatar}<div class="doctor-preview-name">${doctor.name}</div><div class="doctor-preview-qualification">${doctor.qualification}</div>`;
                    container.appendChild(docCard);
@@ -733,11 +817,14 @@
             const container = document.getElementById('servicesPreview'); if (!container) return;
             if(window.siteData.services && window.siteData.services.length > 0) {
                 container.innerHTML = '';
-                // Changed from slice(0,3) to slice(0,6) to show more horizontally
                 window.siteData.services.slice(0, 6).forEach(service => {
-                    const card = document.createElement('div'); card.className = 'service-preview-card';
+                    const card = document.createElement('a'); // Changed to <a> tag
+                    card.className = 'service-preview-card';
+                    card.href = `#/service/${window.slugify(service.title)}`; // Hash Link
                     const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
-                    card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description}</div><div class="service-buttons"><button class="btn btn-secondary" onclick='window.showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})'>Details</button><button class="btn btn-primary" onclick="window.buyService('${service.title}')">Book</button></div>`;
+                    
+                    // Notice we use `onclick="event.preventDefault(); ..."` on buttons inside a link to stop navigation if they just want to book directly
+                    card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description}</div><div class="service-buttons"><button class="btn btn-secondary">Details</button><button class="btn btn-primary" onclick="event.preventDefault(); window.buyService('${service.title}')">Book</button></div>`;
                     container.appendChild(card);
                 });
             }
@@ -747,11 +834,13 @@
             const container = document.getElementById('productsPreview'); if (!container) return;
             if(window.siteData.products && window.siteData.products.length > 0) {
                 container.innerHTML = '';
-                // Changed from slice(0,3) to slice(0,6) to show more horizontally
                 window.siteData.products.slice(0, 6).forEach(product => {
-                    const card = document.createElement('div'); card.className = 'product-preview-card';
+                    const card = document.createElement('a'); // Changed to <a> tag
+                    card.className = 'product-preview-card';
+                    card.href = `#/product/${window.slugify(product.name)}`; // Hash Link
                     const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                    card.innerHTML = `${photo}<div class="service-preview-title">${product.name}</div><div class="product-preview-price">${product.price}</div><div class="product-preview-buttons"><button class="btn btn-secondary" onclick="window.viewProductInternal(${product.id})">View</button><button class="btn btn-primary" onclick="window.buyProduct('${product.name}')">Buy</button></div>`;
+                    
+                    card.innerHTML = `${photo}<div class="service-preview-title">${product.name}</div><div class="product-preview-price">${product.price}</div><div class="product-preview-buttons"><button class="btn btn-secondary">View</button><button class="btn btn-primary" onclick="event.preventDefault(); window.buyProduct('${product.name}')">Buy</button></div>`;
                     container.appendChild(card);
                 });
             } else { container.innerHTML = '<p style="text-align:center; color:#666; width:100%;">No products available.</p>'; }
@@ -762,7 +851,8 @@
             window.siteData.doctors?.forEach(d => {
                 const el = document.createElement('div'); el.className = 'doctor-card';
                 const av = d.photoUrl ? `<div class="doctor-avatar"><img src="${d.photoUrl}" loading="lazy"></div>` : `<div class="doctor-avatar">👨‍⚕️</div>`;
-                el.innerHTML = `${av}<div class="doctor-name">${d.name}</div><div class="doctor-qualification">${d.qualification}</div><div class="doctor-fees">${d.fees}</div><p style="color:#666; margin-bottom:1rem;">${d.details}</p><button class="btn btn-primary" onclick="window.bookDoctorAppointment('${d.name}')">Book Appointment</button>`;
+                el.innerHTML = `${av}<div class="doctor-name">${d.name}</div><div class="doctor-qualification">${d.qualification}</div><div class="doctor-fees">${d.fees}</div><p style="color:#666; margin-bottom:1rem;">${d.details}</p>
+                <div style="display:flex; gap:10px;"><a href="#/doctor/${window.slugify(d.name)}" class="btn btn-secondary" style="flex:1;">View Profile</a> <button class="btn btn-primary" style="flex:1;" onclick="window.bookDoctorAppointment('${d.name}')">Book</button></div>`;
                 c.appendChild(el);
             });
         }
@@ -772,7 +862,7 @@
             window.siteData.services?.forEach(s => {
                 const el = document.createElement('div'); el.className = 'service-card';
                 const img = s.bannerImageUrl ? `<div style="height:150px; background-image:url('${s.bannerImageUrl}'); background-size:cover; border-radius:12px; margin-bottom:1rem;"></div>` : `<div class="service-preview-icon">${s.icon}</div>`;
-                el.innerHTML = `${img}<div class="service-preview-title">${s.title}</div><p style="color:#666; margin-bottom:1rem;">${s.description}</p><div class="service-buttons"><button class="btn btn-secondary" onclick='window.showServiceDetails(${JSON.stringify(s).replace(/"/g, '&quot;')})'>View Details</button><button class="btn btn-primary" onclick="window.buyService('${s.title}')">Book Now</button></div>`;
+                el.innerHTML = `${img}<div class="service-preview-title">${s.title}</div><p style="color:#666; margin-bottom:1rem;">${s.description}</p><div class="service-buttons"><a href="#/service/${window.slugify(s.title)}" class="btn btn-secondary">Details</a><button class="btn btn-primary" onclick="window.buyService('${s.title}')">Book Now</button></div>`;
                 c.appendChild(el);
             });
         }
@@ -782,7 +872,7 @@
             window.siteData.products?.forEach(p => {
                 const el = document.createElement('div'); el.className = 'product-card';
                 const img = p.profilePhoto ? `<div class="product-profile-photo"><img src="${p.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                el.innerHTML = `${img}<div class="service-preview-title">${p.name}</div><p style="color:#666;">${p.description.substring(0, 80)}...</p><div class="product-preview-price" style="margin-top:1rem;">${p.price}</div><div class="product-buttons"><button class="btn btn-secondary" onclick="window.viewProductInternal(${p.id})">Details</button><button class="btn btn-primary" onclick="window.buyProduct('${p.name}')">Buy Now</button></div>`;
+                el.innerHTML = `${img}<div class="service-preview-title">${p.name}</div><p style="color:#666;">${p.description.substring(0, 80)}...</p><div class="product-preview-price" style="margin-top:1rem;">${p.price}</div><div class="product-buttons"><a href="#/product/${window.slugify(p.name)}" class="btn btn-secondary">Details</a><button class="btn btn-primary" onclick="window.buyProduct('${p.name}')">Buy Now</button></div>`;
                 c.appendChild(el);
             });
         }
@@ -791,13 +881,7 @@
            WHATSAPP TEMPLATING
            ======================================================== */
         window.getTemplateMsg = function(type, vars={}) {
-            const defTpls = {
-                general: "Hello, I would like to book a general appointment.",
-                doctor: "Hello, I would like to book an appointment with {doctorName}.",
-                service: "Hello, I would like to book the {serviceName} service.",
-                subService: "Hello, I am interested in booking '{subServiceName}' ({price}).",
-                product: "Hello, I would like to purchase the {productName}."
-            };
+            const defTpls = { general: "Hello, I would like to book a general appointment.", doctor: "Hello, I would like to book an appointment with {doctorName}.", service: "Hello, I would like to book the {serviceName} service.", subService: "Hello, I am interested in booking '{subServiceName}' ({price}).", product: "Hello, I would like to purchase the {productName}." };
             let tpl = window.siteData.settings?.whatsappTemplates?.[type] || defTpls[type] || "";
             for (const [key, value] of Object.entries(vars)) { tpl = tpl.replace(`{${key}}`, value); }
             return tpl;
@@ -809,57 +893,69 @@
         window.buySubService = function(name, price) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(window.getTemplateMsg('subService', {subServiceName: name, price: price})), '_blank'); }
         window.buyProduct = function(name) { window.open(`https://wa.me/${getWhatsAppNumber().replace('+', '')}?text=` + encodeURIComponent(window.getTemplateMsg('product', {productName: name})), '_blank'); }
 
-        window.showDoctorDetails = function(doctor) {
-            document.getElementById('modalDoctorName').textContent = doctor.name; document.getElementById('modalDoctorQualification').textContent = doctor.qualification;
-            document.getElementById('modalDoctorFees').textContent = `Fee: ${doctor.fees}`; document.getElementById('modalDoctorDetails').textContent = doctor.details;
-            const avatar = document.getElementById('modalDoctorAvatar');
-            if (doctor.photoUrl) avatar.innerHTML = `<img src="${doctor.photoUrl}">`; else avatar.innerHTML = '👨‍⚕️';
-            document.getElementById('modalBookingBtn').onclick = () => { window.bookDoctorAppointment(doctor.name); window.closeDoctorDetails(); };
-            document.getElementById('doctorDetailsModal').style.display = 'block';
+        /* ========================================================
+           SAFE CLOUDINARY IMAGE UPLOAD LOGIC
+           ======================================================== */
+        window.uploadToCloudinary = async function(file) {
+            const cloudName = 'dyuni0dx5'; const uploadPreset = 'Physio_uploads'; 
+            const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', uploadPreset);
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Server rejected the file.');
+                return (await response.json()).secure_url;
+            } catch (err) { throw new Error("Network error or invalid Cloudinary settings."); }
+        };
+
+        window.handleImageUpload = async function(input, hiddenFieldId, previewId) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            if (file.size > 10 * 1024 * 1024) { window.showToast('File too large (Max 10MB).', 'error'); input.value = ''; return; }
+            window.showToast('Uploading image securely... Please wait.', 'success');
+            const saveBtns = document.querySelectorAll('.btn-primary'); saveBtns.forEach(btn => btn.disabled = true);
+            try {
+                const url = await window.uploadToCloudinary(file);
+                document.getElementById(hiddenFieldId).value = url;
+                const preview = document.getElementById(previewId);
+                if(preview) { preview.src = url; preview.style.display = 'block'; }
+                window.showToast('Image uploaded successfully!');
+            } catch (e) { window.showToast('Upload failed: ' + e.message, 'error'); input.value = ''; } 
+            finally { saveBtns.forEach(btn => btn.disabled = false); }
+        };
+
+        window.handleGalleryUpload = async function(input, textareaId) {
+            if (!input.files || input.files.length === 0) return;
+            window.showToast('Uploading images...', 'success');
+            const saveBtns = document.querySelectorAll('.btn-primary'); saveBtns.forEach(btn => btn.disabled = true);
+            const urls = [];
+            try {
+                for (let i = 0; i < input.files.length; i++) { urls.push(await window.uploadToCloudinary(input.files[i])); }
+                const existing = document.getElementById(textareaId).value;
+                document.getElementById(textareaId).value = existing ? existing + ', ' + urls.join(', ') : urls.join(', ');
+                window.showToast('Images uploaded successfully!');
+            } catch (e) { window.showToast('Upload failed: ' + e.message, 'error'); } 
+            finally { saveBtns.forEach(btn => btn.disabled = false); }
+        };
+
+
+        /* ========================================================
+           ADMIN PANEL LOGIC
+           ======================================================== */
+        function initAdminTabs() {
+            const tabs = document.querySelectorAll('.admin-tab'), panels = document.querySelectorAll('.tab-panel');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active')); panels.forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+                });
+            });
         }
-        window.closeDoctorDetails = () => document.getElementById('doctorDetailsModal').style.display = 'none';
-
-        window.showServiceDetails = function(service) {
-            document.getElementById('serviceDetailsTitle').textContent = service.title;
-            const content = document.getElementById('serviceDetailsContent');
-            
-            // Generate HTML for sub-services ONLY if there are any listed
-            let subServicesHtml = '';
-            if (service.tests && service.tests.length > 0) {
-                subServicesHtml = `
-                    <h4 style="color:#2c8577; margin-bottom:1rem; margin-top:1.5rem; border-top:1px solid #eee; padding-top:1rem;">Available Tests & Treatments:</h4>
-                    ${service.tests.map(test => `
-                        <div class="test-item">
-                            <span>${test.name}</span>
-                            <div>
-                                <span class="test-item-price">${test.price}</span>
-                                <button class="btn-buy-small" onclick="window.buySubService('${test.name}', '${test.price}')">Book</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
-            }
-
-            content.innerHTML = `<p style="color:#666; line-height:1.6; margin:0;">${service.description}</p>${subServicesHtml}`;
-            document.getElementById('serviceDetailsModal').style.display = 'block';
+        function updateStats() {
+            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0;
+            document.getElementById('totalServices').textContent = window.siteData.services?.length || 0;
+            document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
         }
-        window.closeServiceDetails = () => document.getElementById('serviceDetailsModal').style.display = 'none';
 
-        window.viewProductInternal = function(productId) {
-            const product = window.siteData.products.find(p => p.id === productId); if (!product) return;
-            document.getElementById('productViewName').textContent = product.name; document.getElementById('productViewPrice').textContent = product.price; document.getElementById('productViewDescription').textContent = product.description;
-            document.getElementById('productViewBuyBtn').onclick = () => { window.buyProduct(product.name); window.closeProductView(); };
-            const mainImg = document.getElementById('mainProductImage'), thumbs = document.getElementById('productImageThumbnails');
-            if (product.images && product.images.length > 0) {
-                mainImg.innerHTML = `<img src="${product.images[0]}">`;
-                thumbs.innerHTML = product.images.map((img, i) => `<div class="product-thumbnail ${i===0?'active':''}" onclick="document.getElementById('mainProductImage').innerHTML='<img src=&quot;${img}&quot;>'; document.querySelectorAll('.product-thumbnail').forEach(t=>t.classList.remove('active')); this.classList.add('active');"><img src="${img}"></div>`).join('');
-            } else if (product.profilePhoto) { mainImg.innerHTML = `<img src="${product.profilePhoto}">`; thumbs.innerHTML = '';
-            } else { mainImg.innerHTML = '<span style="font-size:3rem; color:#ccc;">No Image</span>'; thumbs.innerHTML = ''; }
-            document.getElementById('productViewModal').style.display = 'block';
-        }
-        window.closeProductView = () => document.getElementById('productViewModal').style.display = 'none';
-
-        window.showAdminLogin = function() { document.getElementById('adminModal').style.display = 'block'; if (document.getElementById('mobileMenu').classList.contains('active')) window.toggleMenu(); }
+        window.showAdminLogin = function() { document.getElementById('adminModal').style.display = 'block'; }
         window.closeAdminModal = () => document.getElementById('adminModal').style.display = 'none';
 
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
@@ -875,14 +971,10 @@
             if (!window.siteData.hero) return; const h = window.siteData.hero;
             document.getElementById('adminClinicName').value = h.clinicName || ''; document.getElementById('adminTagline').value = h.tagline || '';
             document.getElementById('adminPhone').value = h.phone || ''; document.getElementById('adminWhatsApp').value = h.whatsappNumber || ''; document.getElementById('adminEmail').value = h.email || '';
-            
             document.getElementById('adminLogoUrl').value = h.logoUrl || '';
             const logoPreview = document.getElementById('logoPreview');
             logoPreview.src = h.logoUrl || ''; logoPreview.style.display = h.logoUrl ? 'block' : 'none';
-
-            // Slider & Templates
             document.getElementById('adminSliderImages').value = (h.sliderImages || []).join(', ');
-            
             const tpls = window.siteData.settings?.whatsappTemplates || {};
             document.getElementById('tplGeneral').value = tpls.general || "Hello, I would like to book a general appointment.";
             document.getElementById('tplDoctor').value = tpls.doctor || "Hello, I would like to book an appointment with {doctorName}.";
@@ -898,7 +990,6 @@
                 phone: document.getElementById('adminPhone').value.trim(), whatsappNumber: document.getElementById('adminWhatsApp').value.trim(), email: document.getElementById('adminEmail').value.trim(),
                 logoUrl: document.getElementById('adminLogoUrl').value.trim(), sliderImages: sImgs
             };
-            
             const settingsData = {
                 whatsappTemplates: {
                     general: document.getElementById('tplGeneral').value.trim() || "Hello, I would like to book a general appointment.",
@@ -908,7 +999,6 @@
                     product: document.getElementById('tplProduct').value.trim() || "Hello, I would like to purchase the {productName}."
                 }
             };
-
             try { 
                 await update(ref(database, 'site/hero'), heroData); 
                 await update(ref(database, 'site/settings'), settingsData);
@@ -1041,10 +1131,9 @@
         }
 
         window.onclick = function(e) {
-            const modals = ['adminModal','serviceDetailsModal','doctorDetailsModal','editModal','productViewModal','subServicesModal','customConfirmModal','editSubServiceModal'];
-            modals.forEach(id => { const m = document.getElementById(id); if (e.target == m) { m.style.display = 'none'; if (id === 'productViewModal') window.closeProductView(); if (id === 'subServicesModal') window.closeSubServicesModal(); } });
+            const modals = ['adminModal','editModal','subServicesModal','customConfirmModal','editSubServiceModal'];
+            modals.forEach(id => { const m = document.getElementById(id); if (e.target == m) { m.style.display = 'none'; if (id === 'subServicesModal') window.closeSubServicesModal(); } });
             
-            // Close search results if clicked outside
             const searchResults = document.getElementById('searchResults');
             const searchInput = document.getElementById('globalSearch');
             if (e.target !== searchResults && e.target !== searchInput && !searchResults.contains(e.target)) {
@@ -1054,4 +1143,5 @@
     </script>
 </body>
 </html>
+
 
