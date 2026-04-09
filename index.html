@@ -214,6 +214,11 @@
             .search-input { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
             .search-input:focus { max-width: 250px; }
         }
+        
+        /* Google Login Button Style */
+        .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s; font-size: 1rem; margin-top: 1rem; }
+        .btn-google:hover { background-color: #f8f9fa; box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); }
+        .btn-google img { width: 20px; height: 20px; }
     </style>
 </head>
 <body>
@@ -308,7 +313,7 @@
             <div class="products-container" id="productsContainer"></div>
         </div>
 
-        <!-- DETAIL PAGES (These replace the Modals) -->
+        <!-- DETAIL PAGES -->
         <div class="page" id="doctorDetailPage">
             <a href="javascript:history.back()" class="back-btn">← Go Back</a>
             <div class="detail-page-content" style="text-align: center;">
@@ -362,7 +367,7 @@
 
     </main>
 
-    <!-- Admin & Utility Modals (Keep these as modals since they are forms/alerts) -->
+    <!-- Admin & Utility Modals -->
     <div id="customConfirmModal" class="modal" style="z-index: 4000;">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3>
@@ -373,15 +378,30 @@
         </div>
     </div>
 
+    <!-- UPDATED ADMIN MODAL -->
     <div id="adminModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <span class="close" onclick="window.closeAdminModal()">&times;</span>
             <h2 style="color: #2c8577; margin-bottom: 1.5rem; text-align:center;">Admin Login</h2>
+            
             <form id="adminLoginForm">
                 <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="adminPassword" required></div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:1rem;">Login</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:0.5rem;">Login with Email</button>
             </form>
+
+            <div style="display: flex; align-items: center; margin: 1.5rem 0; color: #999;">
+                <hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;">
+                <span style="padding: 0 10px; font-size: 0.9rem;">OR</span>
+                <hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;">
+            </div>
+
+            <!-- Google Login Button -->
+            <button type="button" class="btn-google" onclick="window.loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                Sign in with Google
+            </button>
+            <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 10px;">Ensure Google Provider is enabled in Firebase Console.</p>
         </div>
     </div>
 
@@ -450,7 +470,7 @@
                     </div>
                     <div class="form-row two-col">
                         <div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp" placeholder="+91XXXXXXXXXX"></div>
-                        <div class="form-field"><label>Email</label><input type="email" id="adminEmail"></div>
+                        <div class="form-field"><label>Admin Email Address</label><input type="email" id="adminEmail" placeholder="Emails allowed to use Google Login"></div>
                     </div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
                     
@@ -502,9 +522,10 @@
     </div>
 
     <script type="module">
+        // Added GoogleAuthProvider and signInWithPopup to imports
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, update, set, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
-        import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
@@ -518,13 +539,16 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const auth = getAuth(app);
+        
+        // Initialize Google Provider
+        const googleProvider = new GoogleAuthProvider();
 
         window.currentServiceId = null;
         let activeSubServiceIndex = null;
         let lastScrollTop = 0;
         let slideIndex = 0;
         let slideInterval;
-        let dataLoaded = false; // Flag to track if Firebase data is ready
+        let dataLoaded = false; 
 
         window.siteData = {
             hero: { clinicName: "Physio - The Therapeutic Moves", title: "Therapeutic Moves", tagline: '"We add life in your days."', phone: "+91 9641568109", whatsappNumber: "+919641568109", email: "DrArpanDas.PT@gmail.com", logoUrl: "", sliderImages: [] },
@@ -532,30 +556,26 @@
             doctors: [], services: [], products: []
         };
 
-        // Utility: Convert Name to URL Slug (e.g., "Arpan Das" -> "arpan-das")
         window.slugify = function(text) {
             return text.toString().toLowerCase().trim()
-                .replace(/\s+/g, '-')           // Replace spaces with -
-                .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-                .replace(/\-\-+/g, '-');        // Replace multiple - with single -
+                .replace(/\s+/g, '-')           
+                .replace(/[^\w\-]+/g, '')       
+                .replace(/\-\-+/g, '-');        
         }
 
         /* ========================================================
            ROUTING SYSTEM
            ======================================================== */
         window.handleRoute = function() {
-            // Wait for data to load before rendering detail pages
             if (!dataLoaded) return; 
 
             const hash = window.location.hash || '#/home';
             const parts = hash.split('/');
-            const route = parts[1]; // home, doctors, doctor, services, service, etc.
-            const slug = parts[2];  // the-doctor-name
+            const route = parts[1]; 
+            const slug = parts[2];  
 
-            // Hide all pages
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
 
-            // Show appropriate page based on route
             if (route === 'home' || !route) {
                 document.getElementById('homePage').classList.add('active');
             } else if (route === 'doctors') {
@@ -571,39 +591,35 @@
             } else if (route === 'product' && slug) {
                 renderProductDetailPage(slug);
             } else {
-                // Fallback
                 document.getElementById('homePage').classList.add('active');
             }
             
-            // Scroll to top on route change
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // Listen for URL hash changes
         window.addEventListener('hashchange', window.handleRoute);
 
-        // Firebase Listener
         const siteRef = ref(database, 'site');
         onValue(siteRef, (snapshot) => {
             try {
                 if (snapshot.exists()) window.siteData = { ...window.siteData, ...snapshot.val() };
-                dataLoaded = true; // Data is ready
+                dataLoaded = true; 
                 renderSite(); 
                 updateAdminForm(); 
                 updateStats(); 
                 updateHeroBackground(); 
                 hideSkeletons();
-                window.handleRoute(); // Trigger router now that data is loaded
+                window.handleRoute(); 
             } catch (error) { hideSkeletons(); }
         }, (error) => { hideSkeletons(); dataLoaded = true; renderSite(); window.handleRoute(); });
 
 
         /* ========================================================
-           RENDER DETAIL PAGES (Routing Actions)
+           RENDER DETAIL PAGES
            ======================================================== */
         function renderDoctorDetailPage(slug) {
             const doctor = window.siteData.doctors.find(d => window.slugify(d.name) === slug);
-            if (!doctor) { window.location.hash = '#/doctors'; return; } // Go back if not found
+            if (!doctor) { window.location.hash = '#/doctors'; return; } 
 
             document.getElementById('pageDoctorName').textContent = doctor.name; 
             document.getElementById('pageDoctorQualification').textContent = doctor.qualification;
@@ -639,13 +655,13 @@
                         <span style="font-weight:600; font-size:1.1rem;">${test.name}</span>
                         <div>
                             <span class="test-item-price" style="font-size:1.1rem;">${test.price}</span>
-                            <button class="btn btn-secondary btn-buy-small" style="padding: 0.6rem 1.2rem;" onclick="window.buySubService('${test.name}', '${test.price}')">Book Test</button>
+                            <button class="btn btn-secondary btn-buy-small" style="padding: 0.6rem 1.2rem;" onclick="window.buySubService('${test.name}', '${test.price}')">Book</button>
                         </div>
                     </div>
                 `).join('');
                 testsContainer.innerHTML = html;
             } else {
-                testsContainer.innerHTML = ''; // Clean if no sub-services
+                testsContainer.innerHTML = ''; 
             }
 
             document.getElementById('pageServiceBookBtn').onclick = () => window.buyService(service.title);
@@ -699,7 +715,6 @@
 
             let html = '';
             
-            // Link to Hash Routes in Search Results
             const docs = window.siteData.doctors?.filter(d => d.name.toLowerCase().includes(query) || d.qualification.toLowerCase().includes(query)) || [];
             if(docs.length) {
                 html += '<div class="search-category-title">Doctors</div>';
@@ -796,16 +811,16 @@
         function startSlider(len) { clearInterval(slideInterval); if(len > 1) { slideInterval = setInterval(() => { window.moveSlide(1); }, 1500); } }
 
         /* ========================================================
-           RENDER LISTS & PREVIEWS (Linking to Hash Routes)
+           RENDER LISTS & PREVIEWS
            ======================================================== */
         function renderDoctorsPreview() {
             const container = document.getElementById('doctorsPreview'); if (!container) return;
             if(window.siteData.doctors && window.siteData.doctors.length > 0) {
                container.innerHTML = '';
                window.siteData.doctors.forEach(doctor => {
-                   const docCard = document.createElement('a'); // Changed to <a> tag
+                   const docCard = document.createElement('a');
                    docCard.className = 'doctor-preview-card'; 
-                   docCard.href = `#/doctor/${window.slugify(doctor.name)}`; // Hash Link
+                   docCard.href = `#/doctor/${window.slugify(doctor.name)}`;
                    const avatar = doctor.photoUrl ? `<div class="doctor-preview-avatar"><img src="${doctor.photoUrl}" loading="lazy"></div>` : '<div class="doctor-preview-avatar">👨‍⚕️</div>';
                    docCard.innerHTML = `${avatar}<div class="doctor-preview-name">${doctor.name}</div><div class="doctor-preview-qualification">${doctor.qualification}</div>`;
                    container.appendChild(docCard);
@@ -818,12 +833,10 @@
             if(window.siteData.services && window.siteData.services.length > 0) {
                 container.innerHTML = '';
                 window.siteData.services.slice(0, 6).forEach(service => {
-                    const card = document.createElement('a'); // Changed to <a> tag
+                    const card = document.createElement('a'); 
                     card.className = 'service-preview-card';
-                    card.href = `#/service/${window.slugify(service.title)}`; // Hash Link
+                    card.href = `#/service/${window.slugify(service.title)}`;
                     const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
-                    
-                    // Notice we use `onclick="event.preventDefault(); ..."` on buttons inside a link to stop navigation if they just want to book directly
                     card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description}</div><div class="service-buttons"><button class="btn btn-secondary">Details</button><button class="btn btn-primary" onclick="event.preventDefault(); window.buyService('${service.title}')">Book</button></div>`;
                     container.appendChild(card);
                 });
@@ -835,11 +848,10 @@
             if(window.siteData.products && window.siteData.products.length > 0) {
                 container.innerHTML = '';
                 window.siteData.products.slice(0, 6).forEach(product => {
-                    const card = document.createElement('a'); // Changed to <a> tag
+                    const card = document.createElement('a'); 
                     card.className = 'product-preview-card';
-                    card.href = `#/product/${window.slugify(product.name)}`; // Hash Link
+                    card.href = `#/product/${window.slugify(product.name)}`; 
                     const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
-                    
                     card.innerHTML = `${photo}<div class="service-preview-title">${product.name}</div><div class="product-preview-price">${product.price}</div><div class="product-preview-buttons"><button class="btn btn-secondary">View</button><button class="btn btn-primary" onclick="event.preventDefault(); window.buyProduct('${product.name}')">Buy</button></div>`;
                     container.appendChild(card);
                 });
@@ -938,7 +950,7 @@
 
 
         /* ========================================================
-           ADMIN PANEL LOGIC
+           ADMIN PANEL LOGIC (WITH GOOGLE LOGIN)
            ======================================================== */
         function initAdminTabs() {
             const tabs = document.querySelectorAll('.admin-tab'), panels = document.querySelectorAll('.tab-panel');
@@ -958,12 +970,49 @@
         window.showAdminLogin = function() { document.getElementById('adminModal').style.display = 'block'; }
         window.closeAdminModal = () => document.getElementById('adminModal').style.display = 'none';
 
+        // Original Email/Password Login
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('adminEmailInput').value; const password = document.getElementById('adminPassword').value;
-            try { await signInWithEmailAndPassword(auth, email, password); document.getElementById('adminModal').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); document.getElementById('mainContent').style.display = 'none'; initAdminTabs(); updateAdminForm(); window.showToast('Logged in successfully!'); } 
+            try { 
+                await signInWithEmailAndPassword(auth, email, password); 
+                openDashboard();
+                window.showToast('Logged in successfully!'); 
+            } 
             catch (error) { window.showToast('Invalid credentials.', 'error'); }
         });
+
+        // NEW: Google Login
+        window.loginWithGoogle = async function() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                // Security Check: Only allow specific configured email address
+                const configuredAdminEmail = window.siteData.hero?.email?.toLowerCase() || "drarpandas.pt@gmail.com";
+                
+                // Check if the Google email matches the admin email
+                if (user.email.toLowerCase() !== configuredAdminEmail.toLowerCase()) {
+                    await signOut(auth);
+                    window.showToast('Access Denied. Email is not registered as an Admin.', 'error');
+                    return;
+                }
+
+                openDashboard();
+                window.showToast('Logged in securely via Google!');
+            } catch (error) {
+                console.error(error);
+                window.showToast('Google Sign-In failed: ' + error.message, 'error');
+            }
+        };
+
+        function openDashboard() {
+            document.getElementById('adminModal').style.display = 'none'; 
+            document.getElementById('adminDashboard').classList.add('active'); 
+            document.getElementById('mainContent').style.display = 'none'; 
+            initAdminTabs(); 
+            updateAdminForm(); 
+        }
 
         window.logout = function() { signOut(auth); document.getElementById('adminDashboard').classList.remove('active'); document.getElementById('mainContent').style.display = 'block'; window.showToast('Logged out successfully'); }
 
@@ -1143,5 +1192,4 @@
     </script>
 </body>
 </html>
-
 
