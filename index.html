@@ -17,10 +17,8 @@
         .skeleton-loader { display: flex; gap: 1rem; margin-bottom: 1rem; }
         .skeleton-loader.hidden { display: none; }
         .skeleton-card { width: 140px; height: 140px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 20px; flex-shrink: 0; }
-        .services-skeleton { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-        .skeleton-service-card { height: 200px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 15px; }
-        .products-skeleton { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
-        .skeleton-product-card { height: 200px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 15px; }
+        .services-skeleton, .products-skeleton { display: flex; gap: 1rem; overflow-x: hidden; }
+        .skeleton-service-card, .skeleton-product-card { width: 260px; height: 200px; flex-shrink: 0; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 15px; }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
         /* ================================
@@ -72,9 +70,10 @@
         .slider-btn.prev { left: 10px; }
         .slider-btn.next { right: 10px; }
 
-        .booking-section { background: white; padding: 1.5rem; text-align: center; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        /* Slimmer Booking Section */
+        .booking-section { background: white; padding: 1rem 1.5rem; text-align: center; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
         .booking-content h1 { display: none; font-size: 2.2rem; margin-bottom: 1rem; font-weight: 700; color: #2c8577; }
-        .booking-content .tagline { font-size: 1.1rem; margin-bottom: 1rem; color: #666; font-style: italic; }
+        .booking-content .tagline { font-size: 1.1rem; margin-bottom: 0.8rem; color: #666; font-style: italic; line-height: 1.2; }
         
         .btn { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; font-size: 0.95rem; margin: 0.2rem; will-change: transform; }
         .btn:hover { background: #245a4f; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(44, 133, 119, 0.3); }
@@ -82,35 +81,39 @@
         .btn-primary { background: #2c8577; color: white; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-booking-main { padding: 0.7rem 1.5rem; font-size: 1rem; } /* Smaller Main Button */
+        .btn-booking-main { padding: 0.6rem 1.2rem; font-size: 0.95rem; margin-bottom: 0.2rem; } /* Slimmer button */
         
-        .booking-content .phone-number { margin-top: 0.8rem; font-size: 1.05rem; color: #2c8577; font-weight: 600; }
+        .booking-content .phone-number { margin-top: 0.6rem; font-size: 1.05rem; color: #2c8577; font-weight: 600; }
         .section-title { text-align: center; font-size: 1.8rem; color: #2c8577; margin-bottom: 1.5rem; font-weight: 700; }
         .view-all-btn { background: #2c8577; color: white; padding: 0.6rem 1.2rem; border-radius: 20px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: block; width: fit-content; margin: 1rem auto; font-size: 0.9rem; border: none; }
 
         /* ================================
-           PREVIEW & FULL LISTS
+           PREVIEW & FULL LISTS (Horizontal Scrolling)
            ================================ */
         .doctors-preview, .services-preview, .products-preview { margin-bottom: 3rem; }
-        .doctors-preview-container { display: flex; overflow-x: auto; gap: 1rem; padding: 0.5rem 1rem; scrollbar-width: none; }
-        .doctors-preview-container::-webkit-scrollbar { display: none; }
-        .doctor-preview-card { width: 150px; flex-shrink: 0; background: white; border-radius: 20px; padding: 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; }
-        .doctor-preview-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #2c8577; }
+        
+        /* Shared horizontal scrolling container classes */
+        .doctors-preview-container, .services-preview-container, .products-preview-container { display: flex; overflow-x: auto; gap: 1rem; padding: 0.5rem 1rem; scrollbar-width: none; }
+        .doctors-preview-container::-webkit-scrollbar, .services-preview-container::-webkit-scrollbar, .products-preview-container::-webkit-scrollbar { display: none; }
+        
+        .doctor-preview-card { width: 140px; flex-shrink: 0; background: white; border-radius: 20px; padding: 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; }
+        .doctor-preview-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #2c8577; }
         .doctor-preview-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .doctor-preview-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
         .doctor-preview-qualification { color: #666; font-size: 0.8rem; }
-        .services-preview-grid, .products-preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 0 1rem; }
-        .service-preview-card, .product-preview-card { background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; }
+        
+        .service-preview-card, .product-preview-card { width: 260px; flex-shrink: 0; background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; }
         .service-preview-card:hover, .product-preview-card:hover { transform: translateY(-3px); }
         .service-preview-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
-        .service-preview-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .service-preview-description { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
-        .product-profile-photo { width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; background: #f8f9fa; }
+        .service-preview-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .service-preview-description { color: #666; font-size: 0.9rem; margin-bottom: 1rem; height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .product-profile-photo { width: 100%; height: 140px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; background: #f8f9fa; }
         .product-profile-photo img { width: 100%; height: 100%; object-fit: cover; }
         .product-no-photo { background: linear-gradient(135deg, #e8f5f3 0%, #d1f2eb 100%); font-size: 3rem; color:#2c8577; }
-        .product-preview-price { color: #2c8577; font-weight: 700; font-size: 1.3rem; margin-bottom: 1rem; }
+        .product-preview-price { color: #2c8577; font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem; }
         .service-buttons, .product-preview-buttons, .product-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
         .service-buttons .btn, .product-preview-buttons .btn, .product-buttons .btn { flex: 1; padding: 0.6rem 0.5rem; font-size: 0.85rem; text-align: center; }
+        
         .doctors-container, .services-container, .products-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem; }
         .doctor-card, .service-card, .product-card { background: white; border-radius: 18px; padding: 1.8rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
         .doctor-avatar { width: 120px; height: 120px; border-radius: 50%; background: #e8f5f3; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
@@ -252,20 +255,24 @@
                 </div>
                 <button class="view-all-btn" onclick="window.showPage('doctors')">View All Doctors</button>
             </section>
+            
             <section class="services-preview">
                 <h2 class="section-title">Our Services</h2>
-                <div class="services-preview-grid" id="servicesPreview">
+                <!-- Changed to use the new horizontal container -->
+                <div class="services-preview-container" id="servicesPreview">
                     <div class="skeleton-loader services-skeleton" id="servicesSkeleton">
-                        <div class="skeleton-service-card"></div><div class="skeleton-service-card"></div>
+                        <div class="skeleton-service-card"></div><div class="skeleton-service-card"></div><div class="skeleton-service-card"></div>
                     </div>
                 </div>
                 <button class="view-all-btn" onclick="window.showPage('services')">View All Services</button>
             </section>
+            
             <section class="products-preview">
                 <h2 class="section-title">Our Products</h2>
-                <div class="products-preview-grid" id="productsPreview">
+                <!-- Changed to use the new horizontal container -->
+                <div class="products-preview-container" id="productsPreview">
                     <div class="skeleton-loader products-skeleton" id="productsSkeleton">
-                        <div class="skeleton-product-card"></div><div class="skeleton-product-card"></div>
+                        <div class="skeleton-product-card"></div><div class="skeleton-product-card"></div><div class="skeleton-product-card"></div>
                     </div>
                 </div>
                 <button class="view-all-btn" onclick="window.showPage('products')">View All Products</button>
@@ -726,10 +733,11 @@
             const container = document.getElementById('servicesPreview'); if (!container) return;
             if(window.siteData.services && window.siteData.services.length > 0) {
                 container.innerHTML = '';
-                window.siteData.services.slice(0, 3).forEach(service => {
+                // Changed from slice(0,3) to slice(0,6) to show more horizontally
+                window.siteData.services.slice(0, 6).forEach(service => {
                     const card = document.createElement('div'); card.className = 'service-preview-card';
                     const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">` : `<div class="service-preview-icon">${service.icon}</div>`;
-                    card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description.substring(0,60)}...</div><div class="service-buttons"><button class="btn btn-secondary" onclick='window.showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})'>Details</button><button class="btn btn-primary" onclick="window.buyService('${service.title}')">Book</button></div>`;
+                    card.innerHTML = `${img}<div class="service-preview-title">${service.title}</div><div class="service-preview-description">${service.description}</div><div class="service-buttons"><button class="btn btn-secondary" onclick='window.showServiceDetails(${JSON.stringify(service).replace(/"/g, '&quot;')})'>Details</button><button class="btn btn-primary" onclick="window.buyService('${service.title}')">Book</button></div>`;
                     container.appendChild(card);
                 });
             }
@@ -739,7 +747,8 @@
             const container = document.getElementById('productsPreview'); if (!container) return;
             if(window.siteData.products && window.siteData.products.length > 0) {
                 container.innerHTML = '';
-                window.siteData.products.slice(0, 3).forEach(product => {
+                // Changed from slice(0,3) to slice(0,6) to show more horizontally
+                window.siteData.products.slice(0, 6).forEach(product => {
                     const card = document.createElement('div'); card.className = 'product-preview-card';
                     const photo = product.profilePhoto ? `<div class="product-profile-photo"><img src="${product.profilePhoto}" loading="lazy"></div>` : `<div class="product-profile-photo product-no-photo">📦</div>`;
                     card.innerHTML = `${photo}<div class="service-preview-title">${product.name}</div><div class="product-preview-price">${product.price}</div><div class="product-preview-buttons"><button class="btn btn-secondary" onclick="window.viewProductInternal(${product.id})">View</button><button class="btn btn-primary" onclick="window.buyProduct('${product.name}')">Buy</button></div>`;
@@ -813,8 +822,25 @@
         window.showServiceDetails = function(service) {
             document.getElementById('serviceDetailsTitle').textContent = service.title;
             const content = document.getElementById('serviceDetailsContent');
-            content.innerHTML = `<p style="margin-bottom:1.5rem; color:#666; line-height:1.6;">${service.description}</p><h4 style="color:#2c8577; margin-bottom:1rem;">Available Tests & Treatments:</h4>
-                ${service.tests && service.tests.length > 0 ? service.tests.map(test => `<div class="test-item"><span>${test.name}</span><div><span class="test-item-price">${test.price}</span><button class="btn-buy-small" onclick="window.buySubService('${test.name}', '${test.price}')">Book</button></div></div>`).join('') : '<p style="color:#999;">No sub-services listed.</p>'}`;
+            
+            // Generate HTML for sub-services ONLY if there are any listed
+            let subServicesHtml = '';
+            if (service.tests && service.tests.length > 0) {
+                subServicesHtml = `
+                    <h4 style="color:#2c8577; margin-bottom:1rem; margin-top:1.5rem; border-top:1px solid #eee; padding-top:1rem;">Available Tests & Treatments:</h4>
+                    ${service.tests.map(test => `
+                        <div class="test-item">
+                            <span>${test.name}</span>
+                            <div>
+                                <span class="test-item-price">${test.price}</span>
+                                <button class="btn-buy-small" onclick="window.buySubService('${test.name}', '${test.price}')">Book</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            content.innerHTML = `<p style="color:#666; line-height:1.6; margin:0;">${service.description}</p>${subServicesHtml}`;
             document.getElementById('serviceDetailsModal').style.display = 'block';
         }
         window.closeServiceDetails = () => document.getElementById('serviceDetailsModal').style.display = 'none';
@@ -1028,3 +1054,4 @@
     </script>
 </body>
 </html>
+
