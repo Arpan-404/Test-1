@@ -470,7 +470,8 @@
                     </div>
                     <div class="form-row two-col">
                         <div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp" placeholder="+91XXXXXXXXXX"></div>
-                        <div class="form-field"><label>Admin Email Address</label><input type="email" id="adminEmail" placeholder="Emails allowed to use Google Login"></div>
+                        <!-- CHANGED to type="text" to allow multiple emails easily -->
+                        <div class="form-field"><label>Admin Email Address(es)</label><input type="text" id="adminEmail" placeholder="e.g. admin@gmail.com, you@gmail.com"></div>
                     </div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
                     
@@ -522,7 +523,6 @@
     </div>
 
     <script type="module">
-        // Added GoogleAuthProvider and signInWithPopup to imports
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, update, set, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
@@ -540,7 +540,6 @@
         const database = getDatabase(app);
         const auth = getAuth(app);
         
-        // Initialize Google Provider
         const googleProvider = new GoogleAuthProvider();
 
         window.currentServiceId = null;
@@ -551,7 +550,7 @@
         let dataLoaded = false; 
 
         window.siteData = {
-            hero: { clinicName: "Physio - The Therapeutic Moves", title: "Therapeutic Moves", tagline: '"We add life in your days."', phone: "+91 9641568109", whatsappNumber: "+919641568109", email: "DrArpanDas.PT@gmail.com", logoUrl: "", sliderImages: [] },
+            hero: { clinicName: "Physio - The Therapeutic Moves", title: "Therapeutic Moves", tagline: '"We add life in your days."', phone: "+91 9641568109", whatsappNumber: "+919641568109", email: "drarpandas.pt@gmail.com", logoUrl: "", sliderImages: [] },
             settings: { whatsappTemplates: { general: "Hello, I would like to book a general appointment.", doctor: "Hello, I would like to book an appointment with {doctorName}.", service: "Hello, I would like to book the {serviceName} service.", subService: "Hello, I am interested in booking '{subServiceName}' ({price}).", product: "Hello, I would like to purchase the {productName}." } },
             doctors: [], services: [], products: []
         };
@@ -970,7 +969,6 @@
         window.showAdminLogin = function() { document.getElementById('adminModal').style.display = 'block'; }
         window.closeAdminModal = () => document.getElementById('adminModal').style.display = 'none';
 
-        // Original Email/Password Login
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('adminEmailInput').value; const password = document.getElementById('adminPassword').value;
@@ -988,13 +986,14 @@
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
                 
-                // Security Check: Only allow specific configured email address
-                const configuredAdminEmail = window.siteData.hero?.email?.toLowerCase() || "drarpandas.pt@gmail.com";
+                // Security Check: Allow multiple comma-separated emails
+                const configuredAdminEmailStr = window.siteData.hero?.email || "drarpandas.pt@gmail.com";
+                const allowedEmails = configuredAdminEmailStr.split(',').map(e => e.trim().toLowerCase());
                 
-                // Check if the Google email matches the admin email
-                if (user.email.toLowerCase() !== configuredAdminEmail.toLowerCase()) {
+                // Check if the Google email matches any of the admin emails
+                if (!allowedEmails.includes(user.email.toLowerCase())) {
                     await signOut(auth);
-                    window.showToast('Access Denied. Email is not registered as an Admin.', 'error');
+                    window.showToast(`Access Denied. ${user.email} is not registered as an Admin.`, 'error');
                     return;
                 }
 
@@ -1019,7 +1018,8 @@
         function updateAdminForm() {
             if (!window.siteData.hero) return; const h = window.siteData.hero;
             document.getElementById('adminClinicName').value = h.clinicName || ''; document.getElementById('adminTagline').value = h.tagline || '';
-            document.getElementById('adminPhone').value = h.phone || ''; document.getElementById('adminWhatsApp').value = h.whatsappNumber || ''; document.getElementById('adminEmail').value = h.email || '';
+            document.getElementById('adminPhone').value = h.phone || ''; document.getElementById('adminWhatsApp').value = h.whatsappNumber || ''; 
+            document.getElementById('adminEmail').value = h.email || ''; // Now stores multiple emails
             document.getElementById('adminLogoUrl').value = h.logoUrl || '';
             const logoPreview = document.getElementById('logoPreview');
             logoPreview.src = h.logoUrl || ''; logoPreview.style.display = h.logoUrl ? 'block' : 'none';
