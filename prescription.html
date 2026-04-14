@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysioCare Tracker</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        @page { size: A4; margin: 10mm; }
+        @media print {
+            body { 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                background-color: white !important;
+            }
+            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+            .print-break-after-auto { page-break-after: auto; }
+            thead.print-table-header { display: table-header-group; }
+            table.main-print-table { page-break-inside: auto; width: 100%; }
+            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
+            tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
+            .editable-cell:empty:before { content: none !important; display: none !important; }
+        }
+        
+        .editable-cell {
+            min-width: 30px;
+            max-width: 100%;
+            outline: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+            transition: background-color 0.2s;
+        }
+        .editable-cell:not([contenteditable="false"]):empty:before {
+            content: attr(data-placeholder);
+            color: #cbd5e1;
+            pointer-events: none;
+            display: block; 
+        }
+        .editable-cell:not([contenteditable="false"]):focus {
+            background-color: rgba(239, 246, 255, 0.5); 
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useRef } = React;
+
+        // --- FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+
+        const generateId = () => {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        };
+
+        // --- FIREBASE CONFIGURATION ---
+        let firebaseConfig;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            firebaseConfig = {
+              apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
+              authDomain: "patient-records-arpan.firebaseapp.com",
+              projectId: "patient-records-arpan",
+              storageBucket: "patient-records-arpan.firebasestorage.app",
+              messagingSenderId: "599041105903",
+              appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a",
+              measurementId: "G-ZEE89YP3F3"
+            };
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        try { getAnalytics(app); } catch (e) { console.log("Analytics blocked."); }
+
+        const googleProvider = new GoogleAuthProvider();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'physiocare-tracker';
+
+        // --- Joint Data ---
+        const JOINTS_DATA = {
+          'Cervical': [ { name: 'Flexion', type: 'single', normal: '45°' }, { name: 'Extension', type: 'single', normal: '45°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '45°' }, { name: 'Rotation', type: 'bilateral', normal: '60°' } ],
+          'Spine': [ { name: 'Flexion', type: 'single', normal: '80°' }, { name: 'Extension', type: 'single', normal: '25°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '35°' }, { name: 'Rotation', type: 'bilateral', normal: '45°' } ],
+          'Shoulder': [ { name: 'Flexion', type: 'bilateral', normal: '180°' }, { name: 'Extension', type: 'bilateral', normal: '60°' }, { name: 'Abduction', type: 'bilateral', normal: '180°' }, { name: 'Adduction', type: 'bilateral', normal: '50°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '70°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '90°' } ],
+          'Elbow': [ { name: 'Flexion', type: 'bilateral', normal: '150°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
+          'Forearm': [ { name: 'Pronation', type: 'bilateral', normal: '80°' }, { name: 'Supination', type: 'bilateral', normal: '80°' } ],
+          'Wrist': [ { name: 'Flexion', type: 'bilateral', normal: '80°' }, { name: 'Extension', type: 'bilateral', normal: '70°' }, { name: 'Radial Dev.', type: 'bilateral', normal: '20°' }, { name: 'Ulnar Dev.', type: 'bilateral', normal: '30°' } ],
+          'Hip': [ { name: 'Flexion', type: 'bilateral', normal: '120°' }, { name: 'Extension', type: 'bilateral', normal: '30°' }, { name: 'Abduction', type: 'bilateral', normal: '45°' }, { name: 'Adduction', type: 'bilateral', normal: '30°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '45°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '45°' } ],
+          'Knee': [ { name: 'Flexion', type: 'bilateral', normal: '135°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
+          'Ankle': [ { name: 'Dorsiflexion', type: 'bilateral', normal: '20°' }, { name: 'Plantarflexion', type: 'bilateral', normal: '50°' }, { name: 'Inversion', type: 'bilateral', normal: '35°' }, { name: 'Eversion', type: 'bilateral', normal: '15°' } ]
+        };
+
+        // --- Auto-Resizing Text Area ---
+        function AutoTextArea({ value, ...props }) {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    ref.current.style.height = 'auto';
+                    ref.current.style.height = ref.current.scrollHeight + 'px';
+                }
+            }, [value]);
+            return <textarea ref={ref} value={value} {...props} style={{ overflow: 'hidden', resize: 'none' }} />;
+        }
+
+        // --- Custom Table Editor ---
+        function CustomTableEditor({ table, updateTable, removeTable, readOnly = false }) {
+            const addRow = () => updateTable({ ...table, rows: [...table.rows, Array(table.headers.length).fill('')] });
+            const addCol = () => updateTable({ ...table, headers: [...table.headers, 'New Col'], rows: table.rows.map(r => [...r, '']) });
+            const removeRow = (idx) => updateTable({ ...table, rows: table.rows.filter((_, i) => i !== idx) });
+            const removeCol = (idx) => updateTable({ ...table, headers: table.headers.filter((_, i) => i !== idx), rows: table.rows.map(r => r.filter((_, i) => i !== idx)) });
+            const updateHeader = (idx, val) => updateTable({ ...table, headers: table.headers.map((h, i) => i === idx ? val : h) });
+            const updateCell = (rIdx, cIdx, val) => updateTable({ ...table, rows: table.rows.map((row, i) => i === rIdx ? row.map((cell, j) => j === cIdx ? val : cell) : row) });
+            const updateTitle = (val) => updateTable({ ...table, title: val });
+
+            return (
+                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto print:overflow-visible print:border-none print:shadow-none print-break-inside-avoid">
+                    <div className={`bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200 print:bg-transparent print:px-0 ${table.title ? 'print:border-b print:border-[#1e40af]' : 'print:border-none print:p-0'}`}>
+                        <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateTitle(e.currentTarget.innerText)} className={`font-bold text-sm text-blue-800 outline-none editable-cell w-auto print:text-[#1e40af] print:text-[18px] ${!table.title && readOnly ? 'hidden' : ''}`} data-placeholder={readOnly ? '' : "Table Title (Optional)"}>{table.title}</div>
+                        {!readOnly && (
+                            <div className="flex gap-2 print:hidden ml-4">
+                                <button onClick={addCol} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-2 py-1 rounded hover:bg-slate-50">+ Col</button>
+                                <button onClick={addRow} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-2 py-1 rounded hover:bg-slate-50">+ Row</button>
+                                <button onClick={removeTable} className="text-[10px] bg-red-50 border border-red-200 text-red-600 px-2 py-1 rounded hover:bg-red-100"><i className="ph-bold ph-trash"></i></button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-2 print:p-0 print:mt-2">
+                        <table className="w-auto min-w-[200px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
+                            <thead>
+                                <tr>
+                                    {table.headers.map((h, i) => (
+                                        <th key={i} className="relative group border border-slate-200 p-0 bg-slate-50 print:border print:border-[#1e40af] print:bg-blue-50/30 print-break-inside-avoid">
+                                            <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateHeader(i, e.currentTarget.innerText)} className={`editable-cell font-semibold text-slate-700 text-[12px] p-2 print:text-[#1e40af] print:font-bold print:text-[16px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="Header">{h}</div>
+                                            {!readOnly && table.headers.length > 1 && ( <button onClick={() => removeCol(i)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity print:hidden text-[8px] border border-red-200 z-10"><i className="ph-bold ph-x"></i></button> )}
+                                        </th>
+                                    ))}
+                                    {!readOnly && <th className="w-8 border-none print:hidden"></th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {table.rows.map((row, rIdx) => (
+                                    <tr key={rIdx} className="group print-break-inside-avoid">
+                                        {row.map((cell, cIdx) => (
+                                            <td key={cIdx} className="border border-slate-200 p-0 align-top print:border print:border-[#1e40af]">
+                                                <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateCell(rIdx, cIdx, e.currentTarget.innerText)} className={`editable-cell text-slate-700 text-[12px] p-2 min-h-[32px] print:text-slate-900 print:min-h-0 print:py-1.5 print:px-2.5 print:text-[16px] ${readOnly ? 'min-h-[auto] cursor-default' : ''}`}>{cell}</div>
+                                            </td>
+                                        ))}
+                                        {!readOnly && (
+                                            <td className="w-8 text-center border-none p-0 align-middle print:hidden">
+                                                {table.rows.length > 1 && ( <button onClick={() => removeRow(rIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"><i className="ph-bold ph-trash text-xs"></i></button> )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+          const [allPatients, setAllPatients] = useState([]);
+          const [draftPatient, setDraftPatient] = useState(null); 
+          const [viewMode, setViewMode] = useState('login_selection'); 
+          const [authRole, setAuthRole] = useState(null); 
+          
+          const [activePatientId, setActivePatientId] = useState(null);
+          const [searchQuery, setSearchQuery] = useState('');
+          const [isSaving, setIsSaving] = useState(false);
+          
+          const [user, setUser] = useState(null);
+          const [isConnecting, setIsConnecting] = useState(true);
+          const [isCheckingSession, setIsCheckingSession] = useState(true);
+          const [loginError, setLoginError] = useState("");
+
+          const [patientLoginId, setPatientLoginId] = useState("");
+          const [patientLoginPhone, setPatientLoginPhone] = useState("");
+
+          // Hash Routing Effect
+          useEffect(() => {
+              const handleHashChange = () => {
+                  const hash = window.location.hash;
+                  if (hash.startsWith('#/reports/')) {
+                      const upid = hash.replace('#/reports/', '');
+                      if (allPatients.length > 0) {
+                          const match = allPatients.find(p => p.ipId === upid);
+                          if (match) {
+                              // If patient, ensure they are authenticated for this UPID
+                              if (authRole === 'patient' && activePatientId !== match.id) {
+                                  setViewMode('login_selection'); // Force re-login for new patient
+                              } else if (authRole === 'doctor' || authRole === 'patient') {
+                                  setActivePatientId(match.id);
+                                  setViewMode('patient');
+                              } else {
+                                  // Prompt login if no role yet
+                                  setPatientLoginId(upid);
+                                  setViewMode('patient_login_form');
+                              }
+                          } else {
+                              window.location.hash = ''; // Clear invalid hash
+                          }
+                      }
+                  } else if (hash === '' || hash === '#/') {
+                      if (authRole === 'doctor' && viewMode === 'patient') {
+                          setViewMode('home');
+                          setActivePatientId(null);
+                          setDraftPatient(null);
+                      }
+                  }
+              };
+
+              window.addEventListener('hashchange', handleHashChange);
+              // Trigger immediately in case app loads with a hash
+              if (!isConnecting && !isCheckingSession) {
+                 handleHashChange();
+              }
+
+              return () => window.removeEventListener('hashchange', handleHashChange);
+          }, [allPatients, isConnecting, isCheckingSession, authRole, viewMode, activePatientId]);
+
+          // Auth init
+          useEffect(() => {
+            const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+              if (currentUser) {
+                  setUser(currentUser);
+                  setIsConnecting(false);
+              } else {
+                  try {
+                      await signInAnonymously(auth);
+                  } catch(e) {
+                      console.error("Auth init error:", e);
+                      setIsConnecting(false);
+                  }
+              }
+            });
+            return () => unsubscribe();
+          }, []);
+
+          // Auto Login
+          useEffect(() => {
+              if (!user) {
+                  if (!isConnecting) setIsCheckingSession(false);
+                  return;
+              }
+
+              const checkLoginState = async () => {
+                  const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+                  if (isGoogleUser) {
+                      setAuthRole('doctor');
+                      if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) {
+                          setViewMode('home');
+                      }
+                      setIsCheckingSession(false);
+                      return;
+                  }
+
+                  try {
+                      const prefRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState');
+                      const docSnap = await getDoc(prefRef);
+                      if (docSnap.exists()) {
+                          const data = docSnap.data();
+                          if (data.role === 'patient' && data.patientId) {
+                              setAuthRole('patient');
+                              setActivePatientId(data.patientId);
+                              // Only navigate if we aren't trying to load a specific hash
+                              if(!window.location.hash.startsWith('#/reports/')) {
+                                  const pat = allPatients.find(p=> p.id === data.patientId);
+                                  if(pat) window.location.hash = `#/reports/${pat.ipId}`;
+                                  setViewMode('patient');
+                              }
+                              setIsCheckingSession(false);
+                              return;
+                          }
+                      }
+                  } catch (e) { console.error("Failed to restore session:", e); }
+                  
+                  // Default
+                  if(!window.location.hash.startsWith('#/reports/')) {
+                      setViewMode('login_selection');
+                  }
+                  setIsCheckingSession(false);
+              };
+
+              // Give a little time for allPatients to load before checking state
+              if (allPatients.length > 0) {
+                  checkLoginState();
+              } else {
+                  // Fallback if no patients after a delay
+                  const timer = setTimeout(checkLoginState, 1000);
+                  return () => clearTimeout(timer);
+              }
+          }, [user, isConnecting, allPatients.length]);
+
+          // Fetch ALL patients globally
+          useEffect(() => {
+            if (!user) return;
+            const patientsRef = collection(db, 'artifacts', appId, 'public', 'data', 'patients');
+            const unsubscribe = onSnapshot(patientsRef, (snapshot) => {
+              const data = [];
+              snapshot.forEach(doc => {
+                  const p = doc.data();
+                  if (p.customTables) {
+                      p.customTables = p.customTables.map(t => {
+                          let parsedRows = [['', '']];
+                          try { parsedRows = typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows; } catch(e) {}
+                          return { ...t, rows: parsedRows };
+                      });
+                  }
+                  data.push({ id: doc.id, ...p });
+              });
+              setAllPatients(data);
+            }, (error) => { console.error("Firestore error:", error); });
+            return () => unsubscribe();
+          }, [user]);
+
+          const handleDoctorGoogleLogin = async () => {
+              setLoginError("");
+              try { 
+                  await signInWithPopup(auth, googleProvider); 
+              } catch (error) { 
+                  setLoginError("Login failed. Ensure your domain is added to Firebase Authorized Domains."); 
+              }
+          };
+
+          const handlePatientLoginSubmit = async (e) => {
+              e.preventDefault();
+              setLoginError("");
+              
+              const safeInputId = patientLoginId.toLowerCase().trim();
+              const safeInputPhone = patientLoginPhone.trim();
+
+              const match = allPatients.find(p => {
+                  const safeName = (p.name || '').toLowerCase().trim();
+                  const safeIpId = (p.ipId || '').toLowerCase().trim();
+                  const safePhone = (p.contact || '').trim();
+
+                  return (safeIpId === safeInputId || safeName === safeInputId) && safePhone === safeInputPhone;
+              });
+
+              if (match) {
+                  // SECURITY / PUBLISH CHECK: Prevent patient access if unpublished
+                  if (!match.isPublished) {
+                      setLoginError("This prescription is currently unpublished or under review by the doctor.");
+                      return;
+                  }
+
+                  setAuthRole('patient');
+                  setActivePatientId(match.id);
+                  setViewMode('patient');
+                  window.location.hash = `#/reports/${match.ipId}`;
+
+                  if (user) {
+                      try {
+                          const prefRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState');
+                          await setDoc(prefRef, { role: 'patient', patientId: match.id });
+                      } catch(e) { }
+                  }
+              } else {
+                  setLoginError("Prescription not found. Please check your UPID/Name and Mobile Number.");
+              }
+          };
+
+          const handleLogout = async () => {
+              window.location.hash = ''; // clear hash
+              setIsCheckingSession(true);
+              
+              if (user) {
+                  try {
+                      const prefRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState');
+                      await setDoc(prefRef, { role: null, patientId: null });
+                  } catch(e){}
+              }
+
+              setAuthRole(null);
+              setActivePatientId(null);
+              setDraftPatient(null);
+              setViewMode('login_selection');
+              setPatientLoginId("");
+              setPatientLoginPhone("");
+              
+              try { 
+                  await signOut(auth); 
+              } catch (error) {}
+          };
+
+          const handleCreatePatient = () => {
+            let newIpId;
+            do {
+                newIpId = Math.floor(1000 + Math.random() * 9000).toString();
+            } while (allPatients.some(p => p.ipId === newIpId));
+
+            const newPatient = {
+              id: generateId(), ipId: newIpId, doctorId: user.uid,
+              date: new Date().toISOString().split('T')[0],
+              name: '', age: '', gender: '', contact: '',
+              chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '',
+              treatmentNote: '', customTables: [], reassessmentTables: [], reports: [],
+              isPublished: false // default unpublished
+            };
+            setDraftPatient(newPatient);
+            setActivePatientId(newPatient.id); 
+            setViewMode('patient');
+            window.location.hash = `#/reports/${newIpId}`;
+          };
+
+          const handleSavePatient = async (updatedPatient) => {
+            if (authRole !== 'doctor') return;
+            setIsSaving(true);
+            try {
+                const patientToSave = { ...updatedPatient, doctorId: user.uid };
+                delete patientToSave.trackedMetrics;
+                delete patientToSave.records;
+                if (patientToSave.customTables) {
+                    patientToSave.customTables = patientToSave.customTables.map(t => ({ ...t, rows: JSON.stringify(t.rows) }));
+                }
+                Object.keys(patientToSave).forEach(key => { if (patientToSave[key] === undefined) delete patientToSave[key]; });
+                
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'patients', updatedPatient.id);
+                await setDoc(docRef, patientToSave);
+                
+                setDraftPatient(null);
+            } catch(e) { 
+                console.error("Save failed: ", e);
+                alert("Failed to save to cloud. Ensure Firestore Database rules are configured to allow writes.");
+            }
+            setTimeout(() => setIsSaving(false), 500); 
+          };
+
+          const doctorPatients = allPatients.filter(p => p.doctorId === user?.uid);
+          const activePatient = draftPatient || allPatients.find(p => p.id === activePatientId) || { id: activePatientId };
+
+          if (isConnecting || isCheckingSession) return (
+               <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 text-blue-600">
+                  <i className="ph-bold ph-spinner-gap text-4xl animate-spin"></i><p className="font-semibold tracking-wide">Loading PhysioCare...</p>
+               </div>
+          );
+
+          if (viewMode === 'login_selection' || viewMode === 'patient_login_form') {
+              return (
+                  <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+                      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+                          <div className="bg-blue-600 p-6 text-center text-white">
+                              <i className="ph-fill ph-activity text-5xl mb-2"></i>
+                              <h1 className="text-2xl font-bold">PhysioCare Tracker</h1>
+                              <p className="text-blue-200 text-sm mt-1">Digital Clinical Records</p>
+                          </div>
+                          
+                          <div className="p-6">
+                              {viewMode === 'login_selection' && (
+                                  <div className="space-y-4">
+                                      <h2 className="text-center text-slate-600 font-medium mb-6">Please select your portal to continue</h2>
+                                      
+                                      <button onClick={() => setViewMode('patient_login_form')} className="w-full group relative flex flex-col items-center p-5 bg-white border-2 border-emerald-100 rounded-xl hover:border-emerald-500 hover:shadow-md transition-all">
+                                          <div className="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i className="ph-fill ph-user-circle text-2xl"></i></div>
+                                          <span className="font-bold text-slate-800 text-lg">Patient Portal</span>
+                                          <span className="text-xs text-slate-500 mt-1">View & Print your Prescriptions</span>
+                                      </button>
+
+                                      <button onClick={handleDoctorGoogleLogin} className="w-full group relative flex flex-col items-center p-5 bg-white border-2 border-blue-100 rounded-xl hover:border-blue-500 hover:shadow-md transition-all mt-4">
+                                          <div className="bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i className="ph-fill ph-stethoscope text-2xl"></i></div>
+                                          <span className="font-bold text-slate-800 text-lg">Doctor Portal</span>
+                                          <span className="text-xs text-slate-500 mt-1 flex items-center gap-1"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-3 h-3" /> Secure Google Sign-in</span>
+                                      </button>
+                                  </div>
+                              )}
+
+                              {viewMode === 'patient_login_form' && (
+                                  <form onSubmit={handlePatientLoginSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4">
+                                      <div className="flex items-center gap-2 mb-2 text-emerald-600 cursor-pointer" onClick={() => { setViewMode('login_selection'); window.location.hash=''; }}>
+                                          <i className="ph-bold ph-arrow-left"></i> <span className="text-sm font-semibold">Back to selection</span>
+                                      </div>
+                                      <h3 className="text-xl font-bold text-slate-800">Access Your Records</h3>
+                                      {loginError && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{loginError}</div>}
+                                      
+                                      <div className="space-y-1">
+                                          <label className="text-xs font-semibold text-slate-500 uppercase">Patient Name or UPID</label>
+                                          <input type="text" required value={patientLoginId} onChange={e => setPatientLoginId(e.target.value)} placeholder="e.g. John Doe or 4092" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" />
+                                      </div>
+                                      <div className="space-y-1">
+                                          <label className="text-xs font-semibold text-slate-500 uppercase">Registered Mobile Number</label>
+                                          <input type="tel" required value={patientLoginPhone} onChange={e => setPatientLoginPhone(e.target.value)} placeholder="e.g. 9876543210" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" />
+                                      </div>
+                                      <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 shadow-md transition-colors mt-2">View Prescription</button>
+                                  </form>
+                              )}
+                          </div>
+                      </div>
+                  </div>
+              );
+          }
+
+          return (
+            <div className="min-h-screen bg-slate-50 text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
+              <header className={`${authRole === 'doctor' ? 'bg-blue-600' : 'bg-emerald-600'} text-white shadow-md sticky top-0 z-10 print:hidden`}>
+                <div className="max-w-6xl mx-auto px-3 py-2.5 flex justify-between items-center">
+                  <div className="flex items-center gap-2 cursor-pointer" onClick={() => { if(authRole === 'doctor') { setViewMode('home'); window.location.hash=''; }}}>
+                    <div className={`bg-white ${authRole === 'doctor' ? 'text-blue-600' : 'text-emerald-600'} p-1.5 rounded-full flex items-center justify-center`}><i className="ph-bold ph-activity text-lg"></i></div>
+                    <h1 className="text-lg font-bold tracking-wide">PhysioCare {authRole === 'patient' && <span className="text-sm font-normal text-emerald-100 border-l border-emerald-400 pl-2 ml-2">Patient Portal</span>}</h1>
+                  </div>
+                  <div className="flex items-center gap-3">
+                      {isSaving && <span className="text-xs font-medium text-blue-200 animate-pulse hidden sm:block">Syncing...</span>}
+                      {viewMode === 'home' && authRole === 'doctor' && <button onClick={handleCreatePatient} className="flex items-center gap-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-400 shadow-sm border border-blue-400"><i className="ph-bold ph-plus"></i> Patient</button>}
+                      <button onClick={handleLogout} className={`flex items-center justify-center w-8 h-8 rounded-full ${authRole === 'doctor' ? 'bg-blue-700 hover:bg-blue-800 border-blue-500' : 'bg-emerald-700 hover:bg-emerald-800 border-emerald-500'} text-white border`} title="Logout"><i className="ph-bold ph-sign-out text-sm"></i></button>
+                  </div>
+                </div>
+              </header>
+
+              <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none">
+                {viewMode === 'home' ? (
+                  <HomeView 
+                      patients={doctorPatients.filter(p => p.ipId?.toLowerCase().includes(searchQuery.toLowerCase()) || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.contact?.includes(searchQuery) || p.diagnosis?.toLowerCase().includes(searchQuery.toLowerCase()))} 
+                      searchQuery={searchQuery} 
+                      setSearchQuery={setSearchQuery} 
+                      onOpenPatient={(p) => { setActivePatientId(p.id); setViewMode('patient'); window.location.hash = `#/reports/${p.ipId}`; }} 
+                  />
+                ) : (
+                  <PatientDetailView 
+                      patient={activePatient} 
+                      onSave={handleSavePatient} 
+                      onCancel={() => { 
+                          setDraftPatient(null);
+                          if(authRole === 'doctor') { 
+                              setViewMode('home'); 
+                              setActivePatientId(null);
+                              window.location.hash = ''; 
+                          } else { 
+                              handleLogout(); 
+                          } 
+                      }} 
+                      readOnly={authRole === 'patient'}
+                      authRole={authRole}
+                  />
+                )}
+              </main>
+            </div>
+          );
+        }
+
+        // --- HOME VIEW (Doctor Only) ---
+        function HomeView({ patients, searchQuery, setSearchQuery, onOpenPatient }) {
+          return (
+            <div className="space-y-4 print:hidden animate-in fade-in duration-300">
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
+                <i className="ph-bold ph-magnifying-glass text-slate-400 text-lg"></i>
+                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name, ID, or diagnosis..." className="w-full bg-transparent focus:outline-none text-sm text-slate-700" />
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-600 uppercase tracking-wider">
+                        <th className="py-3 px-4 font-medium w-16">IP ID</th>
+                        <th className="py-3 px-4 font-medium w-48">Patient</th>
+                        <th className="py-3 px-4 font-medium">Diagnosis</th>
+                        <th className="py-3 px-4 font-medium w-24 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {patients.length === 0 ? (
+                        <tr><td colSpan="4" className="py-8 text-center text-sm text-slate-400">No patients saved yet.</td></tr>
+                      ) : (
+                        patients.map(p => (
+                          <tr key={p.id} className="border-b border-slate-100 hover:bg-blue-50/50 cursor-pointer" onClick={() => onOpenPatient(p)}>
+                            <td className="py-3 px-4 text-sm font-semibold text-blue-600 align-top">{p.ipId}</td>
+                            <td className="py-3 px-4 align-top">
+                              <div className="font-medium text-sm text-slate-800 leading-tight">{p.name || 'Unnamed'}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{p.contact || 'No contact'}</div>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-slate-700 align-top">{p.diagnosis || <span className="text-slate-400 italic">Not diagnosed</span>}</td>
+                            <td className="py-3 px-4 text-center align-top">
+                                {p.isPublished ? 
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700"><i className="ph-fill ph-check-circle"></i> Published</span> : 
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-slate-100 text-slate-600"><i className="ph-fill ph-lock-key"></i> Draft</span>
+                                }
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // --- PATIENT DETAIL VIEW ---
+        function PatientDetailView({ patient, onSave, onCancel, readOnly = false, authRole }) {
+          const [formData, setFormData] = useState(() => {
+              let rTables = patient.reassessmentTables || [];
+              if (rTables.length === 0 && (patient.trackedMetrics?.length > 0 || patient.records?.length > 0)) {
+                  rTables = [{ id: 'default-reassessment', title: 'Reassessment and progression tracking :-', trackedMetrics: patient.trackedMetrics || [], records: patient.records || [] }];
+              } else if (rTables.length === 0) {
+                  rTables = [{ id: generateId(), title: 'Reassessment and progression tracking :-', trackedMetrics: [], records: [] }];
+              }
+              return { ...patient, customTables: patient.customTables || [], reassessmentTables: rTables, treatmentNote: patient.treatmentNote || '', reports: patient.reports || [], isPublished: patient.isPublished || false };
+          });
+
+          const [isUploading, setIsUploading] = useState(false);
+          const fileInputRef = useRef(null);
+
+          // Sync if active patient data loads externally
+          useEffect(() => {
+              if (patient && patient.id !== formData.id && patient.id) {
+                  let rTables = patient.reassessmentTables || [];
+                  if (rTables.length === 0) rTables = [{ id: generateId(), title: 'Reassessment and progression tracking :-', trackedMetrics: [], records: [] }];
+                  setFormData({ ...patient, customTables: patient.customTables || [], reassessmentTables: rTables, treatmentNote: patient.treatmentNote || '', reports: patient.reports || [], isPublished: patient.isPublished || false });
+              }
+          }, [patient]);
+          
+          const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
+          const [activeReassessmentTableId, setActiveReassessmentTableId] = useState(null);
+
+          const handleInputChange = (e) => { if (readOnly) return; const { name, value } = e; setFormData((prev) => ({ ...prev, [name]: value })); };
+
+          const handleAddCustomTable = (section) => {
+              if (readOnly) return;
+              const newTable = { id: generateId(), section: section, title: '', headers: ['Column 1', 'Column 2'], rows: [['', ''], ['', '']] };
+              setFormData(prev => ({ ...prev, customTables: [...prev.customTables, newTable] }));
+          };
+          const handleUpdateCustomTable = (updatedTable) => { if (readOnly) return; setFormData(prev => ({ ...prev, customTables: prev.customTables.map(t => t.id === updatedTable.id ? updatedTable : t) })); };
+          const handleRemoveCustomTable = (id) => { if (readOnly) return; setFormData(prev => ({ ...prev, customTables: prev.customTables.filter(t => t.id !== id) })); };
+
+          const addReassessmentTable = () => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: [...prev.reassessmentTables, { id: generateId(), title: 'Reassessment and progression tracking :-', trackedMetrics: [], records: [] }] })); };
+          const removeReassessmentTable = (id) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.filter(t => t.id !== id) })); };
+          const updateReassessmentTableTitle = (tableId, newTitle) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === tableId ? { ...t, title: newTitle } : t) })); };
+
+          const addMetricColumn = (tableId, metricObj) => { 
+              if (readOnly) return;
+              setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === tableId ? { ...t, trackedMetrics: [...t.trackedMetrics, metricObj] } : t) })); 
+              setIsMetricModalOpen(false); 
+              setActiveReassessmentTableId(null);
+          };
+          
+          const removeMetricColumn = (tableId, metricId) => { 
+              if (readOnly) return;
+              setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tableId) return t; return { ...t, trackedMetrics: t.trackedMetrics.filter(m => m.id !== metricId), records: t.records.map(rec => { const newValues = { ...rec.values }; delete newValues[metricId]; return { ...rec, values: newValues }; }) }; }) })); 
+          };
+          
+          const addDateRow = (tableId) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === tableId ? { ...t, records: [...t.records, { id: generateId(), date: new Date().toISOString().split('T')[0], values: {} }] } : t) })); };
+          const removeDateRow = (tableId, recordId) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === tableId ? { ...t, records: t.records.filter(r => r.id !== recordId) } : t) })); };
+          const updateRecordDate = (tableId, recordId, newDate) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tableId) return t; return { ...t, records: t.records.map(r => r.id === recordId ? { ...r, date: newDate } : r) }; }) })); };
+          const updateSimpleCellValue = (tableId, recordId, metricId, value) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tableId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== recordId) return rec; return { ...rec, values: { ...rec.values, [metricId]: value } }; })}; }) })); };
+          
+          const updateMultiFieldCellValue = (tableId, recordId, metricId, subField, value) => { 
+              if (readOnly) return;
+              setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { 
+                  if (t.id !== tableId) return t; 
+                  return { ...t, records: t.records.map(rec => { 
+                      if (rec.id !== recordId) return rec; 
+                      let newValues = { ...rec.values }; 
+                      let currentVal = newValues[metricId] || {}; 
+                      newValues[metricId] = { ...currentVal, [subField]: value }; 
+                      return { ...rec, values: newValues }; 
+                  })}; 
+              }) })); 
+          };
+
+          // --- CLOUDINARY UPLOAD LOGIC ---
+          const handleFileUpload = async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
+              setIsUploading(true);
+              const cloudName = 'desvmq2l9';
+              // Note: Must be an UNSIGNED preset in Cloudinary.
+              const uploadPreset = 'physiocare_preset'; 
+
+              const payload = new FormData();
+              payload.append('file', file);
+              payload.append('upload_preset', uploadPreset);
+
+              try {
+                  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+                      method: 'POST',
+                      body: payload
+                  });
+                  const data = await res.json();
+                  
+                  if (data.secure_url) {
+                      const newReport = { id: generateId(), url: data.secure_url, name: file.name, type: file.type || 'unknown', date: new Date().toISOString() };
+                      setFormData(prev => ({ ...prev, reports: [...(prev.reports || []), newReport] }));
+                  } else {
+                      alert(`Upload Failed: ${data.error?.message || 'Unknown error'}\n\nIMPORTANT: For client-side uploads, you must go to Cloudinary Settings > Upload and create an "Unsigned" upload preset named "physiocare_preset".`);
+                  }
+              } catch (err) {
+                  alert("Upload error. Please check your network connection.");
+              } finally {
+                  setIsUploading(false);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+              }
+          };
+
+          const handleRemoveReport = (id) => {
+              if (readOnly) return;
+              if (confirm("Remove this report from the patient's record?")) {
+                  setFormData(prev => ({ ...prev, reports: prev.reports.filter(r => r.id !== id) }));
+              }
+          };
+
+          const togglePublish = () => {
+              if (readOnly) return;
+              const newState = !formData.isPublished;
+              setFormData(prev => ({ ...prev, isPublished: newState }));
+              onSave({ ...formData, isPublished: newState }); 
+          };
+
+          const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
+
+          return (
+            <div>
+              <div className="space-y-4 animate-in fade-in duration-300 print:hidden">
+                <div className="flex items-center justify-between px-1">
+                  <button onClick={onCancel} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800"><i className="ph-bold ph-arrow-left text-lg"></i> Back</button>
+                  
+                  <div className="flex items-center gap-3">
+                      {authRole === 'doctor' && (
+                          <button 
+                              onClick={togglePublish} 
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-sm ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'}`}
+                          >
+                              {formData.isPublished ? <><i className="ph-fill ph-check-circle text-emerald-600"></i> Published to Patient</> : <><i className="ph-fill ph-lock-key"></i> Draft (Unpublished)</>}
+                          </button>
+                      )}
+                      <div className={`px-3 py-1.5 rounded-full font-bold tracking-wider text-xs ${readOnly ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>UPID: {formData.ipId}</div>
+                  </div>
+                </div>
+
+                <section className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200">
+                  <div className={`flex items-center gap-2 mb-3 border-b border-slate-100 pb-2 ${readOnly ? 'text-emerald-800' : 'text-blue-800'}`}><i className="ph-bold ph-user text-base"></i><h2 className="font-semibold text-sm">Patient Details</h2></div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                    <input type="text" name="name" disabled={readOnly} value={formData.name || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-medium text-slate-800' : 'border-slate-200'}`} placeholder="Name" />
+                    <input type="number" name="age" disabled={readOnly} value={formData.age || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-medium text-slate-800' : 'border-slate-200'}`} placeholder="Age" />
+                    <select name="gender" disabled={readOnly} value={formData.gender || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-medium text-slate-800' : 'border-slate-200'}`}><option value="">Gender</option><option value="Male">Male</option><option value="Female">Female</option></select>
+                    <input type="tel" name="contact" disabled={readOnly} value={formData.contact || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-medium text-slate-800' : 'border-slate-200'}`} placeholder="Contact" />
+                  </div>
+                  {(formData.chiefComplaints || formData.history || !readOnly) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 mt-3">
+                        {readOnly ? (
+                            <div className="w-full p-2 text-sm text-slate-800 font-medium whitespace-pre-wrap">{formData.chiefComplaints}</div>
+                        ) : (
+                            <AutoTextArea name="chiefComplaints" minHeight="60px" value={formData.chiefComplaints || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none" placeholder="C/C (Chief Complaints)" />
+                        )}
+                        {readOnly ? (
+                            <div className="w-full p-2 text-sm text-slate-800 font-medium whitespace-pre-wrap">{formData.history}</div>
+                        ) : (
+                            <AutoTextArea name="history" minHeight="60px" value={formData.history || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none" placeholder="History" />
+                        )}
+                      </div>
+                  )}
+                </section>
+
+                <section className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className={`flex items-center gap-2 ${readOnly ? 'text-emerald-800' : 'text-blue-800'}`}><i className="ph-bold ph-stethoscope text-base"></i><h2 className="font-semibold text-sm">Assessment & Diagnosis</h2></div>
+                      {!readOnly && <button onClick={() => handleAddCustomTable('assessment')} className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200">+ Add Table</button>}
+                  </div>
+                  
+                  {readOnly ? (
+                      <div className="w-full p-2 text-sm text-slate-800 font-medium whitespace-pre-wrap">{formData.assessmentNote}</div>
+                  ) : (
+                      <AutoTextArea name="assessmentNote" minHeight="80px" value={formData.assessmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none" placeholder="Detailed assessment notes..." />
+                  )}
+                  
+                  {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
+                      <div className="flex flex-wrap items-start gap-4 mt-3">
+                          {formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}
+                      </div>
+                  )}
+
+                  <div className="relative mt-2">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-xs font-semibold text-blue-700">Diagnosis:</div>
+                    <input type="text" name="diagnosis" disabled={readOnly} value={formData.diagnosis || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full pl-20 p-2 text-sm rounded-md outline-none font-medium ${readOnly ? 'bg-transparent border-transparent text-slate-800' : 'bg-blue-50/50 border border-blue-100 text-blue-900'}`} placeholder={readOnly ? '' : "e.g. Cervical Spondylosis"} />
+                  </div>
+                </section>
+
+                <section className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2 text-emerald-700"><i className="ph-bold ph-bandaids text-base"></i><h2 className="font-semibold text-sm">Treatment Plan / Advice</h2></div>
+                      {!readOnly && <button onClick={() => handleAddCustomTable('treatment')} className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200">+ Add Table</button>}
+                  </div>
+                  
+                  {readOnly ? (
+                      <div className="w-full p-2 text-sm text-slate-800 font-medium whitespace-pre-wrap">{formData.treatmentNote}</div>
+                  ) : (
+                      <AutoTextArea name="treatmentNote" minHeight="80px" value={formData.treatmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none" placeholder="Treatment goals, planned exercises, electrotherapy modalities used..." />
+                  )}
+                  
+                  {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
+                      <div className="flex flex-wrap items-start gap-4 mt-3">
+                          {formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}
+                      </div>
+                  )}
+                </section>
+
+                {/* --- REPORTS & ATTACHMENTS SECTION --- */}
+                <section className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2 text-purple-700"><i className="ph-bold ph-folder-open text-base"></i><h2 className="font-semibold text-sm">Attachments & Reports</h2></div>
+                      {!readOnly && (
+                          <div>
+                              <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*,application/pdf,video/*" />
+                              <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="flex items-center gap-1.5 text-xs font-semibold bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50">
+                                  {isUploading ? <><i className="ph-bold ph-spinner animate-spin"></i> Uploading...</> : <><i className="ph-bold ph-upload-simple"></i> Upload Report</>}
+                              </button>
+                          </div>
+                      )}
+                  </div>
+                  
+                  {formData.reports && formData.reports.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
+                          {formData.reports.map(report => (
+                              <div key={report.id} className="relative group border border-slate-200 rounded-lg overflow-hidden bg-slate-50 flex flex-col">
+                                  {report.type.startsWith('image/') ? (
+                                      <div className="h-24 bg-slate-200 w-full overflow-hidden">
+                                          <img src={report.url} alt={report.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                      </div>
+                                  ) : (
+                                      <div className="h-24 flex flex-col items-center justify-center bg-slate-100 text-slate-400">
+                                          <i className={`ph-fill text-3xl ${report.type.includes('pdf') ? 'ph-file-pdf text-red-400' : 'ph-file-video text-blue-400'}`}></i>
+                                          <span className="text-[10px] font-semibold mt-1 uppercase">{report.type.split('/')[1] || 'File'}</span>
+                                      </div>
+                                  )}
+                                  <div className="p-2 flex items-center justify-between bg-white border-t border-slate-100">
+                                      <a href={report.url} target="_blank" rel="noreferrer" className="truncate text-xs font-semibold text-blue-600 hover:underline" title={report.name}>{report.name}</a>
+                                  </div>
+                                  {!readOnly && (
+                                      <button onClick={() => handleRemoveReport(report.id)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600">
+                                          <i className="ph-bold ph-trash text-xs"></i>
+                                      </button>
+                                  )}
+                              </div>
+                          ))}
+                      </div>
+                  ) : (
+                      <p className="text-sm text-slate-400 italic py-2">No reports attached.</p>
+                  )}
+                </section>
+
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                        <h2 className="font-semibold text-sm text-indigo-800 flex items-center gap-2"><i className="ph-bold ph-chart-line-up"></i> Reassessment Tracking</h2>
+                        {!readOnly && <button onClick={() => handleAddCustomTable('reassessment')} className="flex items-center justify-center gap-1.5 bg-slate-200 text-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-slate-300 transition-colors">+ Custom Table</button>}
+                    </div>
+
+                    {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
+                        <div className="flex flex-wrap items-start gap-4 p-3 bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
+                            {formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}
+                        </div>
+                    )}
+
+                    {formData.reassessmentTables.map((rtable, rIdx) => (
+                        <section key={rtable.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                          <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex-1">
+                              <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateReassessmentTableTitle(rtable.id, e.currentTarget.innerText)} className={`font-semibold text-[14px] text-indigo-800 outline-none min-w-[150px] inline-block ${readOnly ? 'border-transparent' : 'border-b border-dashed border-indigo-300 focus:border-indigo-600'}`}>{rtable.title}</div>
+                            </div>
+                            {!readOnly && (
+                                <div className="flex gap-2">
+                                    {formData.reassessmentTables.length > 1 && (
+                                        <button onClick={() => removeReassessmentTable(rtable.id)} className="flex items-center justify-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-red-100 transition-colors"><i className="ph-bold ph-trash"></i> Remove Table</button>
+                                    )}
+                                    <button onClick={() => { setActiveReassessmentTableId(rtable.id); setIsMetricModalOpen(true); }} className="flex items-center justify-center gap-1.5 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-indigo-200 transition-colors"><i className="ph-bold ph-plus"></i> Add Column</button>
+                                </div>
+                            )}
+                          </div>
+
+                          {rtable.trackedMetrics.length > 0 ? (
+                              <div className="overflow-x-auto p-2 bg-white">
+                                <table className="w-full table-auto border-collapse text-sm border border-slate-200 shadow-sm">
+                                  <thead>
+                                    <tr>
+                                      <th className="p-2 text-left text-[11px] font-semibold text-slate-700 border border-slate-200 w-24 align-bottom bg-slate-50">Date</th>
+                                      {rtable.trackedMetrics.map(metric => {
+                                        return (
+                                          <th key={metric.id} className="text-left font-semibold text-slate-700 border border-slate-200 align-bottom p-0 bg-slate-50 group">
+                                            <div className="flex items-start justify-between p-1.5 px-2">
+                                              <div className="flex flex-col leading-tight whitespace-nowrap">
+                                                <span className="text-[9px] text-slate-400 uppercase tracking-wider">{metric.type}</span>
+                                                <span className="text-[11px]" title={metric.title}>{metric.title}</span>
+                                                {metric.normal && <span className="text-[9px] text-emerald-600 font-medium mt-0.5">Norm: {metric.normal}</span>}
+                                              </div>
+                                              {!readOnly && <button onClick={() => removeMetricColumn(rtable.id, metric.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 p-0 ml-2"><i className="ph-bold ph-x text-xs"></i></button>}
+                                            </div>
+                                            {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && (
+                                              <div className="flex w-full border-t border-slate-200 text-[10px] bg-slate-100/50 text-slate-600"><div className="flex-1 py-0.5 text-center border-r border-slate-200 font-bold">R</div><div className="flex-1 py-0.5 text-center font-bold">L</div></div>
+                                            )}
+                                            {metric.type === 'ROM with VAS' && (
+                                              <div className="flex w-full border-t border-slate-200 text-[10px] bg-slate-100/50 text-slate-500"><div className="flex-1 py-0.5 text-center border-r border-slate-200">VAS</div><div className="flex-1 py-0.5 text-center">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div>
+                                            )}
+                                            {metric.type === 'Custom 2-Column' && (
+                                              <div className="flex w-full border-t border-slate-200 text-[10px] bg-slate-100/50 text-slate-500"><div className="flex-1 py-0.5 text-center border-r border-slate-200">{metric.col1}</div><div className="flex-1 py-0.5 text-center">{metric.col2}</div></div>
+                                            )}
+                                          </th>
+                                        );
+                                      })}
+                                      {!readOnly && <th className="p-2 border border-slate-200 w-8 bg-slate-50"></th>}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rtable.records.map(record => (
+                                      <tr key={record.id} className="border-b border-slate-200 hover:bg-slate-50/30">
+                                        <td className="p-0 border border-slate-200 align-top bg-white">
+                                          <input type="date" disabled={readOnly} value={record.date} onChange={(e) => updateRecordDate(rtable.id, record.id, e.target.value)} className={`w-full h-full min-h-[32px] px-1 text-[11px] font-medium outline-none ${readOnly ? 'bg-transparent text-slate-800' : 'bg-transparent focus:text-blue-600'}`} />
+                                        </td>
+                                        {rtable.trackedMetrics.map(metric => {
+                                          const cellValue = record.values[metric.id];
+                                          if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) {
+                                             return (
+                                               <td key={metric.id} className="p-0 border border-slate-200 align-top bg-white">
+                                                  <div className="flex h-full min-h-[32px]">
+                                                      <div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'r', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="-">{cellValue?.r || ''}</div></div>
+                                                      <div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'l', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="-">{cellValue?.l || ''}</div></div>
+                                                  </div>
+                                               </td>
+                                             );
+                                          }
+                                          if (metric.type === 'ROM with VAS') {
+                                            return (
+                                               <td key={metric.id} className="p-0 border border-slate-200 align-top bg-white">
+                                                  <div className="flex h-full min-h-[32px]">
+                                                      <div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'vas', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="VAS">{cellValue?.vas || ''}</div></div>
+                                                      <div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'rom', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder={metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}>{cellValue?.rom || ''}</div></div>
+                                                  </div>
+                                               </td>
+                                             );
+                                          }
+                                          if (metric.type === 'Custom 2-Column') {
+                                            return (
+                                               <td key={metric.id} className="p-0 border border-slate-200 align-top bg-white">
+                                                  <div className="flex h-full min-h-[32px]">
+                                                      <div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c1', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="-">{cellValue?.c1 || ''}</div></div>
+                                                      <div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c2', e.currentTarget.innerText)} className={`editable-cell text-center h-full p-1 min-w-[30px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="-">{cellValue?.c2 || ''}</div></div>
+                                                  </div>
+                                               </td>
+                                             );
+                                          }
+                                          return (
+                                            <td key={metric.id} className="p-0 border border-slate-200 align-top bg-white">
+                                              <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateSimpleCellValue(rtable.id, record.id, metric.id, e.currentTarget.innerText)} className={`editable-cell text-center h-full min-h-[32px] p-2 ${readOnly ? 'cursor-default' : ''}`} data-placeholder="-">{cellValue || ''}</div>
+                                            </td>
+                                          );
+                                        })}
+                                        {!readOnly && <td className="p-0 text-center align-middle border border-slate-200"><button onClick={() => removeDateRow(rtable.id, record.id)} className="w-full h-full min-h-[32px] flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"><i className="ph-bold ph-trash text-xs"></i></button></td>}
+                                      </tr>
+                                    ))}
+                                    {!readOnly && (
+                                        <tr>
+                                          <td colSpan={rtable.trackedMetrics.length + 2} className="p-0 border border-slate-200">
+                                            <button onClick={() => addDateRow(rtable.id)} className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-indigo-600 font-semibold hover:bg-indigo-50 transition-colors bg-slate-50"><i className="ph-bold ph-plus"></i> Add Session Date Record</button>
+                                          </td>
+                                        </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                          ) : (
+                              <div className="p-4 text-sm text-slate-500 text-center italic bg-white">No core metrics tracked in this table yet.</div>
+                          )}
+                        </section>
+                    ))}
+                    
+                    {!readOnly && (
+                        <button onClick={addReassessmentTable} className="w-full flex items-center justify-center gap-1.5 py-3 mt-4 text-sm text-indigo-600 font-bold hover:bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-xl transition-colors">
+                            <i className="ph-bold ph-plus"></i> Add Another Reassessment Table
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap gap-3 justify-end pt-2 pb-8">
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm mr-auto sm:mr-0">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date:</span>
+                      <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-sm font-medium outline-none ${readOnly ? 'bg-transparent text-slate-800 cursor-default' : 'bg-transparent text-slate-700 cursor-pointer'}`} />
+                  </div>
+                  <button className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 shadow-sm" onClick={() => window.print()}><i className="ph-bold ph-printer text-base"></i> Print</button>
+                  {!readOnly && <button onClick={() => onSave(formData)} className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm shadow-blue-200"><i className="ph-bold ph-floppy-disk text-base"></i> Save to Cloud</button>}
+                </div>
+              </div>
+
+              {/* --- 🖨️ PRINT VIEW --- */}
+              <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
+                  <div className="flex justify-between items-start pb-2">
+                      <div>
+                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
+                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
+                          <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
+                      </div>
+                      <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
+                          <div className="flex items-center gap-1.5 font-black text-2xl mb-6">
+                              <i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109
+                          </div>
+                          <div className="text-[16px] flex items-center gap-2 font-semibold">
+                              <span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="border-b border-[#1e40af] mb-1.5"></div>
+
+                  <table className="main-print-table">
+                      <thead className="print-table-header">
+                          <tr>
+                              <td className="pb-4 pt-2">
+                                  <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
+                                      <div className="flex-1 flex items-end">
+                                          <span className="whitespace-nowrap">Patient's name:</span> 
+                                          <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span>
+                                      </div>
+                                      <div className="w-24 flex items-end">
+                                          <span className="whitespace-nowrap">Age:</span> 
+                                          <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span>
+                                      </div>
+                                      <div className="w-36 flex items-end">
+                                          <span className="whitespace-nowrap">Gender:</span> 
+                                          <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span>
+                                      </div>
+                                      <div className="w-32 flex items-end">
+                                          <span className="whitespace-nowrap">UPID:</span> 
+                                          <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span>
+                                      </div>
+                                  </div>
+                                  <div className="border-b border-[#1e40af]"></div>
+                              </td>
+                          </tr>
+                      </thead>
+
+                      <tbody>
+                          <tr className="main-print-row">
+                              <td className="pt-2 px-2 pb-4">
+                                  <div className="text-[#1e40af] mb-4">
+                                      <span className="font-bold text-[20px]">Chief Complaint :-</span>
+                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.chiefComplaints || "\u00A0"}</p>
+                                  </div>
+                                  <div className="text-[#1e40af]">
+                                      <span className="font-bold text-[20px]">History :-</span>
+                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.history || "\u00A0"}</p>
+                                  </div>
+                              </td>
+                          </tr>
+
+                          <tr className="main-print-row-allow-break">
+                              <td className="px-2 pb-6">
+                                  <div className="text-[#1e40af]">
+                                      <span className="font-bold text-[20px] block mb-2">Assessment :-</span>
+                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.assessmentNote || "\u00A0"}</p>
+                                      {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
+                                          <div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">
+                                              {formData.customTables.filter(t => t.section === 'assessment').map(table => (
+                                                  <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
+                                              ))}
+                                          </div>
+                                      )}
+                                  </div>
+                              </td>
+                          </tr>
+
+                          {formData.diagnosis && (
+                              <tr className="main-print-row">
+                                  <td className="px-2 pb-6">
+                                      <div className="text-[#1e40af]">
+                                          <span className="font-bold text-[20px]">Diagnosis:</span>
+                                          <span className="ml-2 text-slate-900 font-bold text-[19px]">{formData.diagnosis}</span>
+                                      </div>
+                                  </td>
+                              </tr>
+                          )}
+
+                          <tr className="main-print-row-allow-break">
+                              <td className="px-2 pb-6">
+                                  <div className="text-[#1e40af]">
+                                      <span className="font-bold text-[20px] block mb-2">Treatment Plan / Advice :-</span>
+                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{formData.treatmentNote || "\u00A0"}</p>
+                                      {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
+                                          <div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">
+                                              {formData.customTables.filter(t => t.section === 'treatment').map(table => (
+                                                  <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
+                                              ))}
+                                          </div>
+                                      )}
+                                  </div>
+                              </td>
+                          </tr>
+
+                          {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
+                              <tr className="main-print-row">
+                                  <td className="px-2 pb-6 text-[#1e40af]">
+                                      <span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span>
+                                      <div className="flex flex-wrap items-start gap-4 pl-4 pr-2">
+                                          {formData.customTables.filter(t => t.section === 'reassessment').map(table => (
+                                              <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
+                                          ))}
+                                      </div>
+                                  </td>
+                              </tr>
+                          )}
+
+                          {formData.reassessmentTables.map((rtable, rIdx) => (
+                              <tr key={rtable.id} className="main-print-row">
+                                  <td className="px-2 pb-6 text-[#1e40af]">
+                                      <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
+                                      {rtable.trackedMetrics.length > 0 ? (
+                                        <div className="pl-4 pr-2 w-full">
+                                            <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>
+                                                        {rtable.trackedMetrics.map(metric => (
+                                                            <th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
+                                                                <div className="flex flex-col h-full justify-between">
+                                                                    <span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>
+                                                                    {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}
+                                                                    {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
+                                                                    {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}
+                                                                </div>
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {rtable.records.map(record => (
+                                                        <tr key={record.id} className="print-break-inside-avoid">
+                                                            <td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
+                                                            {rtable.trackedMetrics.map(metric => {
+                                                                const cellValue = record.values[metric.id];
+                                                                if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) {
+                                                                    return ( 
+                                                                        <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
+                                                                            <div className="flex h-full min-h-[32px]">
+                                                                                <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div>
+                                                                                <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div>
+                                                                            </div>
+                                                                        </td> 
+                                                                    );
+                                                                }
+                                                                if (metric.type === 'ROM with VAS') {
+                                                                    return (
+                                                                        <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
+                                                                            <div className="flex h-full min-h-[32px]">
+                                                                                <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div>
+                                                                                <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div>
+                                                                            </div>
+                                                                        </td>
+                                                                    );
+                                                                }
+                                                                if (metric.type === 'Custom 2-Column') {
+                                                                    return (
+                                                                        <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
+                                                                            <div className="flex h-full min-h-[32px]">
+                                                                                <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div>
+                                                                                <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div>
+                                                                            </div>
+                                                                        </td>
+                                                                    );
+                                                                }
+                                                                return ( 
+                                                                    <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> 
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    ))}
+                                                    {rtable.records.length === 0 && ( <tr className="print-break-inside-avoid"><td colSpan={rtable.trackedMetrics.length + 1} className="p-3 border border-[#1e40af] text-center italic text-slate-500">No records added.</td></tr> )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                      ) : ( <p className="text-slate-500 italic ml-4 mt-2 hidden print:block text-[14px]">No core metrics tracked.</p> )}
+                                  </td>
+                              </tr>
+                          ))}
+                      </tbody>
+                  </table>
+              </div>
+              {isMetricModalOpen && <AddMetricModal onClose={() => { setIsMetricModalOpen(false); setActiveReassessmentTableId(null); }} onAdd={(metricObj) => addMetricColumn(activeReassessmentTableId, metricObj)} />}
+            </div>
+          );
+        }
+
+        // --- ADD METRIC MODAL ---
+        function AddMetricModal({ onClose, onAdd }) {
+          const [type, setType] = useState('ROM'); 
+          const [romMode, setRomMode] = useState('Active');
+          const jointsList = Object.keys(JOINTS_DATA); 
+          const [selectedJointGroup, setSelectedJointGroup] = useState(jointsList[2]); 
+          const [selectedMovementIdx, setSelectedMovementIdx] = useState(0); 
+          const [side, setSide] = useState('R'); 
+          const [customName, setCustomName] = useState('');
+          const [col1Name, setCol1Name] = useState('Col 1');
+          const [col2Name, setCol2Name] = useState('Col 2');
+          
+          const handleAdd = () => {
+            let title = ''; const movement = JOINTS_DATA[selectedJointGroup][selectedMovementIdx];
+            let isBilateral = false; let normalVal = '';
+            let c1 = '', c2 = '';
+
+            if (type === 'ROM') {
+              title = `${romMode} ${selectedJointGroup} ${movement.name}`; normalVal = movement.normal;
+              isBilateral = movement.type === 'bilateral';
+            } 
+            else if (type === 'ROM with VAS') {
+              title = `${selectedJointGroup} ${movement.name}`; normalVal = movement.normal;
+              if (movement.type === 'bilateral') title += ` (${side})`;
+              isBilateral = false; // it handles its own 2-column layout
+            }
+            else if (type === 'MMT') { 
+              title = `${selectedJointGroup} ${movement.name}`; isBilateral = movement.type === 'bilateral'; normalVal = '5/5'; 
+            } 
+            else if (type === 'VAS') { title = customName || 'VAS'; isBilateral = false; normalVal = '0-10'; }
+            else if (type === 'Custom 2-Column') {
+              title = customName || 'Custom Tracker';
+              c1 = col1Name || 'Col 1';
+              c2 = col2Name || 'Col 2';
+              isBilateral = false;
+            }
+            else { title = customName || 'Custom Column'; isBilateral = false; normalVal = ''; }
+
+            onAdd({ id: generateId(), type, title, isBilateral, normal: normalVal, romMode, col1: c1, col2: c2 });
+          };
+          
+          const currentMovements = JOINTS_DATA[selectedJointGroup]; 
+          const selectedMovement = currentMovements[selectedMovementIdx] || currentMovements[0]; 
+
+          return (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 print:hidden">
+              <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center p-3 border-b border-slate-100 bg-slate-50"><h3 className="font-bold text-sm text-slate-800">New Tracker Column</h3><button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-200 rounded-full"><i className="ph-bold ph-x text-lg"></i></button></div>
+                <div className="p-4 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Metric Type</label>
+                    <select value={type} onChange={(e) => setType(e.target.value)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="ROM">Range of Motion (ROM)</option>
+                        <option value="MMT">Manual Muscle Test (MMT)</option>
+                        <option value="ROM with VAS">ROM + VAS (Single Side)</option>
+                        <option value="VAS">VAS (Pain Scale)</option>
+                        <option value="Custom 2-Column">Custom 2-Column Tracking</option>
+                        <option value="Other">Other / Treatment</option>
+                    </select>
+                  </div>
+                  {(type === 'ROM' || type === 'ROM with VAS' || type === 'MMT') && (
+                    <>
+                      {(type === 'ROM' || type === 'ROM with VAS') && (
+                        <div className="flex gap-4"><label className="flex items-center gap-1.5 text-sm"><input type="radio" checked={romMode === 'Active'} onChange={() => setRomMode('Active')} className="accent-blue-600" /> Active</label><label className="flex items-center gap-1.5 text-sm"><input type="radio" checked={romMode === 'Passive'} onChange={() => setRomMode('Passive')} className="accent-blue-600" /> Passive</label></div>
+                      )}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Joint</label>
+                            <select value={selectedJointGroup} onChange={(e) => { setSelectedJointGroup(e.target.value); setSelectedMovementIdx(0); }} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500">
+                                {Object.keys(JOINTS_DATA).map(j => <option key={j} value={j}>{j}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Movement</label>
+                            <select value={selectedMovementIdx} onChange={(e) => setSelectedMovementIdx(Number(e.target.value))} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500">
+                                {currentMovements.map((m, i) => <option key={i} value={i}>{m.name}</option>)}
+                            </select>
+                        </div>
+                      </div>
+                      {type === 'ROM with VAS' && selectedMovement.type === 'bilateral' && (
+                        <div className="flex gap-4 pt-1"><label className="flex items-center gap-1.5 text-sm"><input type="radio" checked={side === 'R'} onChange={() => setSide('R')} className="accent-blue-600" /> Right Side</label><label className="flex items-center gap-1.5 text-sm"><input type="radio" checked={side === 'L'} onChange={() => setSide('L')} className="accent-blue-600" /> Left Side</label></div>
+                      )}
+                    </>
+                  )}
+                  {type === 'Custom 2-Column' && (
+                      <div className="space-y-3">
+                          <div className="space-y-1">
+                              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Main Name</label>
+                              <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="e.g. Balance / Mobility" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                  <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Left Col Name</label>
+                                  <input type="text" value={col1Name} onChange={(e) => setCol1Name(e.target.value)} placeholder="e.g. Test" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" />
+                              </div>
+                              <div className="space-y-1">
+                                  <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Right Col Name</label>
+                                  <input type="text" value={col2Name} onChange={(e) => setCol2Name(e.target.value)} placeholder="e.g. Score" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" />
+                              </div>
+                          </div>
+                      </div>
+                  )}
+                  {(type === 'Other' || type === 'VAS') && ( 
+                      <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Name</label>
+                          <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder={type === 'VAS' ? "e.g. Resting VAS" : "e.g. Current Treatment"} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" />
+                      </div> 
+                  )}
+                </div>
+                <div className="p-3 border-t border-slate-100 bg-slate-50"><button onClick={handleAdd} className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors">Add Column</button></div>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
