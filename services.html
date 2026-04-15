@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - Physio</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; }
+        .header { background: white; padding: 1rem; display: flex; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { color: #2c8577; font-weight: bold; text-decoration: none; font-size: 1.2rem; }
+        .main { padding: 2rem 1rem; max-width: 900px; margin: 0 auto; }
+        .page-title { text-align: center; color: #2c8577; margin-bottom: 2rem; font-size: 2rem; }
+        .card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .btn { padding: 0.6rem 1.2rem; background: #2c8577; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .test-list { margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
+        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: #f4f7f6; margin-bottom: 0.5rem; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <header class="header"><a href="/" class="logo">← Back to Home</a></header>
+    <main class="main">
+        <h1 class="page-title">What We Offer</h1>
+        <div id="serviceGrid">Loading...</div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'site'), (snapshot) => {
+            const data = snapshot.val();
+            const wNum = (data.hero?.whatsappNumber || '').replace('+','');
+            document.getElementById('serviceGrid').innerHTML = (data.services || []).map(s => {
+                let testsHtml = (s.tests || []).map(t => `
+                    <div class="test-item">
+                        <span><strong>${t.name}</strong> <span style="color:#2c8577;">(${t.price})</span></span>
+                        <button class="btn" style="padding:0.4rem 1rem; font-size:0.8rem;" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book ${t.name}')">Book Test</button>
+                    </div>`).join('');
+                    
+                return `
+                <div class="card">
+                    <div style="font-size:3rem; margin-bottom:1rem; text-align:center;">${s.icon || '⚕️'}</div>
+                    <h2 style="color:#2c8577; text-align:center;">${s.title}</h2>
+                    <p style="color:#666; text-align:center; margin:1rem 0;">${s.description}</p>
+                    <div style="text-align:center; margin-bottom:1rem;"><button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book ${s.title}')">Book General Service</button></div>
+                    ${testsHtml ? `<div class="test-list"><h4 style="margin-bottom:1rem; color:#444;">Available Sub-Services</h4>${testsHtml}</div>` : ''}
+                </div>`;
+            }).join('');
+        });
+    </script>
+</body>
+</html>
