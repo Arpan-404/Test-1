@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: #f4f7f6; }
+        .header { background: #2c8577; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; }
+        .btn { background: white; color: #2c8577; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        input, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ccc; border-radius: 4px; }
+        #loginScreen { max-width: 400px; margin: 5rem auto; }
+        #dashboard { display: none; }
+        .list-item { background: #eee; padding: 1rem; margin-bottom: 0.5rem; border-radius: 4px; display: flex; justify-content: space-between;}
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="card">
+        <h2 style="color:#2c8577; text-align:center; margin-bottom:1rem;">Admin Login</h2>
+        <button id="googleLogin" style="width:100%; padding:1rem; background:#4285F4; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Sign in with Google</button>
+    </div>
+
+    <div id="dashboard">
+        <header class="header">
+            <h2>Clinic Admin</h2>
+            <div><a href="/" style="color:white; margin-right:1rem; text-decoration:none;">View Site</a><button class="btn" id="logoutBtn">Logout</button></div>
+        </header>
+        
+        <main class="main">
+            <!-- Add Article Section -->
+            <div class="card">
+                <h3 style="color:#2c8577; border-bottom:2px solid #eee; padding-bottom:0.5rem; margin-bottom:1rem;">Write New Blog/Article</h3>
+                <label>Article Title</label>
+                <input type="text" id="artTitle" placeholder="e.g. What is Osteoarthritis?">
+                
+                <label>Custom Link Name (No spaces, e.g. osteoarthritis)</label>
+                <input type="text" id="artSlug" placeholder="osteoarthritis">
+                
+                <label>YouTube Video Link (Optional)</label>
+                <input type="text" id="artVideo" placeholder="https://youtube.com/...">
+                
+                <label>Article Content</label>
+                <textarea id="artContent" rows="6" placeholder="Write your article here..."></textarea>
+                
+                <button class="btn" style="background:#2c8577; color:white;" id="saveArticleBtn">Publish Article</button>
+            </div>
+
+            <div class="card">
+                <h3 style="color:#2c8577; margin-bottom:1rem;">Published Articles</h3>
+                <div id="articlesList">Loading...</div>
+            </div>
+            
+            <div style="text-align:center; padding: 2rem;">
+                <p>Note: To edit Doctors or Services, please refer to the original admin layout integrated into the database script.</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        let articlesData = [];
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadArticles();
+            } else {
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
+            }
+        });
+
+        document.getElementById('googleLogin').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+        function loadArticles() {
+            onValue(ref(db, 'site/articles'), snapshot => {
+                articlesData = snapshot.val() || [];
+                document.getElementById('articlesList').innerHTML = articlesData.length ? articlesData.map((a, i) => `
+                    <div class="list-item">
+                        <div><strong>${a.title}</strong><br><small><a href="/${a.slug}" target="_blank">therapeutichub.in/${a.slug}</a></small></div>
+                        <button onclick="window.deleteArticle(${i})" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">Delete</button>
+                    </div>`).join('') : '<p>No articles yet.</p>';
+            });
+        }
+
+        // Auto-generate slug when typing title
+        document.getElementById('artTitle').addEventListener('input', (e) => {
+            document.getElementById('artSlug').value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        });
+
+        document.getElementById('saveArticleBtn').onclick = async () => {
+            const title = document.getElementById('artTitle').value;
+            const slug = document.getElementById('artSlug').value;
+            if(!title || !slug) return alert('Title and Link Name required!');
+            
+            articlesData.push({
+                title, slug, videoUrl: document.getElementById('artVideo').value,
+                content: document.getElementById('artContent').value, date: new Date().toISOString()
+            });
+            await set(ref(db, 'site/articles'), articlesData);
+            alert('Published!');
+            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        };
+
+        window.deleteArticle = async (index) => {
+            if(confirm("Delete article?")) {
+                articlesData.splice(index, 1);
+                await set(ref(db, 'site/articles'), articlesData);
+            }
+        };
+    </script>
+</body>
+</html>
+
