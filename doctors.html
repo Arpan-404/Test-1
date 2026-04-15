@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Doctors - Physio</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; }
+        .header { background: white; padding: 1rem; display: flex; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { color: #2c8577; font-weight: bold; text-decoration: none; font-size: 1.2rem; }
+        .main { padding: 2rem 1rem; max-width: 800px; margin: 0 auto; }
+        .page-title { text-align: center; color: #2c8577; margin-bottom: 2rem; font-size: 2rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .card { background: white; border-radius: 15px; padding: 2rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; background: #e8f5f3; }
+        .btn { display: inline-block; padding: 0.8rem 1.5rem; background: #2c8577; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; margin-top: 1rem; width: 100%; }
+        .back-btn { display: inline-block; margin-bottom: 1rem; text-decoration: none; color: #2c8577; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header class="header"><a href="/" class="logo">← Back to Home</a></header>
+    <main class="main">
+        <h1 class="page-title">Meet Our Experts</h1>
+        <div class="grid" id="doctorGrid">Loading...</div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'site'), (snapshot) => {
+            const data = snapshot.val();
+            const docs = data.doctors || [];
+            document.getElementById('doctorGrid').innerHTML = docs.map(d => `
+                <div class="card">
+                    <img src="${d.photoUrl || ''}" class="avatar">
+                    <h2 style="color:#2c8577; margin-bottom:0.5rem;">${d.name}</h2>
+                    <p style="color:#666; font-weight:bold;">${d.qualification}</p>
+                    <p style="color:#2c8577; margin: 1rem 0;">Fees: ${d.fees}</p>
+                    <p style="font-size:0.9rem; color:#555;">${d.details}</p>
+                    <button class="btn" onclick="window.open('https://wa.me/${(data.hero?.whatsappNumber || '').replace('+','')}?text=Hello, I want to book an appointment with ${d.name}')">Book Appointment</button>
+                </div>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
