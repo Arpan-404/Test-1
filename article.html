@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Articles & Blog - Physio</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; }
+        .header { background: white; padding: 1rem; display: flex; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { color: #2c8577; font-weight: bold; text-decoration: none; font-size: 1.2rem; }
+        .main { padding: 2rem 1rem; max-width: 800px; margin: 0 auto; }
+        .page-title { text-align: center; color: #2c8577; margin-bottom: 2rem; font-size: 2rem; }
+        .article-feed { display: flex; flex-direction: column; gap: 1.5rem; }
+        .article-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-decoration: none; color: inherit; display: block; transition: transform 0.2s; }
+        .article-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .article-title { color: #2c8577; font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: bold; }
+        .article-date { font-size: 0.9rem; color: #888; margin-bottom: 1rem; }
+        .article-snippet { color: #555; font-size: 1rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .read-more { color: #2c8577; font-weight: bold; font-size: 1rem; margin-top: 1rem; display: inline-block; }
+    </style>
+</head>
+<body>
+    <header class="header"><a href="index.html" class="logo">← Back to Home</a></header>
+    <main class="main">
+        <h1 class="page-title">Health Articles & Resources</h1>
+        <div class="article-feed" id="articleFeed">
+            <p style="text-align:center; color:#999;">Loading articles...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'site/articles'), (snapshot) => {
+            const articles = snapshot.val() || [];
+            if(articles.length === 0) {
+                document.getElementById('articleFeed').innerHTML = '<p style="text-align:center; color:#666;">No articles available at the moment. Check back soon!</p>';
+                return;
+            }
+            
+            const sorted = [...articles].sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            document.getElementById('articleFeed').innerHTML = sorted.map(a => `
+                <a href="article.html?id=${a.slug}" class="article-card">
+                    <div class="article-title">${a.title}</div>
+                    <div class="article-date">Published on ${new Date(a.date).toLocaleDateString()}</div>
+                    <div class="article-snippet">${a.content}</div>
+                    <span class="read-more">Read Full Article →</span>
+                </a>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
