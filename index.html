@@ -8,11 +8,9 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #e8f5f3 0%, #f8f9fa 100%); }
-        
         .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.4rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); height: 55px; gap: 10px; }
         .logo { display: flex; align-items: center; text-decoration: none; }
         .logo-img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
-        
         .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; }
         .search-input { width: 100%; max-width: 300px; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid #e0e0e0; background: #f8f9fa; transition: all 0.3s ease; font-size: 0.9rem; outline: none; }
         .search-input:focus { max-width: 400px; background: white; border-color: #2c8577; box-shadow: 0 0 0 3px rgba(44, 133, 119, 0.1); }
@@ -21,7 +19,6 @@
         .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; text-decoration: none; color: inherit; }
         .search-result-item:hover { background: #f8f9fa; }
         .search-category-title { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; font-weight: bold; }
-
         .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 5px; flex-shrink: 0; }
         .hamburger span { width: 22px; height: 2px; background: #2c8577; margin: 2.5px 0; border-radius: 2px; }
         .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
@@ -32,35 +29,26 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
         .overlay.active { display: block; }
         .main { margin-top: 55px; padding: 1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
-        
         .hero-container { width: 100%; aspect-ratio: 16/7; position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 1rem; background: #e8f5f3; }
         .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease-in-out; }
         .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
-        
         .booking-section { background: white; padding: 1.5rem; text-align: center; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
         .btn-primary { display: inline-block; padding: 0.9rem 1.8rem; background: #2c8577; color: white; text-decoration: none; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.3s; }
         .btn-primary:hover { background: #245a4f; transform: translateY(-2px); }
         .section-title { text-align: center; font-size: 1.8rem; color: #2c8577; margin-bottom: 1rem; font-weight: 700; }
-        
         .horizontal-scroll { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; scrollbar-width: none; }
         .horizontal-scroll::-webkit-scrollbar { display: none; }
         .card { width: 260px; flex-shrink: 0; background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform 0.2s; }
         .card:hover { transform: translateY(-3px); }
         .doc-card { width: 150px; }
         .view-all-btn { display: block; width: fit-content; margin: 1rem auto; padding: 0.6rem 1.2rem; background: #2c8577; color: white; border-radius: 20px; text-decoration: none; font-size: 0.9rem; }
-
         .article-feed { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; margin-bottom: 3rem; }
         .article-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-decoration: none; color: inherit; display: flex; gap: 1rem; transition: box-shadow 0.2s; align-items: flex-start; }
         .article-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .article-card img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #e8f5f3; }
-        .article-title { color: #2c8577; font-size: 1.2rem; margin-bottom: 0.2rem; font-weight: bold; line-height: 1.3; }
-        .article-date { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
+        .article-title { color: #2c8577; font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: bold; line-height: 1.3; }
         .article-snippet { color: #555; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        @media (max-width: 480px) {
-            .article-card { flex-direction: column; }
-            .article-card img { width: 100%; height: 150px; }
-        }
+        @media (max-width: 480px) { .article-card { flex-direction: column; } .article-card img { width: 100%; height: 150px; } }
     </style>
 </head>
 <body>
@@ -197,7 +185,6 @@
                             ${a.imageUrl ? `<img src="${a.imageUrl}" alt="Cover">` : ''}
                             <div>
                                 <div class="article-title">${a.title}</div>
-                                <div class="article-date">${new Date(a.date).toLocaleDateString()}</div>
                                 <div class="article-snippet">${a.content}</div>
                             </div>
                         </a>
@@ -206,7 +193,6 @@
             }
         });
 
-        // Search Logic
         window.handleSearch = function() {
             const query = document.getElementById('globalSearch').value.toLowerCase();
             const resultsContainer = document.getElementById('searchResults');
