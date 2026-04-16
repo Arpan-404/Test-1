@@ -6,7 +6,6 @@
     <title>Admin Dashboard - Physio</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
-        /* Base Admin Styles from your Original Code */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; }
         
@@ -14,7 +13,6 @@
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
         .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
-        .close:hover { color: #2c8577; }
         
         #toastNotification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; transition: opacity 0.3s; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         #toastNotification.show { visibility: visible; opacity: 1; }
@@ -34,8 +32,12 @@
         .btn-secondary { background: #e8f5f3; color: #2c8577; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-buy-small { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 20px; }
-        .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; margin-top: 1rem; }
+        .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; margin-top: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
+        /* Mobile Friendly Login Screen */
+        #authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; background: #e8f5f3; }
+        .login-box { background: white; padding: 2.5rem; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
         /* Admin Dashboard */
         .admin-dashboard { display: none; min-height: 100vh; padding-bottom: 2rem; }
         .admin-dashboard.active { display: block; }
@@ -62,21 +64,21 @@
 <body>
     <div id="toastNotification"></div>
 
-    <!-- ADMIN LOGIN MODAL -->
-    <div id="adminModal" class="modal" style="display: block;">
-        <div class="modal-content" style="max-width: 400px; margin-top: 10vh; transform: none;">
-            <a href="/" style="float:right; text-decoration:none; color:#999;">Close ✕</a>
+    <!-- NEW MOBILE FRIENDLY LOGIN SCREEN -->
+    <div id="authScreen">
+        <div class="login-box">
+            <div style="text-align: right; margin-bottom: 1rem;"><a href="/" style="color:#999; text-decoration:none; font-size:0.9rem;">← Back to Site</a></div>
             <h2 style="color: #2c8577; margin-bottom: 1.5rem; text-align:center;">Admin Login</h2>
             <form id="adminLoginForm">
                 <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="adminPassword" required></div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:0.5rem;">Login with Email</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:0.5rem;">Login</button>
             </form>
             <div style="display: flex; align-items: center; margin: 1.5rem 0; color: #999;">
                 <hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;"><span style="padding: 0 10px; font-size: 0.9rem;">OR</span><hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;">
             </div>
             <button type="button" class="btn-google" onclick="window.loginWithGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:20px;"> Sign in with Google
             </button>
         </div>
     </div>
@@ -86,7 +88,7 @@
         <header class="admin-header">
             <h2 style="color:#2c8577;">Admin Dashboard</h2>
             <div>
-                <a href="/" style="margin-right:1rem; color:#666; text-decoration:none; font-weight:bold;">View Website</a>
+                <a href="/" style="margin-right:1rem; color:#666; text-decoration:none; font-weight:bold;">View Site</a>
                 <button class="btn btn-danger btn-buy-small" onclick="window.logout()">Logout</button>
             </div>
         </header>
@@ -96,7 +98,7 @@
             <button class="admin-tab" data-tab="doctors">Doctors</button>
             <button class="admin-tab" data-tab="services">Services</button>
             <button class="admin-tab" data-tab="products">Products</button>
-            <button class="admin-tab" data-tab="articles">Articles / Blog</button> <!-- NEW TAB -->
+            <button class="admin-tab" data-tab="articles">Articles / Blog</button>
         </nav>
 
         <div class="admin-content">
@@ -165,7 +167,7 @@
                 <div class="item-list" id="productsAdminList"></div>
             </div>
 
-            <!-- 5. ARTICLES (NEW) -->
+            <!-- 5. ARTICLES (UPDATED WITH PHOTO UPLOAD) -->
             <div class="tab-panel" id="articles-panel">
                 <div class="form-section">
                     <h3 style="color:#2c8577; margin-bottom:1rem;">Write New Blog/Article</h3>
@@ -173,13 +175,19 @@
                         <label>Article Title</label>
                         <input type="text" id="artTitle" placeholder="e.g. What is Osteoarthritis?" oninput="document.getElementById('artSlug').value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');">
                     </div>
-                    <div class="form-row two-col">
-                        <div class="form-field"><label>URL Link Name (e.g. osteoarthritis)</label><input type="text" id="artSlug"></div>
-                        <div class="form-field"><label>YouTube Video Link (Optional)</label><input type="text" id="artVideo" placeholder="https://youtube.com/..."></div>
+                    <div class="form-group">
+                        <label>URL Link Name (Auto-generated)</label>
+                        <input type="text" id="artSlug" placeholder="osteoarthritis">
+                    </div>
+                    <div class="form-group">
+                        <label>Article Cover Image Upload</label>
+                        <input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'artImageUrl', 'artImagePreview')">
+                        <input type="hidden" id="artImageUrl">
+                        <img id="artImagePreview" class="image-preview" style="width: 150px; height: 100px; border-radius: 8px;">
                     </div>
                     <div class="form-group">
                         <label>Article Content (Text)</label>
-                        <textarea id="artContent" rows="6" class="form-group" style="width:100%; border-radius:6px; padding:8px;" placeholder="Write your article here..."></textarea>
+                        <textarea id="artContent" rows="8" class="form-group" style="width:100%; border-radius:6px; padding:8px;" placeholder="Write your full article here..."></textarea>
                     </div>
                     <button class="btn btn-primary" style="width:100%;" onclick="window.saveArticle()">Publish Article</button>
                 </div>
@@ -190,66 +198,20 @@
         </div>
     </div>
 
-    <!-- EDIT/ADD MODAL (Used for Doctors, Services, Products) -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
-            <h3 id="editModalTitle" style="margin-bottom:1.5rem; color:#2c8577;"></h3>
-            <div id="editModalContent"></div>
-        </div>
-    </div>
-
-    <!-- SUB-SERVICES MODAL -->
-    <div id="subServicesModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('subServicesModal').style.display='none'">&times;</span>
-            <h3 id="subServicesTitle" style="color:#2c8577; margin-bottom:1rem;">Manage Sub-Services</h3>
-            <div id="subServicesList" style="max-height: 300px; overflow-y:auto; margin-bottom: 1.5rem;"></div>
-            <div style="border-top: 1px solid #eee; padding-top:1rem;">
-                <h4 style="margin-bottom:1rem;">Add New</h4>
-                <div class="form-row two-col">
-                    <input type="text" id="newSubServiceName" placeholder="Test name" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;">
-                    <input type="text" id="newSubServicePrice" placeholder="Price (e.g. ₹500)" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;">
-                </div>
-                <button class="btn btn-primary" onclick="window.addSubService()">Add Sub-Service</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- EDIT SUB-SERVICE MODAL -->
-    <div id="editSubServiceModal" class="modal" style="z-index: 3100;">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3 style="color:#2c8577; margin-bottom:1rem;">Edit Sub-Service</h3>
-            <div class="form-group"><label>Name</label><input type="text" id="editSubName"></div>
-            <div class="form-group"><label>Price</label><input type="text" id="editSubPrice"></div>
-            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
-                <button id="saveSubServiceBtn" class="btn btn-primary" style="flex:1;">Save</button>
-                <button onclick="document.getElementById('editSubServiceModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONFIRM DELETE MODAL -->
-    <div id="customConfirmModal" class="modal" style="z-index: 4000;">
-        <div class="modal-content" style="text-align: center; max-width: 400px;">
-            <h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <button id="confirmYesBtn" class="btn btn-danger">Yes, delete</button>
-                <button onclick="document.getElementById('customConfirmModal').style.display='none'" class="btn btn-secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
+    <!-- EDIT MODALS BELOW REMAIN THE SAME -->
+    <div id="editModal" class="modal"><div class="modal-content"><span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span><h3 id="editModalTitle" style="margin-bottom:1.5rem; color:#2c8577;"></h3><div id="editModalContent"></div></div></div>
+    <div id="subServicesModal" class="modal"><div class="modal-content"><span class="close" onclick="document.getElementById('subServicesModal').style.display='none'">&times;</span><h3 id="subServicesTitle" style="color:#2c8577; margin-bottom:1rem;">Manage Sub-Services</h3><div id="subServicesList" style="max-height: 300px; overflow-y:auto; margin-bottom: 1.5rem;"></div><div style="border-top: 1px solid #eee; padding-top:1rem;"><h4 style="margin-bottom:1rem;">Add New</h4><div class="form-row two-col"><input type="text" id="newSubServiceName" placeholder="Test name" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;"><input type="text" id="newSubServicePrice" placeholder="Price" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;"></div><button class="btn btn-primary" onclick="window.addSubService()">Add Sub-Service</button></div></div></div>
+    <div id="editSubServiceModal" class="modal" style="z-index: 3100;"><div class="modal-content" style="max-width: 400px;"><h3 style="color:#2c8577; margin-bottom:1rem;">Edit Sub-Service</h3><div class="form-group"><label>Name</label><input type="text" id="editSubName"></div><div class="form-group"><label>Price</label><input type="text" id="editSubPrice"></div><div style="display:flex; gap:1rem; margin-top:1.5rem;"><button id="saveSubServiceBtn" class="btn btn-primary" style="flex:1;">Save</button><button onclick="document.getElementById('editSubServiceModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button></div></div></div>
+    <div id="customConfirmModal" class="modal" style="z-index: 4000;"><div class="modal-content" style="text-align: center; max-width: 400px;"><h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3><div style="display: flex; gap: 1rem; justify-content: center;"><button id="confirmYesBtn" class="btn btn-danger">Yes, delete</button><button onclick="document.getElementById('customConfirmModal').style.display='none'" class="btn btn-secondary">Cancel</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, set, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
-        import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
         const app = initializeApp({
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
-            authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
-            projectId: "clinic-bdf92"
+            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com",
+            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92"
         });
         const database = getDatabase(app);
         const auth = getAuth(app);
@@ -259,15 +221,17 @@
         window.currentServiceId = null;
         let activeSubServiceIndex = null;
 
-        /* AUTH LOGIC */
-        onAuthStateChanged(auth, user => {
-            if(user) {
-                document.getElementById('adminModal').style.display = 'none';
-                document.getElementById('adminDashboard').classList.add('active');
-            } else {
-                document.getElementById('adminModal').style.display = 'block';
-                document.getElementById('adminDashboard').classList.remove('active');
-            }
+        /* PERSISTENT AUTH LOGIC (Stay Logged In) */
+        setPersistence(auth, browserLocalPersistence).then(() => {
+            onAuthStateChanged(auth, user => {
+                if(user) {
+                    document.getElementById('authScreen').style.display = 'none';
+                    document.getElementById('adminDashboard').classList.add('active');
+                } else {
+                    document.getElementById('authScreen').style.display = 'flex';
+                    document.getElementById('adminDashboard').classList.remove('active');
+                }
+            });
         });
 
         document.getElementById('adminLoginForm').onsubmit = async (e) => {
@@ -281,7 +245,7 @@
             catch(err) { window.showToast('Error logging in.', 'error'); }
         };
         
-        window.logout = () => signOut(auth);
+        window.logout = () => { signOut(auth); window.showToast('Logged out'); };
 
         /* TABS LOGIC */
         document.querySelectorAll('.admin-tab').forEach(tab => {
@@ -303,12 +267,10 @@
         });
 
         function updateFormAndLists() {
-            // Stats
             document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0;
             document.getElementById('totalServices').textContent = window.siteData.services?.length || 0;
             document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
 
-            // Clinic Info
             if(window.siteData.hero) {
                 document.getElementById('adminClinicName').value = window.siteData.hero.clinicName || '';
                 document.getElementById('adminPhone').value = window.siteData.hero.phone || '';
@@ -326,16 +288,13 @@
                 document.getElementById('tplProduct').value = t.product || '';
             }
 
-            // Render Lists
             document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
             document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} sub-services</p></div><div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="window.manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
             document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
             
-            // Articles
             document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="/${a.slug}" target="_blank">/${a.slug}</a></p></div><div class="item-actions"><button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
         }
 
-        /* CLINIC UPDATE */
         window.updateClinicInfo = async () => {
             const h = { clinicName: document.getElementById('adminClinicName').value, title: document.getElementById('adminClinicName').value, tagline: document.getElementById('adminTagline').value, phone: document.getElementById('adminPhone').value, whatsappNumber: document.getElementById('adminWhatsApp').value, email: document.getElementById('adminEmail').value, logoUrl: document.getElementById('adminLogoUrl').value, sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) };
             const s = { whatsappTemplates: { general: document.getElementById('tplGeneral').value, doctor: document.getElementById('tplDoctor').value, service: document.getElementById('tplService').value, subService: document.getElementById('tplSubService').value, product: document.getElementById('tplProduct').value } };
@@ -343,13 +302,19 @@
             window.showToast('Clinic settings saved!');
         };
 
-        /* ARTICLES LOGIC */
+        /* ARTICLES LOGIC (UPDATED FOR IMAGE UPLOAD) */
         window.saveArticle = async () => {
-            const title = document.getElementById('artTitle').value, slug = document.getElementById('artSlug').value, videoUrl = document.getElementById('artVideo').value, content = document.getElementById('artContent').value;
+            const title = document.getElementById('artTitle').value;
+            const slug = document.getElementById('artSlug').value;
+            const imageUrl = document.getElementById('artImageUrl').value;
+            const content = document.getElementById('artContent').value;
+            
             if(!title || !slug) return window.showToast('Title and Slug required', 'error');
-            window.siteData.articles.push({ title, slug, videoUrl, content, date: new Date().toISOString() });
+            
+            window.siteData.articles.push({ title, slug, imageUrl, content, date: new Date().toISOString() });
             await set(ref(database, 'site/articles'), window.siteData.articles);
-            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artVideo').value=''; document.getElementById('artContent').value='';
+            
+            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artContent').value=''; document.getElementById('artImagePreview').style.display = 'none';
             window.showToast('Article Published!');
         };
         window.deleteArticle = (index) => { window.showConfirm("Delete article?", async () => { window.siteData.articles.splice(index, 1); await set(ref(database, 'site/articles'), window.siteData.articles); window.showToast('Deleted!'); }); }
@@ -359,11 +324,11 @@
             const m = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`;
             const c = document.getElementById('editModalContent');
             if (type === 'doctor') {
-                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Photo URL</label><input type="text" id="ePhoto" value="${item?.photoUrl||''}"></div><div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div><button class="btn btn-primary" onclick="window.saveDoctor(${item?.id||'null'})" style="width:100%;">Save</button>`;
+                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhoto', 'ePhotoPreview')"><input type="hidden" id="ePhoto" value="${item?.photoUrl||''}"><img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}"></div><div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div><button class="btn btn-primary" onclick="window.saveDoctor(${item?.id||'null'})" style="width:100%;">Save</button>`;
             } else if (type === 'service') {
-                c.innerHTML = `<div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div><div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Img URL</label><input type="text" id="eBanner" value="${item?.bannerImageUrl||''}"></div><button class="btn btn-primary" onclick="window.saveService(${item?.id||'null'})" style="width:100%;">Save</button>`;
+                c.innerHTML = `<div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div><div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Img Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'eBanner', 'eBannerPreview')"><input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}"><img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveService(${item?.id||'null'})" style="width:100%;">Save</button>`;
             } else if (type === 'product') {
-                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div><div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div><div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Photo URL</label><input type="text" id="ePhotoM" value="${item?.profilePhoto||''}"></div><button class="btn btn-primary" onclick="window.saveProduct(${item?.id||'null'})" style="width:100%;">Save</button>`;
+                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div><div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div><div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')"><input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}"><img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveProduct(${item?.id||'null'})" style="width:100%;">Save</button>`;
             }
             m.style.display = 'block';
         }
@@ -388,11 +353,48 @@
         window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 3000); }
         window.showConfirm = (msg, cb) => { document.getElementById('confirmMsg').textContent=msg; document.getElementById('customConfirmModal').style.display='block'; document.getElementById('confirmYesBtn').onclick=()=>{ document.getElementById('customConfirmModal').style.display='none'; cb(); } }
         
-        // Cloudinary
-        window.uploadToCloudinary = async (file) => { const fd = new FormData(); fd.append('file',file); fd.append('upload_preset','Physio_uploads'); const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`,{method:'POST',body:fd}); return (await res.json()).secure_url; };
-        window.handleImageUpload = async (input, fieldId, previewId) => { if(!input.files.length) return; window.showToast('Uploading...'); try { const url = await window.uploadToCloudinary(input.files[0]); document.getElementById(fieldId).value=url; if(previewId){ document.getElementById(previewId).src=url; document.getElementById(previewId).style.display='block'; } window.showToast('Uploaded!'); } catch(e){ window.showToast('Error','error'); } };
-        window.handleGalleryUpload = async (input, fieldId) => { if(!input.files.length) return; window.showToast('Uploading gallery...'); try { const urls=[]; for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); const ex=document.getElementById(fieldId).value; document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); window.showToast('Gallery updated!'); } catch(e){ window.showToast('Error','error'); } };
+        // Cloudinary (UPDATED TO NEW CLOUD NAME)
+        window.uploadToCloudinary = async (file) => { 
+            const fd = new FormData(); 
+            fd.append('file',file); 
+            fd.append('upload_preset','Physio_uploads'); 
+            
+            // USING NEW CLOUD NAME: desvmq2l9
+            const res = await fetch(`https://api.cloudinary.com/v1_1/desvmq2l9/image/upload`,{method:'POST',body:fd}); 
+            
+            if(!res.ok) throw new Error("Cloudinary upload failed");
+            return (await res.json()).secure_url; 
+        };
+        
+        window.handleImageUpload = async (input, fieldId, previewId) => { 
+            if(!input.files.length) return; 
+            window.showToast('Uploading securely...'); 
+            try { 
+                const url = await window.uploadToCloudinary(input.files[0]); 
+                document.getElementById(fieldId).value=url; 
+                if(previewId){ 
+                    document.getElementById(previewId).src=url; 
+                    document.getElementById(previewId).style.display='block'; 
+                } 
+                window.showToast('Uploaded successfully!'); 
+            } catch(e){ 
+                window.showToast('Upload Error. Check Preset settings.', 'error'); 
+            } 
+        };
+        
+        window.handleGalleryUpload = async (input, fieldId) => { 
+            if(!input.files.length) return; 
+            window.showToast('Uploading gallery...'); 
+            try { 
+                const urls=[]; 
+                for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); 
+                const ex=document.getElementById(fieldId).value; 
+                document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); 
+                window.showToast('Gallery updated!'); 
+            } catch(e){ 
+                window.showToast('Upload Error.', 'error'); 
+            } 
+        };
     </script>
 </body>
 </html>
-
