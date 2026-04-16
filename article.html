@@ -66,9 +66,19 @@
         const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
         const db = getDatabase(app);
 
-        const currentSlug = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase() || new URLSearchParams(window.location.search).get('id')?.toLowerCase();
+        // FIXED URL READING LOGIC
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentSlug = urlParams.get('id');
 
-        if(!currentSlug || currentSlug === 'article.html') {
+        // Fallback just in case you ever get Clean URLs working perfectly
+        if (!currentSlug) {
+            currentSlug = window.location.pathname.replace(/^\/|\/$/g, '').replace('.html', '');
+        }
+        
+        currentSlug = currentSlug?.toLowerCase();
+
+        // Check if the slug is empty or is literally just the word "article"
+        if(!currentSlug || currentSlug === 'article') {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('errorMsg').style.display = 'block';
         } else {
@@ -124,4 +134,3 @@
     </script>
 </body>
 </html>
-
