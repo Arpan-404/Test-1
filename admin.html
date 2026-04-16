@@ -8,37 +8,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; }
-        
-        /* Modals */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
         .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
-        
         #toastNotification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; transition: opacity 0.3s; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         #toastNotification.show { visibility: visible; opacity: 1; }
         #toastNotification.error { background-color: #dc3545; }
-
-        /* Form Styles */
         .form-group, .form-row { margin-bottom: 1rem; }
         .form-field { display: flex; flex-direction: column; }
         .form-field label, .form-group label { margin-bottom: 0.5rem; font-weight: 600; color: #495057; display: block;}
         .form-field input[type="text"], .form-field input[type="tel"], .form-field input[type="email"], .form-field input[type="password"], .form-field textarea, .form-group input[type="text"], .form-group input[type="password"] { width: 100%; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 8px; font-size: 1rem; }
         .form-row.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .image-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 0.5rem; display: none; object-fit: cover; }
-        
-        /* Buttons */
         .btn { display: inline-block; padding: 0.8rem 1.5rem; background: #2c8577; color: white; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s ease; text-align: center; }
         .btn:hover { background: #245a4f; }
         .btn-secondary { background: #e8f5f3; color: #2c8577; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-buy-small { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 20px; }
         .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; margin-top: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-        /* Mobile Friendly Login Screen */
         #authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; background: #e8f5f3; }
         .login-box { background: white; padding: 2.5rem; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* Admin Dashboard */
         .admin-dashboard { display: none; min-height: 100vh; padding-bottom: 2rem; }
         .admin-dashboard.active { display: block; }
         .admin-header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -48,12 +37,10 @@
         .admin-content { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
-
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
         .stat-number { font-size: 2.5rem; font-weight: bold; color: #2c8577; margin-bottom: 0.5rem; }
         .form-section { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-
         .item-list { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 2rem; }
         .item { padding: 1.2rem; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .item-info h4 { margin-bottom: 0.3rem; color: #333; }
@@ -64,10 +51,9 @@
 <body>
     <div id="toastNotification"></div>
 
-    <!-- NEW MOBILE FRIENDLY LOGIN SCREEN -->
     <div id="authScreen">
         <div class="login-box">
-            <div style="text-align: right; margin-bottom: 1rem;"><a href="/" style="color:#999; text-decoration:none; font-size:0.9rem;">← Back to Site</a></div>
+            <div style="text-align: right; margin-bottom: 1rem;"><a href="index.html" style="color:#999; text-decoration:none; font-size:0.9rem;">← Back to Site</a></div>
             <h2 style="color: #2c8577; margin-bottom: 1.5rem; text-align:center;">Admin Login</h2>
             <form id="adminLoginForm">
                 <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
@@ -83,18 +69,17 @@
         </div>
     </div>
 
-    <!-- MAIN ADMIN DASHBOARD -->
     <div class="admin-dashboard" id="adminDashboard">
         <header class="admin-header">
             <h2 style="color:#2c8577;">Admin Dashboard</h2>
             <div>
-                <a href="/" style="margin-right:1rem; color:#666; text-decoration:none; font-weight:bold;">View Site</a>
+                <a href="index.html" style="margin-right:1rem; color:#666; text-decoration:none; font-weight:bold;">View Site</a>
                 <button class="btn btn-danger btn-buy-small" onclick="window.logout()">Logout</button>
             </div>
         </header>
 
         <nav class="admin-tabs">
-            <button class="admin-tab active" data-tab="clinic">Clinic Info & Settings</button>
+            <button class="admin-tab active" data-tab="clinic">Clinic Info</button>
             <button class="admin-tab" data-tab="doctors">Doctors</button>
             <button class="admin-tab" data-tab="services">Services</button>
             <button class="admin-tab" data-tab="products">Products</button>
@@ -102,7 +87,6 @@
         </nav>
 
         <div class="admin-content">
-            <!-- 1. CLINIC INFO -->
             <div class="tab-panel active" id="clinic-panel">
                 <div class="stats-grid">
                     <div class="stat-card"><div class="stat-number" id="totalDoctors">0</div><div style="color:#666;">Doctors</div></div>
@@ -112,93 +96,36 @@
 
                 <div class="form-section">
                     <h3 style="margin-bottom:1.5rem; color:#2c8577;">Clinic Information</h3>
-                    <div class="form-row two-col">
-                        <div class="form-field"><label>Clinic Name</label><input type="text" id="adminClinicName"></div>
-                        <div class="form-field"><label>Phone (Display)</label><input type="tel" id="adminPhone"></div>
-                    </div>
-                    <div class="form-row two-col">
-                        <div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp"></div>
-                        <div class="form-field"><label>Admin Emails (Comma separated)</label><input type="text" id="adminEmail"></div>
-                    </div>
+                    <div class="form-row two-col"><div class="form-field"><label>Clinic Name</label><input type="text" id="adminClinicName"></div><div class="form-field"><label>Phone (Display)</label><input type="tel" id="adminPhone"></div></div>
+                    <div class="form-row two-col"><div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp"></div><div class="form-field"><label>Admin Emails</label><input type="text" id="adminEmail"></div></div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
-                    
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Logo Upload</label>
-                            <input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'adminLogoUrl', 'logoPreview')">
-                            <input type="hidden" id="adminLogoUrl"><img id="logoPreview" class="image-preview">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Hero Slider Images (Multiple)</label>
-                            <input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')">
-                            <textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; font-size:0.8rem; background:#f4f4f4;" readonly></textarea>
-                            <button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider Images</button>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-top:2.5rem; margin-bottom:1.5rem; color:#2c8577; border-top: 1px solid #eee; padding-top: 1.5rem;">WhatsApp Message Templates</h3>
-                    <div class="form-group"><label>General Appointment</label><input type="text" id="tplGeneral"></div>
-                    <div class="form-group"><label>Doctor Appointment</label><input type="text" id="tplDoctor"></div>
-                    <div class="form-group"><label>Service Booking</label><input type="text" id="tplService"></div>
-                    <div class="form-group"><label>Sub-Service (Test)</label><input type="text" id="tplSubService"></div>
-                    <div class="form-group"><label>Product Purchase</label><input type="text" id="tplProduct"></div>
-                    
+                    <div class="form-row"><div class="form-field"><label>Logo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'adminLogoUrl', 'logoPreview')"><input type="hidden" id="adminLogoUrl"><img id="logoPreview" class="image-preview"></div></div>
+                    <div class="form-row"><div class="form-field"><label>Hero Slider Images</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; background:#f4f4f4;" readonly></textarea><button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div></div>
+                    <h3 style="margin-top:2.5rem; margin-bottom:1.5rem; color:#2c8577;">WhatsApp Templates</h3>
+                    <div class="form-group"><label>General Appt</label><input type="text" id="tplGeneral"></div><div class="form-group"><label>Doctor Appt</label><input type="text" id="tplDoctor"></div><div class="form-group"><label>Service</label><input type="text" id="tplService"></div><div class="form-group"><label>Sub-Service</label><input type="text" id="tplSubService"></div><div class="form-group"><label>Product</label><input type="text" id="tplProduct"></div>
                     <button class="btn btn-primary" onclick="window.updateClinicInfo()" style="margin-top:1.5rem; width:100%;">Save All Changes</button>
                 </div>
             </div>
 
-            <!-- 2. DOCTORS -->
-            <div class="tab-panel" id="doctors-panel">
-                <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewDoctor()">+ Add Doctor</button>
-                <div class="item-list" id="doctorsAdminList"></div>
-            </div>
+            <div class="tab-panel" id="doctors-panel"><button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewDoctor()">+ Add Doctor</button><div class="item-list" id="doctorsAdminList"></div></div>
+            <div class="tab-panel" id="services-panel"><button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewService()">+ Add Service</button><div class="item-list" id="servicesAdminList"></div></div>
+            <div class="tab-panel" id="products-panel"><button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewProduct()">+ Add Product</button><div class="item-list" id="productsAdminList"></div></div>
 
-            <!-- 3. SERVICES -->
-            <div class="tab-panel" id="services-panel">
-                <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewService()">+ Add Service</button>
-                <div class="item-list" id="servicesAdminList"></div>
-            </div>
-
-            <!-- 4. PRODUCTS -->
-            <div class="tab-panel" id="products-panel">
-                <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewProduct()">+ Add Product</button>
-                <div class="item-list" id="productsAdminList"></div>
-            </div>
-
-            <!-- 5. ARTICLES (UPDATED WITH PHOTO UPLOAD) -->
             <div class="tab-panel" id="articles-panel">
                 <div class="form-section">
                     <h3 style="color:#2c8577; margin-bottom:1rem;">Write New Blog/Article</h3>
-                    <div class="form-group">
-                        <label>Article Title</label>
-                        <input type="text" id="artTitle" placeholder="e.g. What is Osteoarthritis?" oninput="document.getElementById('artSlug').value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');">
-                    </div>
-                    <div class="form-group">
-                        <label>URL Link Name (Auto-generated)</label>
-                        <input type="text" id="artSlug" placeholder="osteoarthritis">
-                    </div>
-                    <div class="form-group">
-                        <label>Article Cover Image Upload</label>
-                        <input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'artImageUrl', 'artImagePreview')">
-                        <input type="hidden" id="artImageUrl">
-                        <img id="artImagePreview" class="image-preview" style="width: 150px; height: 100px; border-radius: 8px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Article Content (Text)</label>
-                        <textarea id="artContent" rows="8" class="form-group" style="width:100%; border-radius:6px; padding:8px;" placeholder="Write your full article here..."></textarea>
-                    </div>
+                    <div class="form-group"><label>Article Title</label><input type="text" id="artTitle" oninput="document.getElementById('artSlug').value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');"></div>
+                    <div class="form-group"><label>URL Link Name (Auto-generated)</label><input type="text" id="artSlug"></div>
+                    <div class="form-group"><label>Article Cover Image Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'artImageUrl', 'artImagePreview')"><input type="hidden" id="artImageUrl"><img id="artImagePreview" class="image-preview" style="width: 150px; height: 100px; border-radius: 8px;"></div>
+                    <div class="form-group"><label>Article Content (Text)</label><textarea id="artContent" rows="8" class="form-group" style="width:100%; border-radius:6px; padding:8px;"></textarea></div>
                     <button class="btn btn-primary" style="width:100%;" onclick="window.saveArticle()">Publish Article</button>
                 </div>
-
-                <h3 style="color:#2c8577; margin-bottom:1rem;">Published Articles</h3>
-                <div class="item-list" id="articlesAdminList"></div>
+                <h3 style="color:#2c8577; margin-bottom:1rem;">Published Articles</h3><div class="item-list" id="articlesAdminList"></div>
             </div>
         </div>
     </div>
 
-    <!-- EDIT MODALS BELOW REMAIN THE SAME -->
+    <!-- MODALS -->
     <div id="editModal" class="modal"><div class="modal-content"><span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span><h3 id="editModalTitle" style="margin-bottom:1.5rem; color:#2c8577;"></h3><div id="editModalContent"></div></div></div>
     <div id="subServicesModal" class="modal"><div class="modal-content"><span class="close" onclick="document.getElementById('subServicesModal').style.display='none'">&times;</span><h3 id="subServicesTitle" style="color:#2c8577; margin-bottom:1rem;">Manage Sub-Services</h3><div id="subServicesList" style="max-height: 300px; overflow-y:auto; margin-bottom: 1.5rem;"></div><div style="border-top: 1px solid #eee; padding-top:1rem;"><h4 style="margin-bottom:1rem;">Add New</h4><div class="form-row two-col"><input type="text" id="newSubServiceName" placeholder="Test name" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;"><input type="text" id="newSubServicePrice" placeholder="Price" class="form-group" style="padding:0.75rem; border:1px solid #ccc; border-radius:8px;"></div><button class="btn btn-primary" onclick="window.addSubService()">Add Sub-Service</button></div></div></div>
     <div id="editSubServiceModal" class="modal" style="z-index: 3100;"><div class="modal-content" style="max-width: 400px;"><h3 style="color:#2c8577; margin-bottom:1rem;">Edit Sub-Service</h3><div class="form-group"><label>Name</label><input type="text" id="editSubName"></div><div class="form-group"><label>Price</label><input type="text" id="editSubPrice"></div><div style="display:flex; gap:1rem; margin-top:1.5rem;"><button id="saveSubServiceBtn" class="btn btn-primary" style="flex:1;">Save</button><button onclick="document.getElementById('editSubServiceModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button></div></div></div>
@@ -209,139 +136,56 @@
         import { getDatabase, ref, set, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
         import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
-        const app = initializeApp({
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92"
-        });
-        const database = getDatabase(app);
-        const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const database = getDatabase(app); const auth = getAuth(app); const googleProvider = new GoogleAuthProvider();
+        window.siteData = { doctors: [], services: [], products: [], articles: [] }; window.currentServiceId = null; let activeSubServiceIndex = null;
 
-        window.siteData = { doctors: [], services: [], products: [], articles: [] };
-        window.currentServiceId = null;
-        let activeSubServiceIndex = null;
-
-        /* PERSISTENT AUTH LOGIC (Stay Logged In) */
         setPersistence(auth, browserLocalPersistence).then(() => {
             onAuthStateChanged(auth, user => {
-                if(user) {
-                    document.getElementById('authScreen').style.display = 'none';
-                    document.getElementById('adminDashboard').classList.add('active');
-                } else {
-                    document.getElementById('authScreen').style.display = 'flex';
-                    document.getElementById('adminDashboard').classList.remove('active');
-                }
+                if(user) { document.getElementById('authScreen').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); } 
+                else { document.getElementById('authScreen').style.display = 'flex'; document.getElementById('adminDashboard').classList.remove('active'); }
             });
         });
 
-        document.getElementById('adminLoginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            try { await signInWithEmailAndPassword(auth, document.getElementById('adminEmailInput').value, document.getElementById('adminPassword').value); window.showToast('Logged in!'); } 
-            catch(err) { window.showToast('Invalid credentials', 'error'); }
-        };
-
-        window.loginWithGoogle = async () => {
-            try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in via Google!'); } 
-            catch(err) { window.showToast('Error logging in.', 'error'); }
-        };
-        
+        document.getElementById('adminLoginForm').onsubmit = async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('adminEmailInput').value, document.getElementById('adminPassword').value); window.showToast('Logged in!'); } catch(err) { window.showToast('Invalid credentials', 'error'); } };
+        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in!'); } catch(err) { window.showToast('Error', 'error'); } };
         window.logout = () => { signOut(auth); window.showToast('Logged out'); };
 
-        /* TABS LOGIC */
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active'); 
-                document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+                tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
             });
         });
 
-        /* LOAD DATA */
-        onValue(ref(database, 'site'), (snapshot) => {
-            if(snapshot.exists()) {
-                window.siteData = snapshot.val();
-                if(!window.siteData.articles) window.siteData.articles = [];
-                updateFormAndLists();
-            }
-        });
+        onValue(ref(database, 'site'), (snapshot) => { if(snapshot.exists()) { window.siteData = snapshot.val(); if(!window.siteData.articles) window.siteData.articles = []; updateFormAndLists(); } });
 
         function updateFormAndLists() {
-            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0;
-            document.getElementById('totalServices').textContent = window.siteData.services?.length || 0;
-            document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
-
-            if(window.siteData.hero) {
-                document.getElementById('adminClinicName').value = window.siteData.hero.clinicName || '';
-                document.getElementById('adminPhone').value = window.siteData.hero.phone || '';
-                document.getElementById('adminWhatsApp').value = window.siteData.hero.whatsappNumber || '';
-                document.getElementById('adminEmail').value = window.siteData.hero.email || '';
-                document.getElementById('adminTagline').value = window.siteData.hero.tagline || '';
-                document.getElementById('adminLogoUrl').value = window.siteData.hero.logoUrl || '';
-                if(window.siteData.hero.logoUrl) { document.getElementById('logoPreview').src = window.siteData.hero.logoUrl; document.getElementById('logoPreview').style.display = 'block'; }
-                document.getElementById('adminSliderImages').value = (window.siteData.hero.sliderImages || []).join(', ');
-            }
-            if(window.siteData.settings?.whatsappTemplates) {
-                const t = window.siteData.settings.whatsappTemplates;
-                document.getElementById('tplGeneral').value = t.general || ''; document.getElementById('tplDoctor').value = t.doctor || '';
-                document.getElementById('tplService').value = t.service || ''; document.getElementById('tplSubService').value = t.subService || '';
-                document.getElementById('tplProduct').value = t.product || '';
-            }
-
+            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0; document.getElementById('totalServices').textContent = window.siteData.services?.length || 0; document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
+            if(window.siteData.hero) { document.getElementById('adminClinicName').value = window.siteData.hero.clinicName || ''; document.getElementById('adminPhone').value = window.siteData.hero.phone || ''; document.getElementById('adminWhatsApp').value = window.siteData.hero.whatsappNumber || ''; document.getElementById('adminEmail').value = window.siteData.hero.email || ''; document.getElementById('adminTagline').value = window.siteData.hero.tagline || ''; document.getElementById('adminLogoUrl').value = window.siteData.hero.logoUrl || ''; if(window.siteData.hero.logoUrl) { document.getElementById('logoPreview').src = window.siteData.hero.logoUrl; document.getElementById('logoPreview').style.display = 'block'; } document.getElementById('adminSliderImages').value = (window.siteData.hero.sliderImages || []).join(', '); }
+            if(window.siteData.settings?.whatsappTemplates) { const t = window.siteData.settings.whatsappTemplates; document.getElementById('tplGeneral').value = t.general || ''; document.getElementById('tplDoctor').value = t.doctor || ''; document.getElementById('tplService').value = t.service || ''; document.getElementById('tplSubService').value = t.subService || ''; document.getElementById('tplProduct').value = t.product || ''; }
+            
             document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
             document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} sub-services</p></div><div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="window.manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
             document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
-            
-            document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="/${a.slug}" target="_blank">/${a.slug}</a></p></div><div class="item-actions"><button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
+            document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="article.html?id=${a.slug}" target="_blank">View Post</a></p></div><div class="item-actions"><button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
         }
 
-        window.updateClinicInfo = async () => {
-            const h = { clinicName: document.getElementById('adminClinicName').value, title: document.getElementById('adminClinicName').value, tagline: document.getElementById('adminTagline').value, phone: document.getElementById('adminPhone').value, whatsappNumber: document.getElementById('adminWhatsApp').value, email: document.getElementById('adminEmail').value, logoUrl: document.getElementById('adminLogoUrl').value, sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) };
-            const s = { whatsappTemplates: { general: document.getElementById('tplGeneral').value, doctor: document.getElementById('tplDoctor').value, service: document.getElementById('tplService').value, subService: document.getElementById('tplSubService').value, product: document.getElementById('tplProduct').value } };
-            await update(ref(database, 'site/hero'), h); await update(ref(database, 'site/settings'), s);
-            window.showToast('Clinic settings saved!');
-        };
+        window.updateClinicInfo = async () => { const h = { clinicName: document.getElementById('adminClinicName').value, title: document.getElementById('adminClinicName').value, tagline: document.getElementById('adminTagline').value, phone: document.getElementById('adminPhone').value, whatsappNumber: document.getElementById('adminWhatsApp').value, email: document.getElementById('adminEmail').value, logoUrl: document.getElementById('adminLogoUrl').value, sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) }; const s = { whatsappTemplates: { general: document.getElementById('tplGeneral').value, doctor: document.getElementById('tplDoctor').value, service: document.getElementById('tplService').value, subService: document.getElementById('tplSubService').value, product: document.getElementById('tplProduct').value } }; await update(ref(database, 'site/hero'), h); await update(ref(database, 'site/settings'), s); window.showToast('Clinic settings saved!'); };
 
-        /* ARTICLES LOGIC (UPDATED FOR IMAGE UPLOAD) */
-        window.saveArticle = async () => {
-            const title = document.getElementById('artTitle').value;
-            const slug = document.getElementById('artSlug').value;
-            const imageUrl = document.getElementById('artImageUrl').value;
-            const content = document.getElementById('artContent').value;
-            
-            if(!title || !slug) return window.showToast('Title and Slug required', 'error');
-            
-            window.siteData.articles.push({ title, slug, imageUrl, content, date: new Date().toISOString() });
-            await set(ref(database, 'site/articles'), window.siteData.articles);
-            
-            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artContent').value=''; document.getElementById('artImagePreview').style.display = 'none';
-            window.showToast('Article Published!');
-        };
+        window.saveArticle = async () => { const title = document.getElementById('artTitle').value, slug = document.getElementById('artSlug').value, imageUrl = document.getElementById('artImageUrl').value, content = document.getElementById('artContent').value; if(!title || !slug) return window.showToast('Title and Slug required', 'error'); window.siteData.articles.push({ title, slug, imageUrl, content, date: new Date().toISOString() }); await set(ref(database, 'site/articles'), window.siteData.articles); document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artContent').value=''; document.getElementById('artImagePreview').style.display = 'none'; window.showToast('Article Published!'); };
         window.deleteArticle = (index) => { window.showConfirm("Delete article?", async () => { window.siteData.articles.splice(index, 1); await set(ref(database, 'site/articles'), window.siteData.articles); window.showToast('Deleted!'); }); }
 
-        /* MODALS & FORMS (Doctors/Services/Products) */
-        window.showEditModal = function(type, item) {
-            const m = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`;
-            const c = document.getElementById('editModalContent');
-            if (type === 'doctor') {
-                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhoto', 'ePhotoPreview')"><input type="hidden" id="ePhoto" value="${item?.photoUrl||''}"><img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}"></div><div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div><button class="btn btn-primary" onclick="window.saveDoctor(${item?.id||'null'})" style="width:100%;">Save</button>`;
-            } else if (type === 'service') {
-                c.innerHTML = `<div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div><div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Img Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'eBanner', 'eBannerPreview')"><input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}"><img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveService(${item?.id||'null'})" style="width:100%;">Save</button>`;
-            } else if (type === 'product') {
-                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div><div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div><div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')"><input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}"><img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveProduct(${item?.id||'null'})" style="width:100%;">Save</button>`;
-            }
-            m.style.display = 'block';
-        }
-        
-        window.addNewDoctor = () => window.showEditModal('doctor', null); window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d=>d.id===id)); window.deleteDoctor = (id) => window.showConfirm('Delete doctor?', async () => { await set(ref(database, 'site/doctors'), window.siteData.doctors.filter(d=>d.id!==id)); });
-        window.addNewService = () => window.showEditModal('service', null); window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s=>s.id===id)); window.deleteService = (id) => window.showConfirm('Delete service?', async () => { await set(ref(database, 'site/services'), window.siteData.services.filter(s=>s.id!==id)); });
-        window.addNewProduct = () => window.showEditModal('product', null); window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p=>p.id===id)); window.deleteProduct = (id) => window.showConfirm('Delete product?', async () => { await set(ref(database, 'site/products'), window.siteData.products.filter(p=>p.id!==id)); });
+        window.showEditModal = function(type, item) { const m = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`; const c = document.getElementById('editModalContent'); if (type === 'doctor') { c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhoto', 'ePhotoPreview')"><input type="hidden" id="ePhoto" value="${item?.photoUrl||''}"><img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}"></div><div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div><button class="btn btn-primary" onclick="window.saveDoctor(${item?.id||'null'})" style="width:100%;">Save</button>`; } else if (type === 'service') { c.innerHTML = `<div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div><div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Img Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'eBanner', 'eBannerPreview')"><input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}"><img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveService(${item?.id||'null'})" style="width:100%;">Save</button>`; } else if (type === 'product') { c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div><div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div><div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')"><input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}"><img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveProduct(${item?.id||'null'})" style="width:100%;">Save</button>`; } m.style.display = 'block'; }
+        window.addNewDoctor = () => window.showEditModal('doctor', null); window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d=>d.id===id)); window.deleteDoctor = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/doctors'), window.siteData.doctors.filter(d=>d.id!==id)); });
+        window.addNewService = () => window.showEditModal('service', null); window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s=>s.id===id)); window.deleteService = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/services'), window.siteData.services.filter(s=>s.id!==id)); });
+        window.addNewProduct = () => window.showEditModal('product', null); window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p=>p.id===id)); window.deleteProduct = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/products'), window.siteData.products.filter(p=>p.id!==id)); });
 
         window.saveDoctor = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('eName').value, qualification: document.getElementById('eQual').value, fees: document.getElementById('eFees').value, photoUrl: document.getElementById('ePhoto').value, details: document.getElementById('eDetails').value }; const arr = window.siteData.doctors||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/doctors'), arr); document.getElementById('editModal').style.display='none'; }
         window.saveService = async (id) => { const arr = window.siteData.services||[]; const old = id ? (arr.find(s=>s.id===id)?.tests||[]) : []; const d = { id: id||Date.now(), title: document.getElementById('eTitle').value, icon: document.getElementById('eIcon').value, description: document.getElementById('eDesc').value, bannerImageUrl: document.getElementById('eBanner').value, tests: old }; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/services'), arr); document.getElementById('editModal').style.display='none'; }
         window.saveProduct = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('ePName').value, price: document.getElementById('ePrice').value, description: document.getElementById('ePDesc').value, profilePhoto: document.getElementById('ePhotoM').value }; const arr = window.siteData.products||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/products'), arr); document.getElementById('editModal').style.display='none'; }
 
-        /* SUB SERVICES */
         window.manageSubServices = function(id) { window.currentServiceId = id; const s = window.siteData.services.find(s=>s.id===id); document.getElementById('subServicesTitle').textContent = `Manage: ${s.title}`; renderSub(s.tests||[]); document.getElementById('subServicesModal').style.display = 'block'; }
         function renderSub(tests) { document.getElementById('subServicesList').innerHTML = tests.length ? tests.map((t,i)=>`<div class="sub-service-item"><div><strong>${t.name}</strong> (${t.price})</div><div><button class="btn btn-secondary btn-buy-small" onclick="window.openEditSub(${i})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteSub(${i})">Del</button></div></div>`).join('') : '<p>No tests.</p>'; }
         window.addSubService = async () => { const name = document.getElementById('newSubServiceName').value, price = document.getElementById('newSubServicePrice').value; if(!name) return; const s = window.siteData.services.find(s=>s.id===window.currentServiceId); if(!s.tests) s.tests=[]; s.tests.push({id:Date.now(), name, price}); await set(ref(database, 'site/services'), window.siteData.services); document.getElementById('newSubServiceName').value=''; document.getElementById('newSubServicePrice').value=''; renderSub(s.tests); }
@@ -349,52 +193,12 @@
         document.getElementById('saveSubServiceBtn').onclick = async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests[activeSubServiceIndex].name = document.getElementById('editSubName').value; s.tests[activeSubServiceIndex].price = document.getElementById('editSubPrice').value; await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); document.getElementById('editSubServiceModal').style.display='none'; }
         window.deleteSub = (i) => window.showConfirm("Delete?", async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests.splice(i,1); await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); });
 
-        /* UTILS */
         window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 3000); }
         window.showConfirm = (msg, cb) => { document.getElementById('confirmMsg').textContent=msg; document.getElementById('customConfirmModal').style.display='block'; document.getElementById('confirmYesBtn').onclick=()=>{ document.getElementById('customConfirmModal').style.display='none'; cb(); } }
         
-        // Cloudinary (UPDATED TO NEW CLOUD NAME)
-        window.uploadToCloudinary = async (file) => { 
-            const fd = new FormData(); 
-            fd.append('file',file); 
-            fd.append('upload_preset','Physio_uploads'); 
-            
-            // USING NEW CLOUD NAME: desvmq2l9
-            const res = await fetch(`https://api.cloudinary.com/v1_1/desvmq2l9/image/upload`,{method:'POST',body:fd}); 
-            
-            if(!res.ok) throw new Error("Cloudinary upload failed");
-            return (await res.json()).secure_url; 
-        };
-        
-        window.handleImageUpload = async (input, fieldId, previewId) => { 
-            if(!input.files.length) return; 
-            window.showToast('Uploading securely...'); 
-            try { 
-                const url = await window.uploadToCloudinary(input.files[0]); 
-                document.getElementById(fieldId).value=url; 
-                if(previewId){ 
-                    document.getElementById(previewId).src=url; 
-                    document.getElementById(previewId).style.display='block'; 
-                } 
-                window.showToast('Uploaded successfully!'); 
-            } catch(e){ 
-                window.showToast('Upload Error. Check Preset settings.', 'error'); 
-            } 
-        };
-        
-        window.handleGalleryUpload = async (input, fieldId) => { 
-            if(!input.files.length) return; 
-            window.showToast('Uploading gallery...'); 
-            try { 
-                const urls=[]; 
-                for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); 
-                const ex=document.getElementById(fieldId).value; 
-                document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); 
-                window.showToast('Gallery updated!'); 
-            } catch(e){ 
-                window.showToast('Upload Error.', 'error'); 
-            } 
-        };
+        window.uploadToCloudinary = async (file) => { const fd = new FormData(); fd.append('file',file); fd.append('upload_preset','Physio_uploads'); const res = await fetch(`https://api.cloudinary.com/v1_1/desvmq2l9/image/upload`,{method:'POST',body:fd}); if(!res.ok) throw new Error("Upload failed"); return (await res.json()).secure_url; };
+        window.handleImageUpload = async (input, fieldId, previewId) => { if(!input.files.length) return; window.showToast('Uploading...'); try { const url = await window.uploadToCloudinary(input.files[0]); document.getElementById(fieldId).value=url; if(previewId){ document.getElementById(previewId).src=url; document.getElementById(previewId).style.display='block'; } window.showToast('Uploaded!'); } catch(e){ window.showToast('Upload Error.', 'error'); } };
+        window.handleGalleryUpload = async (input, fieldId) => { if(!input.files.length) return; window.showToast('Uploading gallery...'); try { const urls=[]; for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); const ex=document.getElementById(fieldId).value; document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); window.showToast('Gallery updated!'); } catch(e){ window.showToast('Upload Error.', 'error'); } };
     </script>
 </body>
 </html>
