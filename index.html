@@ -179,13 +179,19 @@
                     setupSlider(window.siteData.hero.sliderImages || [window.siteData.hero.bannerImageUrl]);
                 }
                 
-                // 1. Services Preview
-                document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => `
+                // 1. Services Preview (UPDATED to show bannerImageUrl if it exists)
+                document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => {
+                    const mediaHtml = s.bannerImageUrl 
+                        ? `<img src="${s.bannerImageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" loading="lazy">`
+                        : `<div style="font-size:2.5rem;margin-bottom:0.5rem;">${s.icon || '⚕️'}</div>`;
+                        
+                    return `
                     <a href="/services" class="card">
-                        <div style="font-size:2.5rem;margin-bottom:0.5rem;">${s.icon || '⚕️'}</div>
+                        ${mediaHtml}
                         <h4>${s.title}</h4>
-                        <p style="font-size:0.85rem; color:#666; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${s.description}</p>
-                    </a>`).join('');
+                        <p style="font-size:0.85rem; color:#666; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:0.5rem;">${s.description}</p>
+                    </a>`;
+                }).join('');
 
                 // 2. Doctors Preview
                 document.getElementById('doctorsPreview').innerHTML = (window.siteData.doctors || []).map(d => `
@@ -273,4 +279,3 @@
     </script>
 </body>
 </html>
-
