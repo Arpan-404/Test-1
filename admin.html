@@ -120,7 +120,7 @@
                     <div class="form-row two-col"><div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp"></div><div class="form-field"><label>Admin Emails</label><input type="text" id="adminEmail"></div></div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
                     <div class="form-row"><div class="form-field"><label>Logo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'adminLogoUrl', 'logoPreview')"><input type="hidden" id="adminLogoUrl"><img id="logoPreview" class="image-preview"></div></div>
-                    <div class="form-row"><div class="form-field"><label>Hero Slider Images</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; background:#f4f4f4;" readonly></textarea><button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div></div>
+                    <div class="form-row"><div class="form-field"><label>Hero Slider Images (Multiple)</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; background:#f4f4f4;" readonly></textarea><button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div></div>
                     <h3 style="margin-top:2.5rem; margin-bottom:1.5rem; color:#2c8577;">WhatsApp Templates</h3>
                     <div class="form-group"><label>General Appt</label><input type="text" id="tplGeneral"></div><div class="form-group"><label>Doctor Appt</label><input type="text" id="tplDoctor"></div><div class="form-group"><label>Service</label><input type="text" id="tplService"></div><div class="form-group"><label>Sub-Service</label><input type="text" id="tplSubService"></div><div class="form-group"><label>Product</label><input type="text" id="tplProduct"></div>
                     <button class="btn btn-primary" onclick="window.updateClinicInfo()" style="margin-top:1.5rem; width:100%;">Save All Changes</button>
@@ -132,7 +132,7 @@
             <div class="tab-panel" id="services-panel"><button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewService()">+ Add Service</button><div class="item-list" id="servicesAdminList"></div></div>
             <div class="tab-panel" id="products-panel"><button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="window.addNewProduct()">+ Add Product</button><div class="item-list" id="productsAdminList"></div></div>
 
-            <!-- ARTICLES / BLOG (RICH TEXT EDITOR) -->
+            <!-- ARTICLES / BLOG -->
             <div class="tab-panel" id="articles-panel">
                 <div class="form-section">
                     <h3 style="color:#2c8577; margin-bottom:1rem;">Write New Blog/Article</h3>
@@ -142,6 +142,13 @@
                     </div>
                     <div class="form-group"><label>URL Link Name (Auto-generated)</label><input type="text" id="artSlug"></div>
                     
+                    <div class="form-group">
+                        <label>Article Cover Image (Optional Preview Image)</label>
+                        <input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'artImageUrl', 'artImagePreview')">
+                        <input type="hidden" id="artImageUrl">
+                        <img id="artImagePreview" class="image-preview" style="width: 150px; height: 100px; border-radius: 8px;">
+                    </div>
+
                     <div class="form-group">
                         <label>Article Content</label>
                         <p style="font-size:0.85rem; color:#666; margin-bottom:0.5rem;">Use the toolbar below to add headings, bold text, and insert photos directly into your article.</p>
@@ -199,13 +206,13 @@
                         ['clean']
                     ],
                     handlers: {
-                        image: selectLocalImage // Custom image upload to Cloudinary
+                        image: selectLocalImage
                     }
                 }
             }
         });
 
-        // Function to intercept Quill Image insertion and send to Cloudinary
+        // Custom image upload to Cloudinary for the Rich Text Editor
         function selectLocalImage() {
             const input = document.createElement('input');
             input.setAttribute('type', 'file');
@@ -218,11 +225,11 @@
                     window.showToast('Uploading image securely to Cloudinary...', 'success');
                     try {
                         const url = await window.uploadToCloudinary(file);
-                        const range = quill.getSelection();
+                        const range = quill.getSelection() || { index: 0 };
                         quill.insertEmbed(range.index, 'image', url);
                         window.showToast('Image inserted successfully!');
                     } catch (e) {
-                        window.showToast('Image upload failed', 'error');
+                        window.showToast("Editor Upload Error: " + e.message, 'error');
                     }
                 } else {
                     window.showToast('You can only upload images.', 'error');
@@ -238,8 +245,8 @@
         });
 
         document.getElementById('adminLoginForm').onsubmit = async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('adminEmailInput').value, document.getElementById('adminPassword').value); window.showToast('Logged in!'); } catch(err) { window.showToast('Invalid credentials', 'error'); } };
-        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in!'); } catch(err) { window.showToast('Error', 'error'); } };
-        window.logout = () => { signOut(auth); window.showToast('Logged out'); };
+        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in via Google!'); } catch(err) { window.showToast('Error logging in.', 'error'); } };
+        window.logout = () => signOut(auth);
 
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -259,6 +266,8 @@
             document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
             document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} sub-services</p></div><div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="window.manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
             document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
+            
+            // Articles
             document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="article.html?id=${a.slug}" target="_blank">View Post</a></p></div><div class="item-actions"><button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
             
             // Populate Link Checkboxes for Articles
@@ -268,13 +277,13 @@
 
         window.updateClinicInfo = async () => { const h = { clinicName: document.getElementById('adminClinicName').value, title: document.getElementById('adminClinicName').value, tagline: document.getElementById('adminTagline').value, phone: document.getElementById('adminPhone').value, whatsappNumber: document.getElementById('adminWhatsApp').value, email: document.getElementById('adminEmail').value, logoUrl: document.getElementById('adminLogoUrl').value, sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) }; const s = { whatsappTemplates: { general: document.getElementById('tplGeneral').value, doctor: document.getElementById('tplDoctor').value, service: document.getElementById('tplService').value, subService: document.getElementById('tplSubService').value, product: document.getElementById('tplProduct').value } }; await update(ref(database, 'site/hero'), h); await update(ref(database, 'site/settings'), s); window.showToast('Clinic settings saved!'); };
 
-        /* ARTICLES LOGIC WITH RICH TEXT & LINKS */
+        /* ARTICLES LOGIC */
         window.saveArticle = async () => { 
             const title = document.getElementById('artTitle').value;
             const slug = document.getElementById('artSlug').value;
-            const contentHTML = quill.root.innerHTML; // Get rich text HTML
+            const imageUrl = document.getElementById('artImageUrl').value;
+            const contentHTML = quill.root.innerHTML; 
             
-            // Get linked checkboxes
             const linkedServices = Array.from(document.querySelectorAll('input[name="relService"]:checked')).map(cb => Number(cb.value));
             const linkedProducts = Array.from(document.querySelectorAll('input[name="relProduct"]:checked')).map(cb => Number(cb.value));
             
@@ -283,6 +292,7 @@
             window.siteData.articles.push({ 
                 title, 
                 slug, 
+                imageUrl,
                 content: contentHTML, 
                 linkedServices, 
                 linkedProducts,
@@ -292,7 +302,7 @@
             await set(ref(database, 'site/articles'), window.siteData.articles); 
             
             // Clear form
-            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; quill.root.innerHTML='';
+            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artImagePreview').style.display='none'; quill.root.innerHTML='';
             document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
             
             window.showToast('Article Published!'); 
@@ -316,12 +326,54 @@
         document.getElementById('saveSubServiceBtn').onclick = async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests[activeSubServiceIndex].name = document.getElementById('editSubName').value; s.tests[activeSubServiceIndex].price = document.getElementById('editSubPrice').value; await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); document.getElementById('editSubServiceModal').style.display='none'; }
         window.deleteSub = (i) => window.showConfirm("Delete?", async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests.splice(i,1); await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); });
 
-        window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 3000); }
+        window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 5000); }
         window.showConfirm = (msg, cb) => { document.getElementById('confirmMsg').textContent=msg; document.getElementById('customConfirmModal').style.display='block'; document.getElementById('confirmYesBtn').onclick=()=>{ document.getElementById('customConfirmModal').style.display='none'; cb(); } }
         
-        window.uploadToCloudinary = async (file) => { const fd = new FormData(); fd.append('file',file); fd.append('upload_preset','Physio_uploads'); const res = await fetch(`https://api.cloudinary.com/v1_1/desvmq2l9/image/upload`,{method:'POST',body:fd}); if(!res.ok) throw new Error("Upload failed"); return (await res.json()).secure_url; };
-        window.handleImageUpload = async (input, fieldId, previewId) => { if(!input.files.length) return; window.showToast('Uploading...'); try { const url = await window.uploadToCloudinary(input.files[0]); document.getElementById(fieldId).value=url; if(previewId){ document.getElementById(previewId).src=url; document.getElementById(previewId).style.display='block'; } window.showToast('Uploaded!'); } catch(e){ window.showToast('Upload Error.', 'error'); } };
-        window.handleGalleryUpload = async (input, fieldId) => { if(!input.files.length) return; window.showToast('Uploading gallery...'); try { const urls=[]; for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); const ex=document.getElementById(fieldId).value; document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); window.showToast('Gallery updated!'); } catch(e){ window.showToast('Upload Error.', 'error'); } };
+        // FIXED CLOUDINARY CONFIG: Restored Cloud Name to 'dyuni0dx5' from your screenshot!
+        window.uploadToCloudinary = async (file) => { 
+            const fd = new FormData(); 
+            fd.append('file', file); 
+            fd.append('upload_preset', 'Physio_uploads'); 
+            
+            // Reverted back to dyuni0dx5 since that is what the screenshot shows
+            const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, {method:'POST', body:fd}); 
+            const data = await res.json();
+            
+            if(!res.ok) {
+                // If it fails, this will throw the exact reason (e.g. "Preset not found")
+                throw new Error(data.error?.message || "Upload blocked.");
+            }
+            return data.secure_url; 
+        };
+        
+        window.handleImageUpload = async (input, fieldId, previewId) => { 
+            if(!input.files.length) return; 
+            window.showToast('Uploading...', 'success'); 
+            try { 
+                const url = await window.uploadToCloudinary(input.files[0]); 
+                document.getElementById(fieldId).value=url; 
+                if(previewId){ 
+                    document.getElementById(previewId).src=url; 
+                    document.getElementById(previewId).style.display='block'; 
+                } 
+                window.showToast('Uploaded!', 'success'); 
+            } catch(e) { 
+                window.showToast("Error: " + e.message, 'error'); 
+            } 
+        };
+        window.handleGalleryUpload = async (input, fieldId) => { 
+            if(!input.files.length) return; 
+            window.showToast('Uploading gallery...', 'success'); 
+            try { 
+                const urls=[]; 
+                for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); 
+                const ex=document.getElementById(fieldId).value; 
+                document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); 
+                window.showToast('Gallery updated!', 'success'); 
+            } catch(e) { 
+                window.showToast("Error: " + e.message, 'error'); 
+            } 
+        };
     </script>
 </body>
 </html>
