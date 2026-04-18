@@ -4,11 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Physio</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; }
+        
+        /* HEADER STYLES */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.4rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); height: 55px; gap: 10px; }
+        .logo { display: flex; align-items: center; text-decoration: none; }
+        .logo-img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
+        .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; }
+        .search-input { width: 100%; max-width: 300px; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid #e0e0e0; background: #f8f9fa; transition: all 0.3s ease; font-size: 0.9rem; outline: none; }
+        .search-input:focus { max-width: 400px; background: white; border-color: #2c8577; box-shadow: 0 0 0 3px rgba(44, 133, 119, 0.1); }
+        .search-results { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; max-height: 70vh; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1002; display: none; padding: 1rem; border: 1px solid #f0f0f0; }
+        .search-results.active { display: block; }
+        .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; text-decoration: none; color: inherit; }
+        .search-result-item:hover { background: #f8f9fa; }
+        .search-category-title { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; font-weight: bold; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 5px; flex-shrink: 0; }
+        .hamburger span { width: 22px; height: 2px; background: #2c8577; margin: 2.5px 0; border-radius: 2px; }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu ul { list-style: none; padding: 0; }
+        .mobile-menu ul li a { display: block; padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; text-decoration: none; color: #333; font-size: 1.1rem; }
+        .close-menu { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #2c8577; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .overlay.active { display: block; }
+
+        /* Admin Styles */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
         .modal-content { background-color: white; margin: auto; padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
@@ -29,7 +53,7 @@
         .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; margin-top: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         #authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; background: #e8f5f3; }
         .login-box { background: white; padding: 2.5rem; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .admin-dashboard { display: none; min-height: 100vh; padding-bottom: 2rem; }
+        .admin-dashboard { display: none; min-height: 100vh; padding-bottom: 2rem; padding-top: 60px; }
         .admin-dashboard.active { display: block; }
         .admin-header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .admin-tabs { display: flex; overflow-x: auto; background: white; border-bottom: 1px solid #dee2e6; margin-bottom: 1rem; }
@@ -54,11 +78,31 @@
     </style>
 </head>
 <body>
+    <!-- Global Header -->
+    <header class="header">
+        <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
+        <div class="search-container"><input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()"></div>
+        <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
+    </header>
+    <div id="searchResults" class="search-results"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="close-menu" onclick="window.toggleMenu()">&times;</button>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/doctors">Doctors</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/articles">Articles</a></li>
+            <li><a href="/prescription">Reports/Prescription</a></li>
+            <li><a href="/admin" style="color: #2c8577; font-weight: bold; background: #e8f5f3; margin-top: 1rem;">Admin Login</a></li>
+        </ul>
+    </div>
+    <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
+
     <div id="toastNotification"></div>
 
     <div id="authScreen">
         <div class="login-box">
-            <div style="text-align: right; margin-bottom: 1rem;"><a href="index.html" style="color:#999; text-decoration:none; font-size:0.9rem;">← Back to Site</a></div>
             <h2 style="color: #2c8577; margin-bottom: 1.5rem; text-align:center;">Admin Login</h2>
             <form id="adminLoginForm">
                 <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
@@ -77,10 +121,7 @@
     <div class="admin-dashboard" id="adminDashboard">
         <header class="admin-header">
             <h2 style="color:#2c8577;">Admin Dashboard</h2>
-            <div>
-                <a href="index.html" style="margin-right:1rem; color:#666; text-decoration:none; font-weight:bold;">View Site</a>
-                <button class="btn btn-danger btn-buy-small" onclick="window.logout()">Logout</button>
-            </div>
+            <button class="btn btn-danger btn-buy-small" onclick="window.logout()">Logout</button>
         </header>
 
         <nav class="admin-tabs">
@@ -105,7 +146,7 @@
                     <div class="form-row two-col"><div class="form-field"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp"></div><div class="form-field"><label>Admin Emails</label><input type="text" id="adminEmail"></div></div>
                     <div class="form-row"><div class="form-field"><label>Tagline</label><input type="text" id="adminTagline"></div></div>
                     <div class="form-row"><div class="form-field"><label>Logo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'adminLogoUrl', 'logoPreview')"><input type="hidden" id="adminLogoUrl"><img id="logoPreview" class="image-preview"></div></div>
-                    <div class="form-row"><div class="form-field"><label>Hero Slider Images</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; background:#f4f4f4;" readonly></textarea><button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div></div>
+                    <div class="form-row"><div class="form-field"><label>Hero Slider Images (Multiple)</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" class="form-group" style="width:100%; border-radius:6px; padding:8px; background:#f4f4f4;" readonly></textarea><button type="button" class="btn btn-secondary btn-buy-small" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div></div>
                     <h3 style="margin-top:2.5rem; margin-bottom:1.5rem; color:#2c8577;">WhatsApp Templates</h3>
                     <div class="form-group"><label>General Appt</label><input type="text" id="tplGeneral"></div><div class="form-group"><label>Doctor Appt</label><input type="text" id="tplDoctor"></div><div class="form-group"><label>Service</label><input type="text" id="tplService"></div><div class="form-group"><label>Sub-Service</label><input type="text" id="tplSubService"></div><div class="form-group"><label>Product</label><input type="text" id="tplProduct"></div>
                     <button class="btn btn-primary" onclick="window.updateClinicInfo()" style="margin-top:1.5rem; width:100%;">Save All Changes</button>
@@ -121,7 +162,7 @@
                     <h3 style="color:#2c8577; margin-bottom:1rem;">Write/Edit Blog Article</h3>
                     <div class="form-group">
                         <label>Article Title</label>
-                        <input type="text" id="artTitle" placeholder="e.g. What is Osteoarthritis?" oninput="document.getElementById('artSlug').value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');">
+                        <input type="text" id="artTitle" oninput="document.getElementById('artSlug').value = window.slugify(this.value);">
                     </div>
                     <div class="form-group"><label>URL Link Name (Auto-generated)</label><input type="text" id="artSlug"></div>
                     
@@ -134,13 +175,11 @@
 
                     <div class="form-group">
                         <label>Article Content</label>
-                        <p style="font-size:0.85rem; color:#666; margin-bottom:0.5rem;">Use the toolbar below to add headings, bold text, and insert photos directly into your article.</p>
                         <div id="editor-container"></div>
                     </div>
 
                     <div style="border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem;">
                         <h4 style="color:#2c8577; margin-bottom: 0.5rem;">Link Related Services & Products</h4>
-                        <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">Select items to show at the bottom of this article for patients to book/buy.</p>
                         <label>Related Services:</label><div class="checkbox-grid" id="linkServicesList"></div>
                         <label style="margin-top:1rem;">Related Products:</label><div class="checkbox-grid" id="linkProductsList"></div>
                     </div>
@@ -158,7 +197,6 @@
     <div id="customConfirmModal" class="modal" style="z-index: 4000;"><div class="modal-content" style="text-align: center; max-width: 400px;"><h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: #333;"></h3><div style="display: flex; gap: 1rem; justify-content: center;"><button id="confirmYesBtn" class="btn btn-danger">Yes, delete</button><button onclick="document.getElementById('customConfirmModal').style.display='none'" class="btn btn-secondary">Cancel</button></div></div></div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, set, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
@@ -166,154 +204,98 @@
 
         const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
         const database = getDatabase(app); const auth = getAuth(app); const googleProvider = new GoogleAuthProvider();
-        window.siteData = { doctors: [], services: [], products: [], articles: [] }; window.currentServiceId = null; let activeSubServiceIndex = null;
-        let activeArticleIndex = null; // Used to track if we are editing an existing article
+        window.siteData = { doctors: [], services: [], products: [], articles: [] }; window.currentServiceId = null; let activeSubServiceIndex = null; let activeArticleIndex = null;
 
-        const quill = new Quill('#editor-container', {
-            theme: 'snow', placeholder: 'Write your article here...',
-            modules: { toolbar: { container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], handlers: { image: selectLocalImage } } }
-        });
+        window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        window.toggleMenu = () => { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); };
+        document.addEventListener('click', (e) => { const r = document.getElementById('searchResults'), i = document.getElementById('globalSearch'); if (e.target !== r && e.target !== i && !r.contains(e.target)) r.classList.remove('active'); });
 
-        function selectLocalImage() {
-            const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
-            input.onchange = async () => {
-                const file = input.files[0];
-                if (/^image\//.test(file.type)) {
-                    window.showToast('Uploading image securely to Cloudinary...', 'success');
-                    try {
-                        const url = await window.uploadToCloudinary(file);
-                        const range = quill.getSelection() || { index: 0 };
-                        quill.insertEmbed(range.index, 'image', url);
-                        window.showToast('Image inserted successfully!');
-                    } catch (e) {
-                        window.showToast("Editor Upload Error: " + e.message, 'error');
-                    }
-                }
-            };
-        }
+        const quill = new Quill('#editor-container', { theme: 'snow', placeholder: 'Write your article here...', modules: { toolbar: { container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], handlers: { image: selectLocalImage } } } });
 
-        setPersistence(auth, browserLocalPersistence).then(() => {
-            onAuthStateChanged(auth, user => {
-                if(user) { document.getElementById('authScreen').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); } 
-                else { document.getElementById('authScreen').style.display = 'flex'; document.getElementById('adminDashboard').classList.remove('active'); }
-            });
-        });
+        function selectLocalImage() { const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click(); input.onchange = async () => { const file = input.files[0]; if (/^image\//.test(file.type)) { window.showToast('Uploading image securely...', 'success'); try { const url = await window.uploadToCloudinary(file); const range = quill.getSelection() || { index: 0 }; quill.insertEmbed(range.index, 'image', url); window.showToast('Inserted!'); } catch (e) { window.showToast("Upload Error: " + e.message, 'error'); } } }; }
 
+        setPersistence(auth, browserLocalPersistence).then(() => { onAuthStateChanged(auth, user => { if(user) { document.getElementById('authScreen').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); } else { document.getElementById('authScreen').style.display = 'flex'; document.getElementById('adminDashboard').classList.remove('active'); } }); });
         document.getElementById('adminLoginForm').onsubmit = async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('adminEmailInput').value, document.getElementById('adminPassword').value); window.showToast('Logged in!'); } catch(err) { window.showToast('Invalid credentials', 'error'); } };
         window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in!'); } catch(err) { window.showToast('Error', 'error'); } };
         window.logout = () => signOut(auth);
 
-        document.querySelectorAll('.admin-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
-            });
-        });
+        document.querySelectorAll('.admin-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active'); }); });
 
-        onValue(ref(database, 'site'), (snapshot) => { if(snapshot.exists()) { window.siteData = snapshot.val(); if(!window.siteData.articles) window.siteData.articles = []; updateFormAndLists(); } });
+        onValue(ref(database, 'site'), (snapshot) => { if(snapshot.exists()) { window.siteData = snapshot.val(); if(!window.siteData.articles) window.siteData.articles = []; updateFormAndLists(); if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl; } });
 
         function updateFormAndLists() {
             document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0; document.getElementById('totalServices').textContent = window.siteData.services?.length || 0; document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
             if(window.siteData.hero) { document.getElementById('adminClinicName').value = window.siteData.hero.clinicName || ''; document.getElementById('adminPhone').value = window.siteData.hero.phone || ''; document.getElementById('adminWhatsApp').value = window.siteData.hero.whatsappNumber || ''; document.getElementById('adminEmail').value = window.siteData.hero.email || ''; document.getElementById('adminTagline').value = window.siteData.hero.tagline || ''; document.getElementById('adminLogoUrl').value = window.siteData.hero.logoUrl || ''; if(window.siteData.hero.logoUrl) { document.getElementById('logoPreview').src = window.siteData.hero.logoUrl; document.getElementById('logoPreview').style.display = 'block'; } document.getElementById('adminSliderImages').value = (window.siteData.hero.sliderImages || []).join(', '); }
             if(window.siteData.settings?.whatsappTemplates) { const t = window.siteData.settings.whatsappTemplates; document.getElementById('tplGeneral').value = t.general || ''; document.getElementById('tplDoctor').value = t.doctor || ''; document.getElementById('tplService').value = t.service || ''; document.getElementById('tplSubService').value = t.subService || ''; document.getElementById('tplProduct').value = t.product || ''; }
-            
-            document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
-            document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} sub-services</p></div><div class="item-actions"><button class="btn btn-primary btn-buy-small" onclick="window.manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
-            document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
-            
-            // NEW: Added Edit Button to Articles
-            document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="article.html?id=${a.slug}" target="_blank">View Post</a></p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editArticle(${i})">Edit</button> <button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
-            
+            document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4></div><div class="item-actions"><a href="/doctor/${window.slugify(d.name)}" target="_blank" class="btn btn-secondary btn-buy-small">View</a><button class="btn btn-secondary btn-buy-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
+            document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4></div><div class="item-actions"><a href="/service/${window.slugify(s.title)}" target="_blank" class="btn btn-secondary btn-buy-small">View</a><button class="btn btn-primary btn-buy-small" onclick="window.manageSubServices(${s.id})">Subs</button><button class="btn btn-secondary btn-buy-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
+            document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4></div><div class="item-actions"><a href="/product/${window.slugify(p.name)}" target="_blank" class="btn btn-secondary btn-buy-small">View</a><button class="btn btn-secondary btn-buy-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
+            document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p><a href="/${a.slug}" target="_blank">/${a.slug}</a></p></div><div class="item-actions"><button class="btn btn-secondary btn-buy-small" onclick="window.editArticle(${i})">Edit</button> <button class="btn btn-danger btn-buy-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem;">No articles published yet.</p>';
             document.getElementById('linkServicesList').innerHTML = (window.siteData.services || []).map(s => `<label class="checkbox-item"><input type="checkbox" name="relService" value="${s.id}"> ${s.title}</label>`).join('');
             document.getElementById('linkProductsList').innerHTML = (window.siteData.products || []).map(p => `<label class="checkbox-item"><input type="checkbox" name="relProduct" value="${p.id}"> ${p.name}</label>`).join('');
         }
 
         window.updateClinicInfo = async () => { const h = { clinicName: document.getElementById('adminClinicName').value, title: document.getElementById('adminClinicName').value, tagline: document.getElementById('adminTagline').value, phone: document.getElementById('adminPhone').value, whatsappNumber: document.getElementById('adminWhatsApp').value, email: document.getElementById('adminEmail').value, logoUrl: document.getElementById('adminLogoUrl').value, sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) }; const s = { whatsappTemplates: { general: document.getElementById('tplGeneral').value, doctor: document.getElementById('tplDoctor').value, service: document.getElementById('tplService').value, subService: document.getElementById('tplSubService').value, product: document.getElementById('tplProduct').value } }; await update(ref(database, 'site/hero'), h); await update(ref(database, 'site/settings'), s); window.showToast('Clinic settings saved!'); };
 
-        /* EDIT ARTICLE LOGIC */
-        window.editArticle = (index) => {
-            activeArticleIndex = index;
-            const a = window.siteData.articles[index];
-            document.getElementById('artTitle').value = a.title;
-            document.getElementById('artSlug').value = a.slug;
-            document.getElementById('artImageUrl').value = a.imageUrl || '';
-            if (a.imageUrl) {
-                document.getElementById('artImagePreview').src = a.imageUrl;
-                document.getElementById('artImagePreview').style.display = 'block';
-            } else {
-                document.getElementById('artImagePreview').style.display = 'none';
-            }
-            quill.root.innerHTML = a.content || '';
-
-            // Check linked boxes
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            if(a.linkedServices) a.linkedServices.forEach(id => { const cb = document.querySelector(`input[name="relService"][value="${id}"]`); if(cb) cb.checked = true; });
-            if(a.linkedProducts) a.linkedProducts.forEach(id => { const cb = document.querySelector(`input[name="relProduct"][value="${id}"]`); if(cb) cb.checked = true; });
-
-            document.getElementById('publishArticleBtn').textContent = "Update Article";
-            document.getElementById('articles-panel').scrollIntoView({behavior: 'smooth'});
-        };
-
-        window.saveArticle = async () => { 
-            const title = document.getElementById('artTitle').value;
-            const slug = document.getElementById('artSlug').value;
-            const imageUrl = document.getElementById('artImageUrl').value;
-            const contentHTML = quill.root.innerHTML; 
-            
-            const linkedServices = Array.from(document.querySelectorAll('input[name="relService"]:checked')).map(cb => Number(cb.value));
-            const linkedProducts = Array.from(document.querySelectorAll('input[name="relProduct"]:checked')).map(cb => Number(cb.value));
-            
-            if(!title || !slug) return window.showToast('Title and Slug required', 'error'); 
-            
-            if(activeArticleIndex !== null) {
-                window.siteData.articles[activeArticleIndex] = { ...window.siteData.articles[activeArticleIndex], title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts };
-                activeArticleIndex = null;
-                document.getElementById('publishArticleBtn').textContent = "Publish Article";
-                window.showToast('Article Updated!');
-            } else {
-                window.siteData.articles.push({ title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts, date: new Date().toISOString() }); 
-                window.showToast('Article Published!');
-            }
-            
-            await set(ref(database, 'site/articles'), window.siteData.articles); 
-            
-            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artImagePreview').style.display='none'; quill.root.innerHTML='';
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        };
-        
+        window.editArticle = (index) => { activeArticleIndex = index; const a = window.siteData.articles[index]; document.getElementById('artTitle').value = a.title; document.getElementById('artSlug').value = a.slug; document.getElementById('artImageUrl').value = a.imageUrl || ''; if (a.imageUrl) { document.getElementById('artImagePreview').src = a.imageUrl; document.getElementById('artImagePreview').style.display = 'block'; } else { document.getElementById('artImagePreview').style.display = 'none'; } quill.root.innerHTML = a.content || ''; document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false); if(a.linkedServices) a.linkedServices.forEach(id => { const cb = document.querySelector(`input[name="relService"][value="${id}"]`); if(cb) cb.checked = true; }); if(a.linkedProducts) a.linkedProducts.forEach(id => { const cb = document.querySelector(`input[name="relProduct"][value="${id}"]`); if(cb) cb.checked = true; }); document.getElementById('publishArticleBtn').textContent = "Update Article"; document.getElementById('articles-panel').scrollIntoView({behavior: 'smooth'}); };
+        window.saveArticle = async () => { const title = document.getElementById('artTitle').value, slug = document.getElementById('artSlug').value, imageUrl = document.getElementById('artImageUrl').value, contentHTML = quill.root.innerHTML; const linkedServices = Array.from(document.querySelectorAll('input[name="relService"]:checked')).map(cb => Number(cb.value)); const linkedProducts = Array.from(document.querySelectorAll('input[name="relProduct"]:checked')).map(cb => Number(cb.value)); if(!title || !slug) return window.showToast('Title and Slug required', 'error'); if(activeArticleIndex !== null) { window.siteData.articles[activeArticleIndex] = { ...window.siteData.articles[activeArticleIndex], title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts }; activeArticleIndex = null; document.getElementById('publishArticleBtn').textContent = "Publish Article"; window.showToast('Updated!'); } else { window.siteData.articles.push({ title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts, date: new Date().toISOString() }); window.showToast('Published!'); } await set(ref(database, 'site/articles'), window.siteData.articles); document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artImagePreview').style.display='none'; quill.root.innerHTML=''; document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false); };
         window.deleteArticle = (index) => { window.showConfirm("Delete article?", async () => { window.siteData.articles.splice(index, 1); await set(ref(database, 'site/articles'), window.siteData.articles); window.showToast('Deleted!'); }); }
 
         window.showEditModal = function(type, item) { const m = document.getElementById('editModal'); document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`; const c = document.getElementById('editModalContent'); if (type === 'doctor') { c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qual</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhoto', 'ePhotoPreview')"><input type="hidden" id="ePhoto" value="${item?.photoUrl||''}"><img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}"></div><div class="form-group"><label>Details</label><textarea id="eDetails" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.details||''}</textarea></div><button class="btn btn-primary" onclick="window.saveDoctor(${item?.id||'null'})" style="width:100%;">Save</button>`; } else if (type === 'service') { c.innerHTML = `<div class="form-group"><label>Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Icon (Emoji)</label><input type="text" id="eIcon" value="${item?.icon||''}"></div><div class="form-group"><label>Description</label><textarea id="eDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Img Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'eBanner', 'eBannerPreview')"><input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}"><img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveService(${item?.id||'null'})" style="width:100%;">Save</button>`; } else if (type === 'product') { c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="ePName" value="${item?.name||''}"></div><div class="form-group"><label>Price</label><input type="text" id="ePrice" value="${item?.price||''}"></div><div class="form-group"><label>Description</label><textarea id="ePDesc" class="form-group" style="width:100%; border-radius:6px; padding:8px;">${item?.description||''}</textarea></div><div class="form-group"><label>Photo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')"><input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}"><img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}"></div><button class="btn btn-primary" onclick="window.saveProduct(${item?.id||'null'})" style="width:100%;">Save</button>`; } m.style.display = 'block'; }
-        window.addNewDoctor = () => window.showEditModal('doctor', null); window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d=>d.id===id)); window.deleteDoctor = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/doctors'), window.siteData.doctors.filter(d=>d.id!==id)); });
-        window.addNewService = () => window.showEditModal('service', null); window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s=>s.id===id)); window.deleteService = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/services'), window.siteData.services.filter(s=>s.id!==id)); });
-        window.addNewProduct = () => window.showEditModal('product', null); window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p=>p.id===id)); window.deleteProduct = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/products'), window.siteData.products.filter(p=>p.id!==id)); });
-
-        window.saveDoctor = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('eName').value, qualification: document.getElementById('eQual').value, fees: document.getElementById('eFees').value, photoUrl: document.getElementById('ePhoto').value, details: document.getElementById('eDetails').value }; const arr = window.siteData.doctors||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/doctors'), arr); document.getElementById('editModal').style.display='none'; }
-        window.saveService = async (id) => { const arr = window.siteData.services||[]; const old = id ? (arr.find(s=>s.id===id)?.tests||[]) : []; const d = { id: id||Date.now(), title: document.getElementById('eTitle').value, icon: document.getElementById('eIcon').value, description: document.getElementById('eDesc').value, bannerImageUrl: document.getElementById('eBanner').value, tests: old }; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/services'), arr); document.getElementById('editModal').style.display='none'; }
-        window.saveProduct = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('ePName').value, price: document.getElementById('ePrice').value, description: document.getElementById('ePDesc').value, profilePhoto: document.getElementById('ePhotoM').value }; const arr = window.siteData.products||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/products'), arr); document.getElementById('editModal').style.display='none'; }
-
+        window.addNewDoctor = () => window.showEditModal('doctor', null); window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d=>d.id===id)); window.deleteDoctor = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/doctors'), window.siteData.doctors.filter(d=>d.id!==id)); }); window.addNewService = () => window.showEditModal('service', null); window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s=>s.id===id)); window.deleteService = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/services'), window.siteData.services.filter(s=>s.id!==id)); }); window.addNewProduct = () => window.showEditModal('product', null); window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p=>p.id===id)); window.deleteProduct = (id) => window.showConfirm('Delete?', async () => { await set(ref(database, 'site/products'), window.siteData.products.filter(p=>p.id!==id)); });
+        window.saveDoctor = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('eName').value, qualification: document.getElementById('eQual').value, fees: document.getElementById('eFees').value, photoUrl: document.getElementById('ePhoto').value, details: document.getElementById('eDetails').value }; const arr = window.siteData.doctors||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/doctors'), arr); document.getElementById('editModal').style.display='none'; }; window.saveService = async (id) => { const arr = window.siteData.services||[]; const old = id ? (arr.find(s=>s.id===id)?.tests||[]) : []; const d = { id: id||Date.now(), title: document.getElementById('eTitle').value, icon: document.getElementById('eIcon').value, description: document.getElementById('eDesc').value, bannerImageUrl: document.getElementById('eBanner').value, tests: old }; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/services'), arr); document.getElementById('editModal').style.display='none'; }; window.saveProduct = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('ePName').value, price: document.getElementById('ePrice').value, description: document.getElementById('ePDesc').value, profilePhoto: document.getElementById('ePhotoM').value }; const arr = window.siteData.products||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/products'), arr); document.getElementById('editModal').style.display='none'; };
         window.manageSubServices = function(id) { window.currentServiceId = id; const s = window.siteData.services.find(s=>s.id===id); document.getElementById('subServicesTitle').textContent = `Manage: ${s.title}`; renderSub(s.tests||[]); document.getElementById('subServicesModal').style.display = 'block'; }
         function renderSub(tests) { document.getElementById('subServicesList').innerHTML = tests.length ? tests.map((t,i)=>`<div class="sub-service-item"><div><strong>${t.name}</strong> (${t.price})</div><div><button class="btn btn-secondary btn-buy-small" onclick="window.openEditSub(${i})">Edit</button><button class="btn btn-danger btn-buy-small" onclick="window.deleteSub(${i})">Del</button></div></div>`).join('') : '<p>No tests.</p>'; }
         window.addSubService = async () => { const name = document.getElementById('newSubServiceName').value, price = document.getElementById('newSubServicePrice').value; if(!name) return; const s = window.siteData.services.find(s=>s.id===window.currentServiceId); if(!s.tests) s.tests=[]; s.tests.push({id:Date.now(), name, price}); await set(ref(database, 'site/services'), window.siteData.services); document.getElementById('newSubServiceName').value=''; document.getElementById('newSubServicePrice').value=''; renderSub(s.tests); }
         window.openEditSub = (i) => { activeSubServiceIndex = i; const t = window.siteData.services.find(s=>s.id===window.currentServiceId).tests[i]; document.getElementById('editSubName').value = t.name; document.getElementById('editSubPrice').value = t.price; document.getElementById('editSubServiceModal').style.display='block'; }
         document.getElementById('saveSubServiceBtn').onclick = async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests[activeSubServiceIndex].name = document.getElementById('editSubName').value; s.tests[activeSubServiceIndex].price = document.getElementById('editSubPrice').value; await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); document.getElementById('editSubServiceModal').style.display='none'; }
         window.deleteSub = (i) => window.showConfirm("Delete?", async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests.splice(i,1); await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); });
-
         window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 5000); }
         window.showConfirm = (msg, cb) => { document.getElementById('confirmMsg').textContent=msg; document.getElementById('customConfirmModal').style.display='block'; document.getElementById('confirmYesBtn').onclick=()=>{ document.getElementById('customConfirmModal').style.display='none'; cb(); } }
-        
-        window.uploadToCloudinary = async (file) => { 
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads'); 
-            const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, {method:'POST', body:fd}); 
-            const data = await res.json();
-            if(!res.ok) throw new Error(data.error?.message || "Upload blocked.");
-            return data.secure_url; 
-        };
-        
+        window.uploadToCloudinary = async (file) => { const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads'); const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, {method:'POST', body:fd}); const data = await res.json(); if(!res.ok) throw new Error(data.error?.message || "Upload blocked."); return data.secure_url; };
         window.handleImageUpload = async (input, fieldId, previewId) => { if(!input.files.length) return; window.showToast('Uploading...', 'success'); try { const url = await window.uploadToCloudinary(input.files[0]); document.getElementById(fieldId).value=url; if(previewId){ document.getElementById(previewId).src=url; document.getElementById(previewId).style.display='block'; } window.showToast('Uploaded!', 'success'); } catch(e) { window.showToast("Error: " + e.message, 'error'); } };
         window.handleGalleryUpload = async (input, fieldId) => { if(!input.files.length) return; window.showToast('Uploading gallery...', 'success'); try { const urls=[]; for(let i=0; i<input.files.length; i++) urls.push(await window.uploadToCloudinary(input.files[i])); const ex=document.getElementById(fieldId).value; document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); window.showToast('Gallery updated!', 'success'); } catch(e) { window.showToast("Error: " + e.message, 'error'); } };
+        
+        // Search functionality
+        window.handleSearch = function() {
+            const query = document.getElementById('globalSearch').value.toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            if (!query) { resultsContainer.classList.remove('active'); return; }
+            let html = '';
+            
+            const servs = window.siteData.services?.filter(s => s.title.toLowerCase().includes(query)) || [];
+            if(servs.length) {
+                html += '<div class="search-category-title">Services</div>';
+                servs.forEach(s => { html += `<a href="/service/${window.slugify(s.title)}" class="search-result-item"><span style="font-size:1.2rem;">${s.icon||'⚕️'}</span> <div style="font-weight:600;">${s.title}</div></a>`; });
+            }
+
+            const docs = window.siteData.doctors?.filter(d => d.name.toLowerCase().includes(query) || d.qualification.toLowerCase().includes(query)) || [];
+            if(docs.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Doctors</div>';
+                docs.forEach(d => {
+                    const av = d.photoUrl ? `<img src="${d.photoUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : '👨‍⚕️';
+                    html += `<a href="/doctor/${window.slugify(d.name)}" class="search-result-item">${av} <div><div style="font-weight:600;font-size:0.95rem;">${d.name}</div><div style="font-size:0.8rem;color:#666;">${d.qualification}</div></div></a>`;
+                });
+            }
+
+            const prods = window.siteData.products?.filter(p => p.name.toLowerCase().includes(query)) || [];
+            if(prods.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Products</div>';
+                prods.forEach(p => {
+                    const img = p.profilePhoto ? `<img src="${p.profilePhoto}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">` : '📦';
+                    html += `<a href="/product/${window.slugify(p.name)}" class="search-result-item">${img} <div><div style="font-weight:600;">${p.name}</div><div style="color:#2c8577;font-size:0.85rem;">${p.price}</div></div></a>`;
+                });
+            }
+
+            const arts = window.siteData.articles?.filter(a => a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query)) || [];
+            if(arts.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Articles</div>';
+                arts.forEach(a => { html += `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:600;">${a.title}</div></div></a>`; });
+            }
+
+            resultsContainer.innerHTML = html || '<p style="text-align:center; color:#999; padding:1rem;">No results found.</p>';
+            resultsContainer.classList.add('active');
+        }
     </script>
 </body>
 </html>
-
