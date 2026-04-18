@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         /* =======================================================
-           PREMIUM NAVY THEME (COMPACT WITH LARGE IMAGES)
+           PREMIUM NAVY THEME (CLEAN HERO CARD)
            ======================================================= */
         :root {
             --app-bg: #f4f7fb;        
@@ -37,8 +37,6 @@
         .search-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
         
         .header-actions { display: flex; align-items: center; gap: 8px; }
-        .header-phone { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.1rem; transition: 0.2s; }
-        .header-phone:active { transform: scale(0.9); }
 
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
@@ -61,23 +59,26 @@
         /* --- MAIN APP LAYOUT --- */
         .main { margin-top: 75px; padding: 0 1rem; max-width: 700px; margin-left: auto; margin-right: auto; }
 
-        /* HERO & BOOKING */
-        .hero-wrapper { position: relative; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2.5rem; box-shadow: var(--shadow-soft); background: var(--primary-dark); }
-        .slider-track { display: flex; width: 100%; aspect-ratio: 16/9; transition: transform 0.8s ease; opacity: 0.8; }
+        /* UPDATED: HERO & BOOKING CARD (Clean White Bottom) */
+        .hero-wrapper { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2.5rem; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; }
+        
+        .slider-container { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--app-bg); }
+        .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease; }
         .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
         
-        .hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0) 100%); padding: 4rem 1.5rem 1.5rem; display: flex; flex-direction: column; align-items: flex-start; }
-        .hero-title { color: white; font-size: 2rem; font-weight: 800; line-height: 1.1; margin-bottom: 6px; letter-spacing: -0.5px; }
-        .hero-tagline { color: rgba(255,255,255,0.85); font-size: 1rem; margin-bottom: 1.2rem; font-style: italic; }
+        /* Content sits below the image on a clean white background */
+        .hero-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .hero-title { color: var(--text-dark); font-size: 1.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 4px; letter-spacing: -0.5px; }
+        .hero-tagline { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; font-style: italic; }
         
         /* Action Buttons Container (Side by Side Pills) */
         .hero-actions { display: flex; gap: 10px; width: 100%; align-items: center; }
-        .btn-book { flex: 2; background: var(--primary); color: white; border: none; padding: 14px 16px; border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.35); }
+        .btn-book { flex: 2; background: var(--primary); color: white; border: none; padding: 14px 16px; border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3); }
         .btn-book:active { transform: scale(0.98); background: var(--primary-dark); }
         
-        /* Updated Call Button (Oval/Pill) */
-        .btn-call { flex: 1; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: white; border-radius: 100px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 1rem; padding: 14px 16px; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-        .btn-call:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.25); }
+        /* Updated Call Button (Light Theme for White Background) */
+        .btn-call { flex: 1; background: var(--primary-light); color: var(--primary-dark); border-radius: 100px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 1rem; padding: 14px 16px; text-decoration: none; transition: 0.2s; }
+        .btn-call:active { transform: scale(0.95); background: #bfdbfe; }
 
         /* SECTION HEADERS */
         .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; margin-top: 2rem; }
@@ -124,7 +125,7 @@
     <!-- App Header -->
     <header class="header">
         <a href="/" class="logo">
-            <img src="https://via.placeholder.com/60x60/1e3a8a/ffffff?text=PT" alt="PT" class="logo-img" id="clinicLogo">
+            <img src="" alt="PT" class="logo-img" id="clinicLogo">
         </a>
         <div class="search-container">
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
@@ -157,14 +158,19 @@
     <!-- Main Content -->
     <main class="main">
         
-        <!-- Combined Hero & Booking -->
+        <!-- NEW: Clean Hero & Booking Card -->
         <div class="hero-wrapper">
-            <div class="slider-track" id="sliderTrack"></div>
-            <div class="hero-overlay">
-                <div class="hero-title" id="heroTitle">Therapeutic Moves</div>
-                <div class="hero-tagline" id="heroTagline">"We add life in your days"</div>
+            <!-- Image Slider Top Half -->
+            <div class="slider-container">
+                <div class="slider-track" id="sliderTrack"></div>
+            </div>
+            
+            <!-- Clean White Content Bottom Half -->
+            <div class="hero-content">
+                <h1 class="hero-title" id="heroTitle">Therapeutic Moves</h1>
+                <p class="hero-tagline" id="heroTagline">"We add life in your days"</p>
                 
-                <!-- Action Buttons: Book & Call side-by-side -->
+                <!-- Action Buttons -->
                 <div class="hero-actions">
                     <button class="btn-book" onclick="window.bookAppointment()">
                         Book Appointment
@@ -263,7 +269,7 @@
                     }
                 }
                 
-                // Render UPDATED SERVICES
+                // Render SERVICES
                 document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => {
                     const mediaHtml = s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`;
                     return `
