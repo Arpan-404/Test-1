@@ -2,70 +2,104 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Products - Physio Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Health Products - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; }
+        /* =======================================================
+           PREMIUM NAVY THEME (CLEAN & COMPACT)
+           ======================================================= */
+        :root {
+            --app-bg: #f4f7fb;        
+            --surface: #ffffff;       
+            --primary: #1d4ed8;       
+            --primary-dark: #1e3a8a;  
+            --primary-light: #dbeafe; 
+            --text-dark: #0f172a;     
+            --text-muted: #64748b;    
+            --shadow-soft: 0 4px 20px rgba(29, 78, 216, 0.05); 
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.5; padding-bottom: 2rem; }
+        a { text-decoration: none; color: inherit; }
+
+        /* HEADER */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .logo { display: flex; align-items: center; }
+        .logo-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
         
-        /* HEADER & SEARCH STYLES */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.4rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); height: 55px; gap: 10px; }
-        .logo { display: flex; align-items: center; text-decoration: none; }
-        .logo-img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
-        .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; }
-        .search-input { width: 100%; max-width: 300px; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid #e0e0e0; background: #f8f9fa; transition: all 0.3s ease; font-size: 0.9rem; outline: none; }
-        .search-input:focus { max-width: 400px; background: white; border-color: #2c8577; box-shadow: 0 0 0 3px rgba(44, 133, 119, 0.1); }
-        .search-results { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; max-height: 70vh; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1002; display: none; padding: 1rem; border: 1px solid #f0f0f0; }
+        .search-container { flex-grow: 1; display: flex; justify-content: center; }
+        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 100px; border: none; background: #f1f5f9; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
+        .search-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
+        
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
+        .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
+
+        /* Search Results & Menu */
+        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
         .search-results.active { display: block; }
-        .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; text-decoration: none; color: inherit; }
-        .search-result-item:hover { background: #f8f9fa; }
-        .search-category-title { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; font-weight: bold; }
-        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 5px; flex-shrink: 0; }
-        .hamburger span { width: 22px; height: 2px; background: #2c8577; margin: 2.5px 0; border-radius: 2px; }
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 8px; }
+        .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
+
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
         .mobile-menu.active { right: 0; }
-        .mobile-menu ul { list-style: none; padding: 0; }
-        .mobile-menu ul li a { display: block; padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; text-decoration: none; color: #333; font-size: 1.1rem; }
-        .close-menu { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #2c8577; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .mobile-menu ul { list-style: none; }
+        .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; }
+        .close-menu { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-dark); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
         .overlay.active { display: block; }
 
-        .main { margin-top: 55px; padding: 2rem 1rem; max-width: 1000px; margin-left: auto; margin-right: auto; }
-        .page-title { text-align: center; color: #2c8577; margin-bottom: 2rem; font-size: 2rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .card { background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06); display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-3px); }
-        .product-img { width: 100%; height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 1rem; background: #e8f5f3; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #ccc; }
-        .price { color: #2c8577; font-weight: 700; font-size: 1.3rem; margin: 0.5rem 0 1rem; }
+        /* MAIN CONTENT */
+        .main { margin-top: 75px; padding: 0 1rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+        .page-title { text-align: center; color: var(--text-dark); margin-bottom: 2rem; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+        
+        /* PRODUCT GRID (2-column layout on mobile) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        
+        .card { background: var(--surface); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow-soft); transition: transform 0.2s; border: 1px solid var(--border); }
+        .card:active { transform: scale(0.98); }
+        
+        .prod-img { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        
+        .prod-title { font-size: 0.95rem; font-weight: 800; color: var(--text-dark); line-height: 1.2; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .prod-price { font-size: 1.05rem; color: var(--primary); font-weight: 800; margin-bottom: 12px; }
+        .badge { background: var(--primary-light); color: var(--primary-dark); padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 800; margin-top: auto; width: 100%; }
+
     </style>
 </head>
 <body>
     <header class="header">
         <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
         <div class="search-container"><input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()"></div>
-        <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
+        <div class="header-actions"><div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div></div>
     </header>
 
     <div id="searchResults" class="search-results"></div>
 
     <div class="mobile-menu" id="mobileMenu">
-        <button class="close-menu" onclick="window.toggleMenu()">&times;</button>
+        <button class="close-menu" onclick="window.toggleMenu()">✕</button>
         <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/services">Services</a></li>
             <li><a href="/doctors">Doctors</a></li>
-            <li><a href="/products">Products</a></li>
-            <li><a href="/articles">Articles</a></li>
-            <li><a href="/prescription">Reports/Prescription</a></li>
-            <li><a href="/admin" style="color: #2c8577; font-weight: bold; background: #e8f5f3; margin-top: 1rem;">Admin Login</a></li>
+            <li><a href="/products">Store</a></li>
+            <li><a href="/articles">Health Feed</a></li>
+            <li><a href="/prescription">My Reports</a></li>
+            <li><a href="/admin" style="color: var(--primary); background: var(--primary-light); border-radius: 8px; margin: 1rem; text-align: center;">Admin</a></li>
         </ul>
     </div>
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <main class="main">
-        <h1 class="page-title">Health & Wellness Products</h1>
-        <div class="grid" id="productGrid">Loading...</div>
+        <h1 class="page-title">Store & Products</h1>
+        <div class="grid" id="productGrid">
+            <p style="text-align:center; grid-column: 1/-1; color:var(--text-muted);">Loading products...</p>
+        </div>
     </main>
 
     <script type="module">
@@ -75,6 +109,7 @@
         const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
         const db = getDatabase(app);
         window.siteData = {};
+        
         window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         window.toggleMenu = () => { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); };
         document.addEventListener('click', (e) => { const r = document.getElementById('searchResults'), i = document.getElementById('globalSearch'); if (e.target !== r && e.target !== i && !r.contains(e.target)) r.classList.remove('active'); });
@@ -84,60 +119,51 @@
             if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
             
             const products = window.siteData.products || [];
-            if (products.length === 0) { document.getElementById('productGrid').innerHTML = '<p style="text-align:center; grid-column: 1/-1; color:#666;">No products available at the moment.</p>'; return; }
+            if(products.length === 0) {
+                document.getElementById('productGrid').innerHTML = '<p style="text-align:center; grid-column: 1/-1; color:var(--text-muted);">No products available right now.</p>';
+                return;
+            }
 
             document.getElementById('productGrid').innerHTML = products.map(p => {
-                const imgHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="product-img" loading="lazy">` : `<div class="product-img">📦</div>`;
+                const imgHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="prod-img">📦</div>`;
                 return `
                 <a href="/product/${window.slugify(p.name)}" class="card">
                     ${imgHtml}
-                    <h2 style="color:#333; font-size:1.4rem;">${p.name}</h2>
-                    <div class="price">${p.price}</div>
-                    <span style="color:#2c8577; font-weight:bold;">View Details →</span>
+                    <h3 class="prod-title">${p.name}</h3>
+                    <p class="prod-price">${p.price}</p>
+                    <span class="badge">View Details</span>
                 </a>`;
             }).join('');
         });
 
         window.handleSearch = function() {
             const query = document.getElementById('globalSearch').value.toLowerCase();
-            const resultsContainer = document.getElementById('searchResults');
-            if (!query) { resultsContainer.classList.remove('active'); return; }
+            const res = document.getElementById('searchResults');
+            if (!query) { res.classList.remove('active'); return; }
+
             let html = '';
-            
-            const servs = window.siteData.services?.filter(s => s.title.toLowerCase().includes(query)) || [];
-            if(servs.length) {
-                html += '<div class="search-category-title">Services</div>';
-                servs.forEach(s => { html += `<a href="/service/${window.slugify(s.title)}" class="search-result-item"><span style="font-size:1.2rem;">${s.icon||'⚕️'}</span> <div style="font-weight:600;">${s.title}</div></a>`; });
-            }
+            const filterMap = (arr, fields, linkPrefix, imgFn, titleFn, subFn) => {
+                const filtered = (arr || []).filter(item => fields.some(f => item[f]?.toLowerCase().includes(query)));
+                if(filtered.length === 0) return '';
+                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(item.title || item.name)}" class="search-result-item">${imgFn(item)} <div><div style="font-weight:800;font-size:0.95rem;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
+            };
 
-            const docs = window.siteData.doctors?.filter(d => d.name.toLowerCase().includes(query) || d.qualification.toLowerCase().includes(query)) || [];
-            if(docs.length) {
-                html += '<div class="search-category-title" style="margin-top:15px;">Doctors</div>';
-                docs.forEach(d => {
-                    const av = d.photoUrl ? `<img src="${d.photoUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : '👨‍⚕️';
-                    html += `<a href="/doctor/${window.slugify(d.name)}" class="search-result-item">${av} <div><div style="font-weight:600;font-size:0.95rem;">${d.name}</div><div style="font-size:0.8rem;color:#666;">${d.qualification}</div></div></a>`;
-                });
-            }
+            const sHtml = filterMap(window.siteData.services, ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem">${s.icon}</div>`:`⚕️`, s=>s.title, s=>'Service');
+            if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
 
-            const prods = window.siteData.products?.filter(p => p.name.toLowerCase().includes(query)) || [];
-            if(prods.length) {
-                html += '<div class="search-category-title" style="margin-top:15px;">Products</div>';
-                prods.forEach(p => {
-                    const img = p.profilePhoto ? `<img src="${p.profilePhoto}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">` : '📦';
-                    html += `<a href="/product/${window.slugify(p.name)}" class="search-result-item">${img} <div><div style="font-weight:600;">${p.name}</div><div style="color:#2c8577;font-size:0.85rem;">${p.price}</div></div></a>`;
-                });
-            }
+            const dHtml = filterMap(window.siteData.doctors, ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
+            if(dHtml) html += `<div class="search-category-title">Doctors</div>${dHtml}`;
 
-            const arts = window.siteData.articles?.filter(a => a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query)) || [];
-            if(arts.length) {
-                html += '<div class="search-category-title" style="margin-top:15px;">Articles</div>';
-                arts.forEach(a => { html += `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:600;">${a.title}</div></div></a>`; });
-            }
+            const pHtml = filterMap(window.siteData.products, ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
+            if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
 
-            resultsContainer.innerHTML = html || '<p style="text-align:center; color:#999; padding:1rem;">No results found.</p>';
-            resultsContainer.classList.add('active');
+            const aHtml = (window.siteData.articles || []).filter(a => a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query))
+                .map(a => `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
+            if(aHtml) html += `<div class="search-category-title">Articles</div>${aHtml}`;
+
+            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem; font-size:0.9rem;">No results found</p>';
+            res.classList.add('active');
         }
     </script>
 </body>
 </html>
-
