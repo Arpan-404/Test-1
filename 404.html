@@ -23,6 +23,10 @@
             /* E-commerce specifics */
             --fk-buy: #fb641b;
             --fk-green: #388e3c;
+            
+            /* Wiki specifics */
+            --wiki-blue: #0645ad;
+            --wiki-border: #a2a9b1;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -41,7 +45,7 @@
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
 
         /* Search Results & Menu */
-        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
+        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; border: 1px solid #e0e0e0;}
         .search-results.active { display: block; }
         .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 4px; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
@@ -54,37 +58,25 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
         .overlay.active { display: block; }
 
-        /* GENERAL DETAIL PAGE STYLES (For Services, Doctors, Articles) */
+        /* GENERAL DETAIL PAGE STYLES (For Services & Doctors) */
         .main { max-width: 800px; margin: 80px auto 2rem; background: var(--surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
         .title { color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
         
-        .article-cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 2rem; display: none; }
-        .date { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; text-align: center;}
         .content { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;}
-        .content h2, .content h3 { color: var(--text-dark); margin-top: 2rem; margin-bottom: 1rem; }
-        .content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
         .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f3f6; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
         .doc-avatar { width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 4px solid var(--primary-light);}
         .entity-subtitle { color: var(--primary); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 1rem; }
         .entity-price { color: var(--primary); font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 2rem; }
         
-        /* BUTTONS */
         .btn { display: inline-block; padding: 14px 24px; background: var(--primary); color: white; border-radius: 100px; font-weight: 700; text-decoration: none; text-align: center; border: none; cursor: pointer; transition: 0.2s; width: 100%; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);}
         .btn:active { transform: scale(0.98); background: var(--primary-dark); }
-        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; }
+        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; border-radius: 100px;}
 
         /* TEST/SUB-SERVICE LIST */
-        .test-list { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
-        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--app-bg); margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .test-list { margin-top: 2rem; border-top: 1px solid #e0e0e0; padding-top: 1.5rem; }
+        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--app-bg); margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid #e0e0e0; }
         .test-name { font-weight: 800; color: var(--text-dark); font-size: 1.05rem; }
-
-        /* RELATED SECTION */
-        .related-section { margin-top: 3rem; padding-top: 2rem; border-top: 2px dashed var(--border); }
-        .related-title { color: var(--text-dark); font-size: 1.3rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center;}
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .card { background: var(--surface); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border); display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 1rem; background: var(--primary-light);}
 
         /* =======================================================
            E-COMMERCE (FLIPKART STYLE) PRODUCT DETAIL BLOCKS 
@@ -108,15 +100,40 @@
         .video-container { width: 100%; aspect-ratio: 16/9; margin-top: 15px; background: #000; }
         .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
 
-        /* Sticky Buy Bar */
         .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; padding: 8px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 999; }
         .btn-buy-now { flex: 1; background: var(--fk-buy); color: white; border: none; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn-buy-now:active { background: #e05a18; }
         
+        /* =======================================================
+           WIKIPEDIA STYLE ARTICLE DETAIL
+           ======================================================= */
+        .wiki-article-container { max-width: 900px; margin: 60px auto 0; background: #ffffff; padding: 2rem 3rem; font-family: sans-serif; color: #202122; border-left: 1px solid #eaecf0; border-right: 1px solid #eaecf0; min-height: 100vh; }
+        .wiki-article-title { font-family: "Linux Libertine", "Georgia", "Times", serif; font-size: 2.2rem; font-weight: normal; border-bottom: 1px solid var(--wiki-border); margin-bottom: 0.5rem; padding-bottom: 0.2rem; line-height: 1.2; }
+        .wiki-article-meta { font-size: 0.85rem; color: #54595d; margin-bottom: 1.5rem; }
+        
+        /* Academic image layout (Floats right) */
+        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1rem 1.5rem; border: 1px solid #c8ccd1; padding: 3px; background: #f8f9fa; }
+        
+        .wiki-content { font-size: 1rem; line-height: 1.6; }
+        .wiki-content p { margin-bottom: 1rem; }
+        .wiki-content h2, .wiki-content h3 { font-family: "Linux Libertine", "Georgia", "Times", serif; font-weight: normal; border-bottom: 1px solid var(--wiki-border); margin-top: 1.5rem; padding-bottom: 0.2rem; margin-bottom: 0.8rem; }
+        .wiki-content a { color: var(--wiki-blue); text-decoration: none; }
+        .wiki-content a:hover { text-decoration: underline; }
+        
+        .wiki-related-box { margin-top: 3rem; border: 1px solid var(--wiki-border); background: #f8f9fa; padding: 1.5rem; }
+        .wiki-related-title { font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid var(--wiki-border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .wiki-related-grid { display: flex; flex-direction: column; gap: 10px; }
+        .wiki-related-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: white; border: 1px solid var(--wiki-border); }
+
         #loading { text-align: center; padding: 8rem 2rem; font-size: 1.1rem; color: var(--text-muted); font-weight: 600;}
         .error-msg { text-align: center; color: red; display: none; margin-top: 80px; padding: 2rem; }
         
-        @media (max-width: 600px) { .main { padding: 1.5rem; margin: 80px 1rem 1rem; } .title { font-size: 1.6rem; } }
+        @media (max-width: 768px) { 
+            .main { padding: 1.5rem; margin: 80px 1rem 1rem; } 
+            .wiki-article-container { padding: 1.5rem 1rem; margin: 60px 0 0; border: none; }
+            .wiki-article-title { font-size: 1.8rem; }
+            .wiki-article-cover { float: none; width: 100%; margin: 1rem 0; }
+        }
     </style>
 </head>
 <body>
@@ -150,7 +167,7 @@
     <div class="error-msg" id="errorMsg">
         <h2>Page Not Found</h2>
         <p>The link you clicked doesn't exist.</p>
-        <a href="/" style="color:var(--primary); display:inline-block; margin-top:1rem; font-weight:bold;">Return Home</a>
+        <a href="/" style="color:var(--wiki-blue); display:inline-block; margin-top:1rem; font-weight:bold;">Return Home</a>
     </div>
 
     <script type="module">
@@ -235,7 +252,7 @@
                             <h1 class="title" style="margin-bottom:0.5rem;">${doc.name}</h1>
                             <div class="entity-subtitle">${doc.qualification}</div>
                             <div class="entity-price">Fee: ${doc.fees}</div>
-                            <p class="content">${doc.details}</p>
+                            <p class="content" style="text-align:center;">${doc.details}</p>
                             <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}')">Book Appointment</button>
                         </main>`;
                     }
@@ -244,8 +261,8 @@
                     const prod = (window.siteData.products || []).find(p => window.slugify(p.name) === reqSlug);
                     if(prod) {
                         found = true;
+                        document.body.style.background = "#f1f3f6"; // Flipkart BG
                         
-                        // FLIPKART STYLE PRODUCT RENDER
                         let galleryHtml = '';
                         let allImages = [];
                         if (prod.profilePhoto) allImages.push(prod.profilePhoto);
@@ -309,36 +326,59 @@
                                 </button>
                             </div>
                         </div>`;
-                        
-                        // Change body background specifically for the ecommerce look
-                        document.body.style.background = "#f1f3f6";
                     }
                 }
                 else {
+                    // WIKIPEDIA STYLE ARTICLE RENDER
                     const article = (window.siteData.articles || []).find(a => a.slug.toLowerCase() === reqSlug);
                     if(article) {
                         found = true;
+                        document.body.style.background = "#ffffff"; // Force white BG for Wiki mode
+                        
                         let relatedHtml = '';
                         if(article.linkedServices && window.siteData.services) {
                             window.siteData.services.filter(s => article.linkedServices.includes(s.id)).forEach(s => {
-                                const img = s.bannerImageUrl ? `<img src="${s.bannerImageUrl}">` : `<div>${s.icon||'⚕️'}</div>`;
-                                relatedHtml += `<div class="card"><a href="/service/${window.slugify(s.title)}" style="text-decoration:none; color:inherit;">${img}<h3 style="color:var(--text-dark); margin-bottom:0.5rem; font-size:1.1rem;">${s.title}</h3></a><button class="btn btn-small" style="margin-top:auto;" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book Service</button></div>`;
+                                relatedHtml += `
+                                <div class="wiki-related-item">
+                                    <div>
+                                        <div style="font-weight:bold; color:#0645ad;">${s.title}</div>
+                                        <div style="font-size:0.85rem; color:#54595d;">Service</div>
+                                    </div>
+                                    <button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book</button>
+                                </div>`;
                             });
                         }
                         if(article.linkedProducts && window.siteData.products) {
                             window.siteData.products.filter(p => article.linkedProducts.includes(p.id)).forEach(p => {
-                                const img = p.profilePhoto ? `<img src="${p.profilePhoto}">` : `<div>📦</div>`;
-                                relatedHtml += `<div class="card"><a href="/product/${window.slugify(p.name)}" style="text-decoration:none; color:inherit;">${img}<h3 style="color:var(--text-dark); margin-bottom:0.5rem; font-size:1.1rem;">${p.name}</h3><div style="color:var(--primary); font-weight:800; margin-bottom:0.5rem;">${p.price}</div></a><button class="btn btn-small" style="margin-top:auto;" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy Now</button></div>`;
+                                relatedHtml += `
+                                <div class="wiki-related-item">
+                                    <div>
+                                        <div style="font-weight:bold; color:#0645ad;">${p.name}</div>
+                                        <div style="font-size:0.85rem; color:#54595d;">Product - ${p.price}</div>
+                                    </div>
+                                    <button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button>
+                                </div>`;
                             });
                         }
 
+                        const dateStr = article.date ? new Date(article.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown date';
+
                         wrapper.innerHTML = `
-                        <main class="main">
-                            <h1 class="title">${article.title}</h1>
-                            ${article.imageUrl ? `<img src="${article.imageUrl}" class="article-cover" style="display:block;">` : ''}
-                            <div class="content ql-editor">${article.content}</div>
-                            ${relatedHtml ? `<div class="related-section"><h2 class="related-title">Recommended Next Steps</h2><div class="grid">${relatedHtml}</div></div>` : ''}
-                        </main>`;
+                        <div class="wiki-article-container">
+                            <h1 class="wiki-article-title">${article.title}</h1>
+                            <div class="wiki-article-meta">From Physio Hub, the free encyclopedia &bull; Last modified: ${dateStr}</div>
+                            
+                            <div class="wiki-content ql-editor">
+                                ${article.imageUrl ? `<img src="${article.imageUrl}" class="wiki-article-cover" alt="${article.title} diagram">` : ''}
+                                ${article.content}
+                            </div>
+                            
+                            ${relatedHtml ? `
+                            <div class="wiki-related-box">
+                                <div class="wiki-related-title">See also</div>
+                                <div class="wiki-related-grid">${relatedHtml}</div>
+                            </div>` : ''}
+                        </div>`;
                     }
                 }
 
