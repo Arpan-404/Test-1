@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physio - The Therapeutic Moves</title>
+    <title>Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
-        /* =======================================================
-           PREMIUM NAVY THEME (CLEAN HERO CARD)
-           ======================================================= */
         :root {
             --app-bg: #f4f7fb;        
             --surface: #ffffff;       
@@ -27,7 +24,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.5; padding-bottom: 2rem; }
         a { text-decoration: none; color: inherit; }
 
-        /* --- APP HEADER --- */
         .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
         .logo { display: flex; align-items: center; }
         .logo-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
@@ -41,13 +37,11 @@
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
 
-        /* Search Results */
         .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
         .search-results.active { display: block; }
         .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 8px; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
 
-        /* Mobile Menu */
         .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
         .mobile-menu.active { right: 0; }
         .mobile-menu ul { list-style: none; }
@@ -56,62 +50,44 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
         .overlay.active { display: block; }
 
-        /* --- MAIN APP LAYOUT --- */
         .main { margin-top: 75px; padding: 0 1rem; max-width: 700px; margin-left: auto; margin-right: auto; }
 
-        /* UPDATED: HERO & BOOKING CARD (Clean White Bottom) */
         .hero-wrapper { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2.5rem; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; }
-        
         .slider-container { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--app-bg); }
         .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease; }
         .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
         
-        /* Content sits below the image on a clean white background */
-        .hero-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .hero-title { color: var(--text-dark); font-size: 1.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 4px; letter-spacing: -0.5px; }
-        .hero-tagline { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; font-style: italic; }
-        
-        /* Action Buttons Container (Side by Side Pills) */
+        .hero-content { padding: 1.2rem 1.5rem 1.5rem; display: flex; flex-direction: column; align-items: center; }
         .hero-actions { display: flex; gap: 10px; width: 100%; align-items: center; }
         .btn-book { flex: 2; background: var(--primary); color: white; border: none; padding: 14px 16px; border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3); }
         .btn-book:active { transform: scale(0.98); background: var(--primary-dark); }
-        
-        /* Updated Call Button (Light Theme for White Background) */
         .btn-call { flex: 1; background: var(--primary-light); color: var(--primary-dark); border-radius: 100px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 1rem; padding: 14px 16px; text-decoration: none; transition: 0.2s; }
         .btn-call:active { transform: scale(0.95); background: #bfdbfe; }
 
-        /* SECTION HEADERS */
         .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; margin-top: 2rem; }
         .section-title { font-size: 1.3rem; font-weight: 800; color: var(--text-dark); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
         .view-all { font-size: 0.85rem; color: var(--primary); font-weight: 700; background: var(--primary-light); padding: 4px 12px; border-radius: 100px; }
 
-        /* HORIZONTAL SCROLL CONTAINERS */
         .h-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; margin: 0 -1rem; padding: 0 1rem 15px; scroll-snap-type: x mandatory; }
         .h-scroll::-webkit-scrollbar { display: none; }
         
-        /* SERVICES CARDS */
         .card-compact { min-width: 300px; width: 300px; background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; align-items: center; gap: 12px; scroll-snap-align: start; box-shadow: var(--shadow-soft); transition: transform 0.2s; }
         .card-compact:active { transform: scale(0.98); }
-        
         .card-compact-img { width: 130px; height: 110px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
-        
         .card-compact-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
         .card-compact-title { font-size: 1rem; font-weight: 800; color: var(--text-dark); line-height: 1.25; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .card-compact-desc { font-size: 0.8rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* DOCTOR CARDS */
         .doc-card { min-width: 140px; width: 140px; background: var(--surface); border-radius: var(--radius-md); padding: 1.2rem; text-align: center; display: flex; flex-direction: column; align-items: center; scroll-snap-align: start; box-shadow: var(--shadow-soft); }
         .doc-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
         .doc-card h4 { font-size: 0.95rem; font-weight: 800; margin-bottom: 2px; line-height: 1.2; }
         .doc-card p { font-size: 0.75rem; color: var(--primary); font-weight: 700; }
 
-        /* PRODUCTS CARDS */
         .prod-card { min-width: 150px; width: 150px; background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; flex-direction: column; scroll-snap-align: start; box-shadow: var(--shadow-soft); }
         .prod-img { width: 100%; height: 110px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
         .prod-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
         .prod-price { font-size: 0.95rem; color: var(--primary); font-weight: 800; margin-top: 2px; }
 
-        /* ARTICLES LIST */
         .article-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
         .article-row { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); }
         .article-row img { width: 80px; height: 80px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; background: var(--app-bg); }
@@ -122,7 +98,6 @@
     </style>
 </head>
 <body>
-    <!-- App Header -->
     <header class="header">
         <a href="/" class="logo">
             <img src="" alt="PT" class="logo-img" id="clinicLogo">
@@ -130,7 +105,6 @@
         <div class="search-container">
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
-        
         <div class="header-actions">
             <div class="hamburger" onclick="window.toggleMenu()">
                 <span></span><span></span><span></span>
@@ -140,7 +114,6 @@
 
     <div id="searchResults" class="search-results"></div>
 
-    <!-- Mobile Navigation Drawer -->
     <div class="mobile-menu" id="mobileMenu">
         <button class="close-menu" onclick="window.toggleMenu()">✕</button>
         <ul>
@@ -155,22 +128,14 @@
     </div>
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
-    <!-- Main Content -->
     <main class="main">
         
-        <!-- NEW: Clean Hero & Booking Card -->
         <div class="hero-wrapper">
-            <!-- Image Slider Top Half -->
             <div class="slider-container">
                 <div class="slider-track" id="sliderTrack"></div>
             </div>
             
-            <!-- Clean White Content Bottom Half -->
             <div class="hero-content">
-                <h1 class="hero-title" id="heroTitle">Therapeutic Moves</h1>
-                <p class="hero-tagline" id="heroTagline">"We add life in your days"</p>
-                
-                <!-- Action Buttons -->
                 <div class="hero-actions">
                     <button class="btn-book" onclick="window.bookAppointment()">
                         Book Appointment
@@ -182,28 +147,24 @@
             </div>
         </div>
 
-        <!-- COMPACT HORIZONTAL SERVICES WITH LARGE DIAGRAM IMAGES -->
         <div class="section-header">
             <h2 class="section-title">Services</h2>
             <a href="/services" class="view-all">See All</a>
         </div>
         <div class="h-scroll" id="servicesPreview"></div>
 
-        <!-- Doctors -->
         <div class="section-header">
             <h2 class="section-title">Specialists</h2>
             <a href="/doctors" class="view-all">See All</a>
         </div>
         <div class="h-scroll" id="doctorsPreview"></div>
 
-        <!-- Products -->
         <div class="section-header">
             <h2 class="section-title">Products</h2>
             <a href="/products" class="view-all">Shop All</a>
         </div>
         <div class="h-scroll" id="productsPreview"></div>
 
-        <!-- Articles List -->
         <div class="section-header">
             <h2 class="section-title">Health Feed</h2>
             <a href="/articles" class="view-all">Read All</a>
@@ -218,7 +179,6 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
 
-        // Initialize Firebase
         const app = initializeApp({
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -228,14 +188,12 @@
         const database = getDatabase(app);
         window.siteData = {};
 
-        // Utilities
         window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         window.toggleMenu = () => {
             document.getElementById('mobileMenu').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('active');
         };
 
-        // Slider Logic
         let slideIndex = 0; let slideDirection = 1;
         function setupSlider(images) {
             const track = document.getElementById('sliderTrack');
@@ -250,26 +208,20 @@
             }
         }
 
-        // Fetch Data
         onValue(ref(database, 'site'), (snapshot) => {
             if(snapshot.exists()) {
                 window.siteData = snapshot.val();
                 
-                // Populate Hero, Header & Phone
                 if(window.siteData.hero) {
                     if(window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
-                    document.getElementById('heroTitle').textContent = window.siteData.hero.title;
-                    document.getElementById('heroTagline').textContent = window.siteData.hero.tagline;
                     setupSlider(window.siteData.hero.sliderImages || [window.siteData.hero.bannerImageUrl]);
                     
-                    // Set the hero phone link dynamically for the new Call button
                     if(window.siteData.hero.phone) {
                         const cleanPhone = window.siteData.hero.phone.replace(/[^0-9+]/g, '');
                         document.getElementById('heroPhone').href = `tel:${cleanPhone}`;
                     }
                 }
                 
-                // Render SERVICES
                 document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => {
                     const mediaHtml = s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`;
                     return `
@@ -282,7 +234,6 @@
                     </a>`;
                 }).join('');
 
-                // Render Doctors
                 document.getElementById('doctorsPreview').innerHTML = (window.siteData.doctors || []).map(d => {
                     const avatarHtml = d.photoUrl ? `<img src="${d.photoUrl}" class="doc-avatar" loading="lazy">` : `<div class="doc-avatar">👨‍⚕️</div>`;
                     return `
@@ -292,7 +243,6 @@
                     </a>`;
                 }).join('');
 
-                // Render Products
                 document.getElementById('productsPreview').innerHTML = (window.siteData.products || []).map(p => {
                     const mediaHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="prod-img">📦</div>`;
                     return `
@@ -303,7 +253,6 @@
                     </a>`;
                 }).join('');
 
-                // Render Clean Articles List
                 const articles = window.siteData.articles || [];
                 if(articles.length === 0) {
                     document.getElementById('articleFeed').innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No articles yet.</p>';
@@ -322,7 +271,6 @@
             }
         });
 
-        // Search Setup
         window.handleSearch = function() {
             const query = document.getElementById('globalSearch').value.toLowerCase();
             const res = document.getElementById('searchResults');
