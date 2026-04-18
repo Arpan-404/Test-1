@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article - Physio Hub</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; line-height: 1.8; }
+        
+        /* HEADER & SEARCH STYLES */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.4rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); height: 55px; gap: 10px; }
+        .logo { display: flex; align-items: center; text-decoration: none; }
+        .logo-img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
+        .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; }
+        .search-input { width: 100%; max-width: 300px; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid #e0e0e0; background: #f8f9fa; transition: all 0.3s ease; font-size: 0.9rem; outline: none; }
+        .search-input:focus { max-width: 400px; background: white; border-color: #2c8577; box-shadow: 0 0 0 3px rgba(44, 133, 119, 0.1); }
+        .search-results { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; max-height: 70vh; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1002; display: none; padding: 1rem; border: 1px solid #f0f0f0; }
+        .search-results.active { display: block; }
+        .search-result-item { padding: 0.8rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; border-radius: 8px; text-decoration: none; color: inherit; }
+        .search-result-item:hover { background: #f8f9fa; }
+        .search-category-title { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; font-weight: bold; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 5px; flex-shrink: 0; }
+        .hamburger span { width: 22px; height: 2px; background: #2c8577; margin: 2.5px 0; border-radius: 2px; }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); z-index: 1001; transition: right 0.3s ease; padding: 2rem 0; }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu ul { list-style: none; padding: 0; }
+        .mobile-menu ul li a { display: block; padding: 1rem 2rem; border-bottom: 1px solid #f0f0f0; cursor: pointer; text-decoration: none; color: #333; font-size: 1.1rem; }
+        .close-menu { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #2c8577; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .overlay.active { display: block; }
+
+        /* ARTICLE STYLES */
+        .main { max-width: 800px; margin: 80px auto 2rem; background: white; padding: 3rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .title { color: #2c8577; font-size: 2.5rem; margin-bottom: 2rem; line-height: 1.2; }
+        .article-cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 2rem; display: none; }
+        .content { font-size: 1.1rem; color: #444; }
+        .content h2, .content h3 { color: #2c8577; margin-top: 2rem; margin-bottom: 1rem; }
+        .content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .content p { margin-bottom: 1rem; }
+        .content ul, .content ol { margin-bottom: 1rem; padding-left: 2rem; }
+        .related-section { margin-top: 3rem; padding-top: 2rem; border-top: 2px dashed #e8f5f3; }
+        .related-title { color: #2c8577; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #eee; display: flex; flex-direction: column; }
+        .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+        .btn { display: inline-block; padding: 0.6rem 1.2rem; background: #2c8577; color: white; border-radius: 20px; font-weight: bold; text-decoration: none; margin-top: auto; width: 100%; text-align: center; border: none; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: #1a5c51; }
+        #loading { text-align: center; padding: 8rem 2rem; font-size: 1.2rem; color: #666; }
+        .error-msg { text-align: center; color: red; display: none; margin-top: 80px; padding: 2rem; }
+        
+        @media (max-width: 600px) { .main { padding: 1.5rem; margin: 80px 1rem 1rem; } .title { font-size: 1.8rem; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo"><img src="https://via.placeholder.com/40x40/2c8577/ffffff?text=PT" alt="PT" class="logo-img" id="clinicLogo"></a>
+        <div class="search-container">
+            <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
+        </div>
+        <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
+    </header>
+
+    <div id="searchResults" class="search-results"></div>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="close-menu" onclick="window.toggleMenu()">&times;</button>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/doctors">Doctors</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/articles">Articles</a></li>
+            <li><a href="/prescription">Reports/Prescription</a></li>
+            <li><a href="/admin" style="color: #2c8577; font-weight: bold; background: #e8f5f3; margin-top: 1rem;">Admin Login</a></li>
+        </ul>
+    </div>
+    <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
+
+    <div id="loading">Loading Article...</div>
+
+    <main class="main" id="articleMain" style="display: none;">
+        <h1 class="title" id="artTitle"></h1>
+        <img id="artCoverImage" class="article-cover" alt="Article Cover Image">
+        <div class="content ql-editor" id="artContent"></div>
+        <div id="relatedSection" class="related-section" style="display: none;">
+            <h2 class="related-title">Recommended Next Steps</h2>
+            <div class="grid" id="relatedGrid"></div>
+        </div>
+    </main>
+
+    <div class="error-msg" id="errorMsg">
+        <h2>Page Not Found</h2>
+        <p>The link you clicked doesn't exist.</p>
+        <a href="/" style="color:#2c8577; display:inline-block; margin-top:1rem;">Return Home</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const db = getDatabase(app);
+
+        window.siteData = {}; // Global for search
+
+        // Menu Toggle
+        window.toggleMenu = () => {
+            document.getElementById('mobileMenu').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        };
+
+        // Close search clicking outside
+        document.addEventListener('click', (e) => {
+            const searchResults = document.getElementById('searchResults');
+            const searchInput = document.getElementById('globalSearch');
+            if (e.target !== searchResults && e.target !== searchInput && !searchResults.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        const currentSlug = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase();
+
+        if(!currentSlug) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+        } else {
+            get(ref(db, 'site')).then((snapshot) => {
+                document.getElementById('loading').style.display = 'none';
+                window.siteData = snapshot.val() || {};
+                const articles = window.siteData.articles || [];
+                
+                // Set Logo if exists
+                if(window.siteData.hero && window.siteData.hero.logoUrl) {
+                    document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
+                }
+
+                const article = articles.find(a => a.slug.toLowerCase() === currentSlug);
+
+                if(article) {
+                    document.getElementById('articleMain').style.display = 'block';
+                    document.getElementById('artTitle').textContent = article.title;
+                    document.getElementById('artContent').innerHTML = article.content;
+
+                    if(article.imageUrl) {
+                        const imgEl = document.getElementById('artCoverImage');
+                        imgEl.src = article.imageUrl;
+                        imgEl.style.display = 'block';
+                    }
+
+                    const wNum = (window.siteData.hero?.whatsappNumber || '').replace('+', '');
+                    let relatedHtml = '';
+
+                    if(article.linkedServices && window.siteData.services) {
+                        const matchedServices = window.siteData.services.filter(s => article.linkedServices.includes(s.id));
+                        matchedServices.forEach(s => {
+                            const img = s.bannerImageUrl ? `<img src="${s.bannerImageUrl}">` : `<div style="font-size:3rem; margin-bottom:1rem;">${s.icon || '⚕️'}</div>`;
+                            relatedHtml += `<div class="card">${img}<h3 style="color:#2c8577; margin-bottom:0.5rem; font-size:1.2rem;">${s.title}</h3><button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, after reading your article, I want to book: ${encodeURIComponent(s.title)}')">Book Service</button></div>`;
+                        });
+                    }
+
+                    if(article.linkedProducts && window.siteData.products) {
+                        const matchedProducts = window.siteData.products.filter(p => article.linkedProducts.includes(p.id));
+                        matchedProducts.forEach(p => {
+                            const img = p.profilePhoto ? `<img src="${p.profilePhoto}">` : `<div style="font-size:3rem; margin-bottom:1rem;">📦</div>`;
+                            relatedHtml += `<div class="card">${img}<h3 style="color:#333; margin-bottom:0.5rem; font-size:1.2rem;">${p.name}</h3><div style="color:#2c8577; font-weight:bold; margin-bottom:0.5rem;">${p.price}</div><button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, after reading your article, I want to buy: ${encodeURIComponent(p.name)}')">Buy Now</button></div>`;
+                        });
+                    }
+
+                    if(relatedHtml) {
+                        document.getElementById('relatedGrid').innerHTML = relatedHtml;
+                        document.getElementById('relatedSection').style.display = 'block';
+                    }
+
+                } else {
+                    document.getElementById('errorMsg').style.display = 'block';
+                }
+            }).catch(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('errorMsg').style.display = 'block';
+            });
+        }
+
+        // Global Search Logic
+        window.handleSearch = function() {
+            const query = document.getElementById('globalSearch').value.toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            if (!query) { resultsContainer.classList.remove('active'); return; }
+
+            let html = '';
+            
+            const servs = window.siteData.services?.filter(s => s.title.toLowerCase().includes(query)) || [];
+            if(servs.length) {
+                html += '<div class="search-category-title">Services</div>';
+                servs.forEach(s => { html += `<a href="/services" class="search-result-item"><span style="font-size:1.2rem;">${s.icon||'⚕️'}</span> <div style="font-weight:600;">${s.title}</div></a>`; });
+            }
+
+            const docs = window.siteData.doctors?.filter(d => d.name.toLowerCase().includes(query) || d.qualification.toLowerCase().includes(query)) || [];
+            if(docs.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Doctors</div>';
+                docs.forEach(d => {
+                    const av = d.photoUrl ? `<img src="${d.photoUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : '👨‍⚕️';
+                    html += `<a href="/doctors" class="search-result-item">${av} <div><div style="font-weight:600;font-size:0.95rem;">${d.name}</div><div style="font-size:0.8rem;color:#666;">${d.qualification}</div></div></a>`;
+                });
+            }
+
+            const prods = window.siteData.products?.filter(p => p.name.toLowerCase().includes(query)) || [];
+            if(prods.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Products</div>';
+                prods.forEach(p => {
+                    const img = p.profilePhoto ? `<img src="${p.profilePhoto}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">` : '📦';
+                    html += `<a href="/products" class="search-result-item">${img} <div><div style="font-weight:600;">${p.name}</div><div style="color:#2c8577;font-size:0.85rem;">${p.price}</div></div></a>`;
+                });
+            }
+
+            const arts = window.siteData.articles?.filter(a => a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query)) || [];
+            if(arts.length) {
+                html += '<div class="search-category-title" style="margin-top:15px;">Articles</div>';
+                arts.forEach(a => { html += `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:600;">${a.title}</div></div></a>`; });
+            }
+
+            if(!html) html = '<p style="text-align:center; color:#999; padding:1rem;">No results found.</p>';
+            resultsContainer.innerHTML = html;
+            resultsContainer.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+
