@@ -6,76 +6,80 @@
     <title>Health Products - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
-        /* =======================================================
-           PREMIUM NAVY THEME (CLEAN & COMPACT)
-           ======================================================= */
         :root {
-            --app-bg: #f4f7fb;        
+            --app-bg: #f1f3f6; /* Flipkart background grey */
             --surface: #ffffff;       
             --primary: #1d4ed8;       
             --primary-dark: #1e3a8a;  
             --primary-light: #dbeafe; 
-            --text-dark: #0f172a;     
-            --text-muted: #64748b;    
-            --shadow-soft: 0 4px 20px rgba(29, 78, 216, 0.05); 
-            --radius-sm: 12px;
-            --radius-md: 16px;
-            --radius-lg: 20px;
+            --text-dark: #212121; /* Flipkart text color */     
+            --text-muted: #878787;    
+            --fk-green: #388e3c; /* Flipkart green offer color */
+            --border: #e0e0e0;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.5; padding-bottom: 2rem; }
+        body { font-family: Roboto, Arial, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.5; padding-bottom: 2rem; }
         a { text-decoration: none; color: inherit; }
 
-        /* HEADER */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        /* HEADER (Kept consistent with your app theme) */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
         .logo { display: flex; align-items: center; }
         .logo-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
-        
         .search-container { flex-grow: 1; display: flex; justify-content: center; }
-        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 100px; border: none; background: #f1f5f9; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
-        .search-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
-        
+        .search-input { width: 100%; max-width: 250px; padding: 8px 16px; border-radius: 4px; border: 1px solid var(--border); background: #f0f5ff; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
+        .search-input:focus { background: var(--surface); border-color: var(--primary); outline: none; }
         .header-actions { display: flex; align-items: center; gap: 8px; }
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
 
         /* Search Results & Menu */
-        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
+        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
         .search-results.active { display: block; }
-        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 8px; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 4px; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
 
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s ease; padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
         .mobile-menu.active { right: 0; }
         .mobile-menu ul { list-style: none; }
         .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; }
         .close-menu { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-dark); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
         .overlay.active { display: block; }
 
         /* MAIN CONTENT */
-        .main { margin-top: 75px; padding: 0 1rem; max-width: 900px; margin-left: auto; margin-right: auto; }
-        .page-title { text-align: center; color: var(--text-dark); margin-bottom: 2rem; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+        .main { margin-top: 60px; max-width: 900px; margin-left: auto; margin-right: auto; }
         
-        /* PRODUCT GRID (2-column layout on mobile) */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .page-banner { background: #fff; padding: 15px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .page-title { color: var(--text-dark); font-size: 1.2rem; font-weight: 500; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
         
-        .card { background: var(--surface); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow-soft); transition: transform 0.2s; border: 1px solid var(--border); }
-        .card:active { transform: scale(0.98); }
+        /* FLIPKART STYLE PRODUCT GRID */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--border); padding: 2px; }
         
-        .prod-img { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 12px; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .fk-card { background: var(--surface); padding: 12px; display: flex; flex-direction: column; position: relative; text-decoration: none; color: inherit; }
+        .fk-card:active { background: #fafafa; }
         
-        .prod-title { font-size: 0.95rem; font-weight: 800; color: var(--text-dark); line-height: 1.2; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .prod-price { font-size: 1.05rem; color: var(--primary); font-weight: 800; margin-bottom: 12px; }
-        .badge { background: var(--primary-light); color: var(--primary-dark); padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 800; margin-top: auto; width: 100%; }
+        .prod-img-wrapper { position: relative; width: 100%; padding-top: 100%; margin-bottom: 8px; }
+        /* object-fit: contain makes sure the whole product shows cleanly like ecommerce apps */
+        .prod-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        .placeholder-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f9f9f9; }
+        
+        .prod-title { font-size: 13px; color: var(--text-dark); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+        .prod-price { font-size: 16px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 6px; }
+        .free-delivery { font-size: 12px; color: var(--fk-green); font-weight: 500; margin-top: 4px; }
 
+        @media (min-width: 768px) {
+            .grid { grid-template-columns: repeat(4, 1fr); }
+            .fk-card { padding: 16px; }
+            .prod-title { font-size: 14px; }
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
-        <div class="search-container"><input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()"></div>
+        <div class="search-container"><input type="text" id="globalSearch" class="search-input" placeholder="Search for Products..." oninput="window.handleSearch()"></div>
         <div class="header-actions"><div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div></div>
     </header>
 
@@ -96,9 +100,13 @@
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <main class="main">
-        <h1 class="page-title">Store & Products</h1>
+        <div class="page-banner">
+            <h1 class="page-title">Health & Wellness Store</h1>
+            <div class="page-subtitle" id="productCount">Loading products...</div>
+        </div>
+        
         <div class="grid" id="productGrid">
-            <p style="text-align:center; grid-column: 1/-1; color:var(--text-muted);">Loading products...</p>
+            <!-- Products will load here -->
         </div>
     </main>
 
@@ -119,19 +127,32 @@
             if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
             
             const products = window.siteData.products || [];
+            
             if(products.length === 0) {
-                document.getElementById('productGrid').innerHTML = '<p style="text-align:center; grid-column: 1/-1; color:var(--text-muted);">No products available right now.</p>';
+                document.getElementById('productCount').textContent = "0 Items";
+                document.getElementById('productGrid').innerHTML = '<div style="background:white; padding:40px 20px; text-align:center; grid-column:1/-1;">No products found</div>';
                 return;
             }
 
+            document.getElementById('productCount').textContent = `Showing ${products.length} items`;
+
             document.getElementById('productGrid').innerHTML = products.map(p => {
-                const imgHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="prod-img">📦</div>`;
+                const imgHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="placeholder-img">📦</div>`;
+                
+                // Add a Rupee symbol if the admin didn't include one
+                let displayPrice = p.price;
+                if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) {
+                    displayPrice = '₹' + displayPrice;
+                }
+
                 return `
-                <a href="/product/${window.slugify(p.name)}" class="card">
-                    ${imgHtml}
-                    <h3 class="prod-title">${p.name}</h3>
-                    <p class="prod-price">${p.price}</p>
-                    <span class="badge">View Details</span>
+                <a href="/product/${window.slugify(p.name)}" class="fk-card">
+                    <div class="prod-img-wrapper">
+                        ${imgHtml}
+                    </div>
+                    <div class="prod-title">${p.name}</div>
+                    <div class="prod-price">${displayPrice}</div>
+                    <div class="free-delivery">Free Delivery</div>
                 </a>`;
             }).join('');
         });
@@ -145,20 +166,20 @@
             const filterMap = (arr, fields, linkPrefix, imgFn, titleFn, subFn) => {
                 const filtered = (arr || []).filter(item => fields.some(f => item[f]?.toLowerCase().includes(query)));
                 if(filtered.length === 0) return '';
-                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(item.title || item.name)}" class="search-result-item">${imgFn(item)} <div><div style="font-weight:800;font-size:0.95rem;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
+                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(item.title || item.name)}" class="search-result-item">${imgFn(item)} <div><div style="font-weight:600;font-size:0.95rem;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
             };
 
             const sHtml = filterMap(window.siteData.services, ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem">${s.icon}</div>`:`⚕️`, s=>s.title, s=>'Service');
             if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
 
-            const dHtml = filterMap(window.siteData.doctors, ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
+            const dHtml = filterMap(window.siteData.doctors, ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
             if(dHtml) html += `<div class="search-category-title">Doctors</div>${dHtml}`;
 
-            const pHtml = filterMap(window.siteData.products, ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
+            const pHtml = filterMap(window.siteData.products, ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
             if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
 
             const aHtml = (window.siteData.articles || []).filter(a => a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query))
-                .map(a => `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
+                .map(a => `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:600;font-size:0.95rem;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
             if(aHtml) html += `<div class="search-category-title">Articles</div>${aHtml}`;
 
             res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem; font-size:0.9rem;">No results found</p>';
@@ -167,3 +188,4 @@
     </script>
 </body>
 </html>
+
