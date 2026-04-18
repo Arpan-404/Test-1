@@ -19,6 +19,10 @@
             --radius-sm: 12px;
             --radius-md: 16px;
             --radius-lg: 20px;
+            
+            /* E-commerce specifics */
+            --fk-buy: #fb641b;
+            --fk-green: #388e3c;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,31 +30,31 @@
         a { text-decoration: none; color: inherit; }
 
         /* HEADER */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
         .logo { display: flex; align-items: center; }
         .logo-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
         .search-container { flex-grow: 1; display: flex; justify-content: center; }
-        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 100px; border: none; background: #f1f5f9; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
-        .search-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
+        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 4px; border: 1px solid #e0e0e0; background: #f0f5ff; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
+        .search-input:focus { background: var(--surface); border-color: var(--primary); outline: none; }
         .header-actions { display: flex; align-items: center; gap: 8px; }
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
 
         /* Search Results & Menu */
-        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
+        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; }
         .search-results.active { display: block; }
-        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 8px; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: 4px; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
 
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s ease; padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
         .mobile-menu.active { right: 0; }
         .mobile-menu ul { list-style: none; }
         .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; }
         .close-menu { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-dark); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
         .overlay.active { display: block; }
 
-        /* DETAIL PAGE STYLES */
+        /* GENERAL DETAIL PAGE STYLES (For Services, Doctors, Articles) */
         .main { max-width: 800px; margin: 80px auto 2rem; background: var(--surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
         .title { color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
         
@@ -60,28 +64,15 @@
         .content h2, .content h3 { color: var(--text-dark); margin-top: 2rem; margin-bottom: 1rem; }
         .content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
-        /* Main Images for Services & Products */
-        .entity-img { width: 100%; height: 300px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1rem; background: var(--app-bg); border: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+        .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f3f6; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
         .doc-avatar { width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; background: var(--app-bg); display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 4px solid var(--primary-light);}
         .entity-subtitle { color: var(--primary); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 1rem; }
         .entity-price { color: var(--primary); font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 2rem; }
         
-        /* Product Gallery & Video */
-        .h-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 1.5rem; }
-        .h-scroll::-webkit-scrollbar { display: none; }
-        .gallery-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: var(--app-bg); flex-shrink: 0; }
-        .gallery-thumb:active { transform: scale(0.95); }
-        
-        .video-container { width: 100%; aspect-ratio: 16/9; margin-bottom: 2rem; border-radius: var(--radius-md); overflow: hidden; background: #000; box-shadow: var(--shadow-soft); }
-        .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
-        .media-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-dark); border-top: 1px solid var(--border); padding-top: 1.5rem; }
-
         /* BUTTONS */
         .btn { display: inline-block; padding: 14px 24px; background: var(--primary); color: white; border-radius: 100px; font-weight: 700; text-decoration: none; text-align: center; border: none; cursor: pointer; transition: 0.2s; width: 100%; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);}
         .btn:active { transform: scale(0.98); background: var(--primary-dark); }
-        
-        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary); color: white; box-shadow: none; border-radius: 100px; }
-        .btn-small:active { background: var(--primary-dark); }
+        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; }
 
         /* TEST/SUB-SERVICE LIST */
         .test-list { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
@@ -90,10 +81,37 @@
 
         /* RELATED SECTION */
         .related-section { margin-top: 3rem; padding-top: 2rem; border-top: 2px dashed var(--border); }
-        .related-title { color: var(--text-dark); font-size: 1.3rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; letter-spacing: -0.3px;}
+        .related-title { color: var(--text-dark); font-size: 1.3rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center;}
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .card { background: var(--surface); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border); display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 1rem; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--primary);}
+        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 1rem; background: var(--primary-light);}
+
+        /* =======================================================
+           E-COMMERCE (FLIPKART STYLE) PRODUCT DETAIL BLOCKS 
+           ======================================================= */
+        .prod-detail-main { max-width: 100%; margin: 60px auto 0; padding-bottom: 80px; }
+        .prod-image-section { background: white; padding: 15px 0; border-bottom: 1px solid #e0e0e0; }
+        .prod-main-img { width: 100%; height: 350px; object-fit: contain; }
+        .gallery-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px 15px; scrollbar-width: none; }
+        .gallery-scroll::-webkit-scrollbar { display: none; }
+        .gallery-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: contain; border: 1px solid #e0e0e0; cursor: pointer; padding: 2px; }
+        
+        .prod-info-section { background: white; padding: 15px; margin-top: 8px; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; }
+        .prod-title-text { font-size: 16px; color: #212121; margin-bottom: 8px; line-height: 1.4; }
+        .prod-price-text { font-size: 24px; font-weight: 500; color: #212121; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .prod-freedel { color: var(--fk-green); font-size: 14px; font-weight: 500; margin-bottom: 15px; }
+
+        .prod-desc-section { background: white; padding: 15px; margin-top: 8px; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; }
+        .prod-desc-title { font-size: 16px; font-weight: 500; margin-bottom: 10px; color: #212121; }
+        .prod-desc-text { font-size: 14px; color: #444; line-height: 1.5; white-space: pre-wrap; }
+
+        .video-container { width: 100%; aspect-ratio: 16/9; margin-top: 15px; background: #000; }
+        .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
+
+        /* Sticky Buy Bar */
+        .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; padding: 8px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 999; }
+        .btn-buy-now { flex: 1; background: var(--fk-buy); color: white; border: none; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-buy-now:active { background: #e05a18; }
         
         #loading { text-align: center; padding: 8rem 2rem; font-size: 1.1rem; color: var(--text-muted); font-weight: 600;}
         .error-msg { text-align: center; color: red; display: none; margin-top: 80px; padding: 2rem; }
@@ -126,7 +144,8 @@
 
     <div id="loading">Loading details...</div>
 
-    <main class="main" id="detailMain" style="display: none;"></main>
+    <!-- Wrapper for dynamic content -->
+    <div id="detailWrapper"></div>
 
     <div class="error-msg" id="errorMsg">
         <h2>Page Not Found</h2>
@@ -149,7 +168,7 @@
             if (e.target !== res && e.target !== inp && !res.contains(e.target)) res.classList.remove('active');
         });
 
-        // Function to change main image when thumbnail is clicked
+        // Function for Ecommerce Gallery Image Swap
         window.changeMainImg = (url) => {
             const mainImg = document.getElementById('mainProdImg');
             if(mainImg) mainImg.src = url;
@@ -177,7 +196,7 @@
                 if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
 
                 const wNum = (window.siteData.hero?.whatsappNumber || '').replace('+', '');
-                const mainContainer = document.getElementById('detailMain');
+                const wrapper = document.getElementById('detailWrapper');
                 let found = false;
 
                 if (reqType === 'service') {
@@ -195,13 +214,14 @@
                             </div>`;
                         }).join('');
                         
-                        mainContainer.innerHTML = `
+                        wrapper.innerHTML = `
+                        <main class="main">
                             ${img}
                             <h1 class="title">${service.title}</h1>
                             <p class="content" style="text-align:center;">${service.description}</p>
                             <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(service.title)}')">Book General Consultation</button>
                             ${testsHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Available Sub-Services</h3>${testsHtml}</div>` : ''}
-                        `;
+                        </main>`;
                     }
                 } 
                 else if (reqType === 'doctor') {
@@ -209,14 +229,15 @@
                     if(doc) {
                         found = true;
                         const avatar = doc.photoUrl ? `<img src="${doc.photoUrl}" class="doc-avatar">` : `<div class="doc-avatar">👨‍⚕️</div>`;
-                        mainContainer.innerHTML = `
+                        wrapper.innerHTML = `
+                        <main class="main">
                             ${avatar}
                             <h1 class="title" style="margin-bottom:0.5rem;">${doc.name}</h1>
                             <div class="entity-subtitle">${doc.qualification}</div>
                             <div class="entity-price">Fee: ${doc.fees}</div>
                             <p class="content">${doc.details}</p>
                             <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}')">Book Appointment</button>
-                        `;
+                        </main>`;
                     }
                 }
                 else if (reqType === 'product') {
@@ -224,34 +245,28 @@
                     if(prod) {
                         found = true;
                         
-                        // 1. IMAGE GALLERY LOGIC
+                        // FLIPKART STYLE PRODUCT RENDER
                         let galleryHtml = '';
                         let allImages = [];
                         if (prod.profilePhoto) allImages.push(prod.profilePhoto);
-                        
-                        // Check if gallery images array exists and add them
                         if (prod.galleryImages && Array.isArray(prod.galleryImages)) {
                             allImages = allImages.concat(prod.galleryImages);
                         }
-                        
-                        const uniqueImages = [...new Set(allImages)]; // Remove duplicates
+                        const uniqueImages = [...new Set(allImages)]; 
                         
                         if (uniqueImages.length > 1) {
-                            galleryHtml = `<div class="h-scroll" style="margin-top: -0.5rem;">` + 
+                            galleryHtml = `<div class="gallery-scroll">` + 
                                 uniqueImages.map(url => `<img src="${url}" class="gallery-thumb" onclick="window.changeMainImg('${url}')">`).join('') + 
                             `</div>`;
                         }
 
                         let mainImgHtml = uniqueImages.length > 0 ? 
-                            `<img src="${uniqueImages[0]}" class="entity-img" id="mainProdImg">` : 
-                            `<div class="entity-img">📦</div>`;
+                            `<img src="${uniqueImages[0]}" class="prod-main-img" id="mainProdImg">` : 
+                            `<div class="prod-main-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:#f9f9f9;">📦</div>`;
 
-
-                        // 2. VIDEO EMBED LOGIC
                         let videoHtml = '';
                         if (prod.videoUrl) {
-                            videoHtml = `<div class="media-title">Product Video</div>`;
-                            
+                            videoHtml = `<div class="prod-desc-title" style="margin-top:20px; padding-top:15px; border-top:1px solid #e0e0e0;">Product Video</div>`;
                             if (prod.videoUrl.includes('youtube') || prod.videoUrl.includes('youtu.be')) {
                                 let videoId = prod.videoUrl.split('v=')[1] || prod.videoUrl.split('youtu.be/')[1];
                                 if(videoId) {
@@ -260,20 +275,43 @@
                                     videoHtml += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
                                 }
                             } else {
-                                // Direct cloud video (mp4, etc)
                                 videoHtml += `<div class="video-container"><video src="${prod.videoUrl}" controls playsinline></video></div>`;
                             }
                         }
 
-                        mainContainer.innerHTML = `
-                            ${mainImgHtml}
-                            ${galleryHtml}
-                            <h1 class="title" style="margin-bottom:0.5rem;">${prod.name}</h1>
-                            <div class="entity-price">${prod.price}</div>
-                            <p class="content">${prod.description}</p>
-                            ${videoHtml}
-                            <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(prod.name)}')">🛒 Buy via WhatsApp</button>
-                        `;
+                        let displayPrice = prod.price;
+                        if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) {
+                            displayPrice = '₹' + displayPrice;
+                        }
+
+                        wrapper.innerHTML = `
+                        <div class="prod-detail-main">
+                            <div class="prod-image-section">
+                                ${mainImgHtml}
+                                ${galleryHtml}
+                            </div>
+                            
+                            <div class="prod-info-section">
+                                <div class="prod-title-text">${prod.name}</div>
+                                <div class="prod-price-text">${displayPrice}</div>
+                                <div class="prod-freedel">Free Delivery</div>
+                            </div>
+                            
+                            <div class="prod-desc-section">
+                                <div class="prod-desc-title">Product Details</div>
+                                <div class="prod-desc-text">${prod.description}</div>
+                                ${videoHtml}
+                            </div>
+
+                            <div class="sticky-buy-bar">
+                                <button class="btn-buy-now" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(prod.name)}')">
+                                    🛒 Buy Now
+                                </button>
+                            </div>
+                        </div>`;
+                        
+                        // Change body background specifically for the ecommerce look
+                        document.body.style.background = "#f1f3f6";
                     }
                 }
                 else {
@@ -290,21 +328,21 @@
                         if(article.linkedProducts && window.siteData.products) {
                             window.siteData.products.filter(p => article.linkedProducts.includes(p.id)).forEach(p => {
                                 const img = p.profilePhoto ? `<img src="${p.profilePhoto}">` : `<div>📦</div>`;
-                                relatedHtml += `<div class="card"><a href="/product/${window.slugify(p.name)}" style="text-decoration:none; color:inherit;">${img}<h3 style="color:var(--text-dark); margin-bottom:0.5rem; font-size:1.1rem;">${p.name}</h3><div style="color:var(--primary); font-weight:800; margin-bottom:0.5rem;">${p.price}</div></a><button class="btn btn-small" style="margin-top:auto; background:white; color:var(--primary); border:1px solid var(--primary);" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy Now</button></div>`;
+                                relatedHtml += `<div class="card"><a href="/product/${window.slugify(p.name)}" style="text-decoration:none; color:inherit;">${img}<h3 style="color:var(--text-dark); margin-bottom:0.5rem; font-size:1.1rem;">${p.name}</h3><div style="color:var(--primary); font-weight:800; margin-bottom:0.5rem;">${p.price}</div></a><button class="btn btn-small" style="margin-top:auto;" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy Now</button></div>`;
                             });
                         }
 
-                        mainContainer.innerHTML = `
+                        wrapper.innerHTML = `
+                        <main class="main">
                             <h1 class="title">${article.title}</h1>
                             ${article.imageUrl ? `<img src="${article.imageUrl}" class="article-cover" style="display:block;">` : ''}
                             <div class="content ql-editor">${article.content}</div>
                             ${relatedHtml ? `<div class="related-section"><h2 class="related-title">Recommended Next Steps</h2><div class="grid">${relatedHtml}</div></div>` : ''}
-                        `;
+                        </main>`;
                     }
                 }
 
-                if(found) mainContainer.style.display = 'block';
-                else document.getElementById('errorMsg').style.display = 'block';
+                if(!found) document.getElementById('errorMsg').style.display = 'block';
 
             }).catch(() => {
                 document.getElementById('loading').style.display = 'none';
@@ -337,8 +375,8 @@
                 .map(a => `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:700;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
             if(aHtml) html += `<div class="search-category-title">Articles</div>${aHtml}`;
 
-            resultsContainer.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
-            resultsContainer.classList.add('active');
+            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
+            res.classList.add('active');
         }
     </script>
 </body>
