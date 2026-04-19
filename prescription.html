@@ -50,7 +50,7 @@
         const { useState, useEffect, useRef } = React;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
@@ -211,14 +211,24 @@
               return () => window.removeEventListener('hashchange', handleHashChange);
           }, [allPatients, isConnecting, isCheckingSession, authRole, viewMode, activePatientId]);
 
+          // CORRECTED AUTH INIT (Persistence)
           useEffect(() => {
             const initAuth = async () => {
-              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-              else await signInAnonymously(auth);
+                await setPersistence(auth, browserLocalPersistence);
+                const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { 
+                    if (currentUser) {
+                        setUser(currentUser); 
+                        setIsConnecting(false);
+                    } else {
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                            else await signInAnonymously(auth);
+                        } catch(e) { console.error("Auth error", e); setIsConnecting(false); }
+                    }
+                });
+                return () => unsubscribe();
             };
             initAuth();
-            const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); setIsConnecting(false); });
-            return () => unsubscribe();
           }, []);
 
           useEffect(() => {
