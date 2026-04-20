@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Patient Records</title>
+    <title>Patient Records - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
+    <!-- React & Tailwind -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -17,13 +18,14 @@
         theme: {
           extend: {
             colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f4f7fb', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 4px 20px rgba(29, 78, 216, 0.05)' }
+            boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)' }
           }
         }
       }
     </script>
 
     <style>
+        /* Print Layout Rules (Preserved Exactly) */
         @page { size: A4; margin: 10mm; }
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
@@ -36,15 +38,27 @@
             .editable-cell:empty:before { content: none !important; display: none !important; }
         }
         
+        /* General Styles */
         .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
         .editable-cell:not([contenteditable="false"]):empty:before { content: attr(data-placeholder); color: #cbd5e1; pointer-events: none; display: block; }
         .editable-cell:not([contenteditable="false"]):focus { background-color: rgba(219, 234, 254, 0.5); }
         .h-scroll::-webkit-scrollbar { display: none; }
         .h-scroll { scrollbar-width: none; }
+        
+        /* Instant Loading Spinner Animation */
+        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="bg-[#f4f7fb]">
+    
+    <!-- Instant Native HTML Loader (Prevents blank screen while React downloads) -->
+    <div id="root">
+        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; color: #1e3a8a;">
+            <div class="native-loader"></div>
+            <div style="font-weight: bold; font-size: 1.1rem;">Loading PhysioCare...</div>
+        </div>
+    </div>
 
     <script type="text/babel" data-type="module">
         const { useState, useEffect, useRef } = React;
@@ -60,6 +74,7 @@
         if (typeof __firebase_config !== 'undefined') {
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
+            // Your exact database keys
             firebaseConfig = {
               apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
               authDomain: "patient-records-arpan.firebaseapp.com",
@@ -79,6 +94,7 @@
         const googleProvider = new GoogleAuthProvider();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'physiocare-tracker';
 
+        // Joint Data Dictionary
         const JOINTS_DATA = {
           'Cervical': [ { name: 'Flexion', type: 'single', normal: '45°' }, { name: 'Extension', type: 'single', normal: '45°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '45°' }, { name: 'Rotation', type: 'bilateral', normal: '60°' } ],
           'Spine': [ { name: 'Flexion', type: 'single', normal: '80°' }, { name: 'Extension', type: 'single', normal: '25°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '35°' }, { name: 'Rotation', type: 'bilateral', normal: '45°' } ],
@@ -91,6 +107,7 @@
           'Ankle': [ { name: 'Dorsiflexion', type: 'bilateral', normal: '20°' }, { name: 'Plantarflexion', type: 'bilateral', normal: '50°' }, { name: 'Inversion', type: 'bilateral', normal: '35°' }, { name: 'Eversion', type: 'bilateral', normal: '15°' } ]
         };
 
+        // Text Area component
         function AutoTextArea({ value, ...props }) {
             const ref = useRef(null);
             useEffect(() => {
@@ -99,6 +116,7 @@
             return <textarea ref={ref} value={value} {...props} style={{ overflow: 'hidden', resize: 'none' }} />;
         }
 
+        // Custom Table Editor
         function CustomTableEditor({ table, updateTable, removeTable, readOnly = false }) {
             const addRow = () => updateTable({ ...table, rows: [...table.rows, Array(table.headers.length).fill('')] });
             const addCol = () => updateTable({ ...table, headers: [...table.headers, 'New Col'], rows: table.rows.map(r => [...r, '']) });
@@ -155,6 +173,7 @@
             );
         }
 
+        // MAIN APP COMPONENT
         function App() {
           const [allPatients, setAllPatients] = useState([]);
           const [draftPatient, setDraftPatient] = useState(null); 
@@ -176,6 +195,7 @@
           const draftPatientRef = useRef(null);
           useEffect(() => { draftPatientRef.current = draftPatient; }, [draftPatient]);
 
+          // URL Hash Routing
           useEffect(() => {
               const handleHashChange = () => {
                   const hash = window.location.hash;
@@ -194,9 +214,7 @@
                                   setPatientLoginId(upid);
                                   setViewMode('patient_login_form');
                               }
-                          } else {
-                              window.location.hash = ''; 
-                          }
+                          } else { window.location.hash = ''; }
                       }
                   } else if (hash === '' || hash === '#/') {
                       if (authRole === 'doctor' && viewMode === 'patient') {
@@ -211,6 +229,7 @@
               return () => window.removeEventListener('hashchange', handleHashChange);
           }, [allPatients, isConnecting, isCheckingSession, authRole, viewMode, activePatientId]);
 
+          // Auth Initialization
           useEffect(() => {
             const initAuth = async () => {
                 await setPersistence(auth, browserLocalPersistence);
@@ -222,7 +241,7 @@
                         try {
                             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
                             else await signInAnonymously(auth);
-                        } catch(e) { console.error("Auth error", e); setIsConnecting(false); }
+                        } catch(e) { setIsConnecting(false); }
                     }
                 });
                 return () => unsubscribe();
@@ -230,6 +249,7 @@
             initAuth();
           }, []);
 
+          // Session Restoration
           useEffect(() => {
               if (!user) { if (!isConnecting) setIsCheckingSession(false); return; }
               const checkLoginState = async () => {
@@ -265,6 +285,7 @@
               else { const timer = setTimeout(checkLoginState, 1000); return () => clearTimeout(timer); }
           }, [user, isConnecting, allPatients.length]);
 
+          // Realtime Database Sync
           useEffect(() => {
             if (!user) return;
             const unsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'patients'), (snapshot) => {
@@ -281,10 +302,11 @@
                   data.push({ id: doc.id, ...p });
               });
               setAllPatients(data);
-            }, (error) => {});
+            });
             return () => unsubscribe();
           }, [user]);
 
+          // Handlers
           const handleDoctorGoogleLogin = async () => { setLoginError(""); try { await signInWithPopup(auth, googleProvider); } catch (error) {} };
 
           const handlePatientLoginSubmit = async (e) => {
@@ -333,20 +355,17 @@
             setTimeout(() => setIsSaving(false), 500); 
           };
 
-          if (isConnecting || isCheckingSession) return (
-               <div className="min-h-screen bg-appbg flex items-center justify-center"><i className="ph-bold ph-spinner-gap text-3xl text-azure animate-spin"></i></div>
-          );
+          if (isConnecting || isCheckingSession) return null; // Native HTML loader handles this now
 
-          // COMPACT LOGIN SCREEN
+          // --- LOGIN SCREEN ---
           if (viewMode === 'patient_login_form') {
               return (
                   <div className="min-h-screen bg-appbg flex flex-col items-center justify-center p-4 relative">
-                      {/* Doctor Login moved to top right */}
                       <button onClick={handleDoctorGoogleLogin} className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 text-navy px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors">
                           <i className="ph-bold ph-stethoscope"></i> Staff
                       </button>
 
-                      <div className="max-w-sm w-full bg-surface rounded-2xl shadow-soft border border-slate-200 p-6">
+                      <div className="max-w-sm w-full bg-surface rounded-xl shadow-soft border border-slate-200 p-6">
                           <div className="text-center mb-6">
                               <i className="ph-fill ph-activity text-4xl text-azure mb-1"></i>
                               <h1 className="text-xl font-bold text-navy">Patient Records</h1>
@@ -356,13 +375,13 @@
                               {loginError && <div className="p-2 bg-red-50 text-red-600 text-xs rounded border border-red-100">{loginError}</div>}
                               <div className="space-y-1">
                                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label>
-                                  <input type="text" required value={patientLoginId} onChange={e => setPatientLoginId(e.target.value)} placeholder="e.g. John or 4092" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure focus:ring-1 focus:ring-azure" />
+                                  <input type="text" required value={patientLoginId} onChange={e => setPatientLoginId(e.target.value)} placeholder="e.g. John or 4092" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure focus:ring-1 focus:ring-azure" />
                               </div>
                               <div className="space-y-1">
                                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
-                                  <input type="tel" required value={patientLoginPhone} onChange={e => setPatientLoginPhone(e.target.value)} placeholder="9876543210" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure focus:ring-1 focus:ring-azure" />
+                                  <input type="tel" required value={patientLoginPhone} onChange={e => setPatientLoginPhone(e.target.value)} placeholder="9876543210" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure focus:ring-1 focus:ring-azure" />
                               </div>
-                              <button type="submit" className="w-full bg-azure text-white font-bold py-2.5 rounded-lg hover:bg-navy shadow-sm mt-2 text-sm transition-colors">View Records</button>
+                              <button type="submit" className="w-full bg-azure text-white font-bold py-2.5 rounded-md hover:bg-navy shadow-sm mt-2 text-sm transition-colors">View Records</button>
                           </form>
                       </div>
                   </div>
@@ -372,48 +391,42 @@
           const doctorPatients = allPatients.filter(p => p.doctorId === user?.uid);
           const activePatient = draftPatient || allPatients.find(p => p.id === activePatientId) || { id: activePatientId };
 
-          // COMPACT MAIN RENDER
+          // --- MAIN RENDER (Home or Patient Detail) ---
           return (
             <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
-              {/* GLOBAL APP HEADER WITH ACTION BUTTONS */}
-              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden">
-                <div className="w-full max-w-6xl mx-auto px-3 flex justify-between items-center">
-                  <div className="flex items-center gap-1.5 cursor-pointer text-navy" onClick={() => { if(authRole === 'doctor') { setViewMode('home'); window.location.hash=''; }}}>
-                    <i className="ph-bold ph-activity text-xl text-azure"></i>
-                    <h1 className="text-base font-bold tracking-tight">Records</h1>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                      {isSaving && <span className="text-[10px] font-bold text-slate-400 animate-pulse hidden sm:block">Syncing...</span>}
-                      
-                      {/* Global Buttons based on context */}
-                      {viewMode === 'patient' && (
-                          <>
-                              <button className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold border border-slate-200 transition-colors shadow-sm" onClick={() => window.print()} title="Print">
-                                  <i className="ph-bold ph-printer text-sm"></i> <span className="hidden sm:inline">Print</span>
-                              </button>
-                              {!readOnly && (
-                                  <button onClick={() => window.triggerPatientSave && window.triggerPatientSave()} className="flex items-center gap-1 px-3 py-1.5 bg-azure text-white rounded-lg text-[11px] font-bold hover:bg-navy transition-colors shadow-sm">
-                                      <i className="ph-bold ph-floppy-disk text-sm"></i> Save
-                                  </button>
-                              )}
-                          </>
-                      )}
-
-                      {viewMode === 'home' && authRole === 'doctor' && <button onClick={handleCreatePatient} className="flex items-center gap-1 bg-azure text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-navy shadow-sm"><i className="ph-bold ph-plus"></i> New</button>}
-                      
-                      <button onClick={handleLogout} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 ml-1"><i className="ph-bold ph-sign-out text-sm"></i></button>
-                  </div>
-                </div>
-              </header>
-
-              <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none">
-                {viewMode === 'home' ? (
-                  <HomeView patients={doctorPatients.filter(p => p.ipId?.toLowerCase().includes(searchQuery.toLowerCase()) || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.contact?.includes(searchQuery) || p.diagnosis?.toLowerCase().includes(searchQuery.toLowerCase()))} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onOpenPatient={(p) => { setActivePatientId(p.id); setViewMode('patient'); window.location.hash = `#/reports/${p.ipId}`; }} />
-                ) : (
-                  <PatientDetailView patient={activePatient} onSave={handleSavePatient} onCancel={() => { setDraftPatient(null); if(authRole === 'doctor') { setViewMode('home'); setActivePatientId(null); window.location.hash = ''; } else { handleLogout(); } }} readOnly={authRole === 'patient'} authRole={authRole} />
-                )}
-              </main>
+              {viewMode === 'home' ? (
+                  <>
+                      {/* HOME HEADER */}
+                      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden">
+                        <div className="w-full max-w-6xl mx-auto px-3 flex justify-between items-center">
+                          <div className="flex items-center gap-1.5 text-navy">
+                            <i className="ph-bold ph-activity text-xl text-azure"></i>
+                            <h1 className="text-base font-bold tracking-tight">Records</h1>
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <button onClick={handleCreatePatient} className="flex items-center gap-1 bg-azure text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-navy shadow-sm"><i className="ph-bold ph-plus"></i> New</button>
+                              <button onClick={handleLogout} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 ml-1"><i className="ph-bold ph-sign-out text-sm"></i></button>
+                          </div>
+                        </div>
+                      </header>
+                      <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none">
+                          <HomeView patients={doctorPatients.filter(p => p.ipId?.toLowerCase().includes(searchQuery.toLowerCase()) || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.contact?.includes(searchQuery) || p.diagnosis?.toLowerCase().includes(searchQuery.toLowerCase()))} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onOpenPatient={(p) => { setActivePatientId(p.id); setViewMode('patient'); window.location.hash = `#/reports/${p.ipId}`; }} />
+                      </main>
+                  </>
+              ) : (
+                  <PatientDetailView 
+                      patient={activePatient} 
+                      onSave={handleSavePatient} 
+                      onCancel={() => { 
+                          setDraftPatient(null); 
+                          if(authRole === 'doctor') { setViewMode('home'); setActivePatientId(null); window.location.hash = ''; } 
+                          else { handleLogout(); } 
+                      }} 
+                      readOnly={authRole === 'patient'} 
+                      authRole={authRole}
+                      isSaving={isSaving}
+                  />
+              )}
             </div>
           );
         }
@@ -452,8 +465,8 @@
                             <td className="py-3 px-3 text-xs text-slate-600 align-top">{p.diagnosis || <span className="text-slate-300 italic">None</span>}</td>
                             <td className="py-3 px-3 text-center align-top">
                                 {p.isPublished ? 
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Published</span> : 
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Draft</span>
+                                    <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Published</span> : 
+                                    <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Draft</span>
                                 }
                             </td>
                           </tr>
@@ -467,8 +480,8 @@
           );
         }
 
-        // --- COMPACT PATIENT DETAIL VIEW ---
-        function PatientDetailView({ patient, onSave, onCancel, readOnly = false, authRole }) {
+        // --- COMPACT PATIENT DETAIL VIEW (With Header Actions) ---
+        function PatientDetailView({ patient, onSave, onCancel, readOnly = false, authRole, isSaving }) {
           const [formData, setFormData] = useState(() => {
               let rTables = patient.reassessmentTables || [];
               if (rTables.length === 0 && (patient.trackedMetrics?.length > 0 || patient.records?.length > 0)) {
@@ -480,12 +493,6 @@
           const [isUploading, setIsUploading] = useState(false);
           const [showLinkCopied, setShowLinkCopied] = useState(false);
           const fileInputRef = useRef(null);
-
-          // BIND LOCAL STATE TO GLOBAL WINDOW TRIGGER FOR TOP HEADER SAVE BUTTON
-          useEffect(() => {
-              window.triggerPatientSave = () => { if (!readOnly) onSave(formData); };
-              return () => { delete window.triggerPatientSave; };
-          }, [formData, onSave, readOnly]);
 
           useEffect(() => {
               if (patient && patient.id !== formData.id && patient.id) {
@@ -533,35 +540,58 @@
           const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
 
           return (
-            <div>
-              <div className="space-y-3 animate-in fade-in print:hidden">
-                
-                {/* --- NEW TOP ACTION BAR --- */}
-                <div className="flex items-center justify-between px-1 mb-2 overflow-x-auto h-scroll gap-2 pb-1">
-                  <button onClick={onCancel} className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-navy shrink-0 transition-colors">
-                      <i className="ph-bold ph-arrow-left text-sm"></i> Back
-                  </button>
-                  
-                  <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                      {/* Date moved here from bottom bar */}
-                      <div className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-slate-200 shadow-sm">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase">Date:</span>
-                          <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-[10px] font-bold outline-none w-20 bg-transparent ${readOnly?'text-navy':'text-slate-800'}`} />
-                      </div>
+            <div className="w-full">
+              
+              {/* --- PATIENT HEADER (Replaces the bottom bar & global header) --- */}
+              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden px-3 -mt-4 mb-3 w-full">
+                <div className="w-full max-w-6xl mx-auto flex justify-between items-center">
+                    
+                    <button onClick={onCancel} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
+                        <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
+                    </button>
 
-                      {authRole === 'doctor' && (
-                          <>
-                              <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-[10px] font-bold transition-colors">
-                                  <i className="ph-bold ph-link text-xs"></i> Share
-                                  {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
-                              </button>
-                              <button onClick={togglePublish} className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold border shadow-sm transition-colors ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                  {formData.isPublished ? <><i className="ph-fill ph-check-circle"></i> Pub</> : <><i className="ph-fill ph-lock-key"></i> Draft</>}
-                              </button>
-                          </>
-                      )}
-                      <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{formData.ipId}</div>
-                  </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                        <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-200 shadow-sm hidden sm:flex">
+                            <span className="text-[10px] font-bold text-slate-400">DATE:</span>
+                            <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-xs font-bold outline-none bg-transparent w-[95px] ${readOnly?'text-navy':'text-slate-800'}`} />
+                        </div>
+                        
+                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm" onClick={() => window.print()}>
+                            <i className="ph-bold ph-printer text-sm"></i> Print
+                        </button>
+                        
+                        {!readOnly && (
+                            <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors">
+                                <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSaving && "..."}
+                            </button>
+                        )}
+                    </div>
+                </div>
+              </header>
+              
+              <main className="max-w-6xl mx-auto px-2 sm:px-4 py-2 print:p-0 print:m-0 print:max-w-none space-y-3 animate-in fade-in">
+                
+                {/* Sub-Header: Date (Mobile), Share, Publish, UPID */}
+                <div className="flex flex-wrap justify-between items-center gap-2 px-1 mb-2">
+                    <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-200 shadow-sm sm:hidden">
+                        <span className="text-[10px] font-bold text-slate-400">DATE:</span>
+                        <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-xs font-bold outline-none bg-transparent w-[95px] ${readOnly?'text-navy':'text-slate-800'}`} />
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 ml-auto">
+                        {authRole === 'doctor' && (
+                            <>
+                                <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-[10px] font-bold">
+                                    <i className="ph-bold ph-link"></i> Share
+                                    {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
+                                </button>
+                                <button onClick={togglePublish} className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold border shadow-sm ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                    {formData.isPublished ? <><i className="ph-fill ph-check-circle"></i> Published</> : <><i className="ph-fill ph-lock-key"></i> Draft</>}
+                                </button>
+                            </>
+                        )}
+                        <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{formData.ipId}</div>
+                    </div>
                 </div>
 
                 {/* Profile */}
@@ -708,9 +738,9 @@
                     ))}
                     {!readOnly && <button onClick={addReassessmentTable} className="w-full py-2.5 mt-1 text-xs text-navy font-bold border border-dashed border-slate-300 rounded-xl hover:bg-slate-50">+ New Group</button>}
                 </div>
-              </div>
+              </main>
 
-              {/* --- 🖨️ PRINT VIEW (Preserved exactly) --- */}
+              {/* --- 🖨️ PRINT VIEW (Preserved exactly for Perfect A4) --- */}
               <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
                   <div className="flex justify-between items-start pb-2">
                       <div>
