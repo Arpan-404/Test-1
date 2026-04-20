@@ -1,5 +1,4 @@
 {
-  "cleanUrls": true,
   "rewrites": [
     { "source": "/doctor/:path*", "destination": "/details.html" },
     { "source": "/service/:path*", "destination": "/details.html" },
