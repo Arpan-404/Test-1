@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physio Hub</title>
+    <title>Therapeutic Hub</title>
+    <meta name="description" content="Expert healthcare and physiotherapy services at Therapeutic Hub.">
     <link rel="icon" type="image/png" href="/favicon.png">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
@@ -190,6 +191,25 @@
             if(mainImg) mainImg.src = url;
         };
 
+        // --- DYNAMIC SEO FUNCTION ---
+        // This function dynamically changes the Google title and description based on the loaded content
+        const updateSEO = (title, description) => {
+            // Update browser tab/Google title
+            document.title = title + " - Therapeutic Hub";
+            
+            // Update or create Meta Description
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc) {
+                metaDesc = document.createElement('meta');
+                metaDesc.name = "description";
+                document.head.appendChild(metaDesc);
+            }
+            
+            // Clean HTML tags from description and limit length
+            const cleanDesc = description ? description.replace(/<[^>]*>?/gm, '').substring(0, 155) + "..." : "Expert healthcare services at Therapeutic Hub.";
+            metaDesc.content = cleanDesc;
+        };
+
         const path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase();
         const pathParts = path.split('/');
         
@@ -219,6 +239,10 @@
                     const service = (window.siteData.services || []).find(s => window.slugify(s.title) === reqSlug);
                     if(service) {
                         found = true;
+                        
+                        // SET DYNAMIC SEO FOR SERVICE (e.g. "Cupping Therapy - Therapeutic Hub")
+                        updateSEO(service.title, service.description);
+
                         const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" class="entity-img">` : `<div class="entity-img">${service.icon||'⚕️'}</div>`;
                         
                         let testsHtml = (service.tests || []).map(t => {
@@ -244,6 +268,10 @@
                     const doc = (window.siteData.doctors || []).find(d => window.slugify(d.name) === reqSlug);
                     if(doc) {
                         found = true;
+
+                        // SET DYNAMIC SEO FOR DOCTOR (e.g. "Dr. Arpan Das (PT) - Therapeutic Hub")
+                        updateSEO(doc.name + (doc.qualification ? ` - ${doc.qualification}` : ''), doc.details);
+
                         const avatar = doc.photoUrl ? `<img src="${doc.photoUrl}" class="doc-avatar">` : `<div class="doc-avatar">👨‍⚕️</div>`;
                         wrapper.innerHTML = `
                         <main class="main">
@@ -260,6 +288,10 @@
                     const prod = (window.siteData.products || []).find(p => window.slugify(p.name) === reqSlug);
                     if(prod) {
                         found = true;
+
+                        // SET DYNAMIC SEO FOR PRODUCT (e.g. "Knee Brace - Therapeutic Hub")
+                        updateSEO(prod.name, prod.description);
+
                         document.body.style.background = "#f1f3f6"; // Flipkart BG
                         
                         let galleryHtml = '';
@@ -332,6 +364,10 @@
                     const article = (window.siteData.articles || []).find(a => a.slug.toLowerCase() === reqSlug);
                     if(article) {
                         found = true;
+
+                        // SET DYNAMIC SEO FOR ARTICLE
+                        updateSEO(article.title, article.content);
+
                         document.body.style.background = "#ffffff"; // Force white BG for Wiki mode
                         
                         let relatedHtml = '';
@@ -411,9 +447,10 @@
                 .map(a => `<a href="/${a.slug}" class="search-result-item">📄 <div><div style="font-weight:700;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
             if(aHtml) html += `<div class="search-category-title">Articles</div>${aHtml}`;
 
-            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem; font-size:0.9rem;">No results found.</p>';
+            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
             res.classList.add('active');
         }
     </script>
 </body>
 </html>
+
