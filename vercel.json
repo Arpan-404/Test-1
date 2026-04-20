@@ -1,10 +1,10 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/doctor/:path*", "destination": "/404.html" },
-    { "source": "/service/:path*", "destination": "/404.html" },
-    { "source": "/product/:path*", "destination": "/404.html" },
-    { "source": "/articles/:path*", "destination": "/404.html" },
+    { "source": "/doctor/:path*", "destination": "/details.html" },
+    { "source": "/service/:path*", "destination": "/details.html" },
+    { "source": "/product/:path*", "destination": "/details.html" },
+    { "source": "/articles/:path*", "destination": "/details.html" },
     { "source": "/prescription", "destination": "/prescription.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/services", "destination": "/services.html" },
@@ -13,4 +13,3 @@
     { "source": "/articles", "destination": "/articles.html" }
   ]
 }
-
