@@ -42,6 +42,12 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* Hide scrollbar for clean Pinterest look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 text-sm md:text-base font-sans">
@@ -72,35 +78,40 @@
 
         // --- CLOUD CREDENTIALS ---
         const FIREBASE_DB_URL = "https://clinic-bdf92-default-rtdb.firebaseio.com/exercises";
-        
-        // Using auto upload endpoint so it handles both images and videos
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
-        // ⚠️ MUST CREATE THIS PRESET IN CLOUDINARY SETTINGS
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
         const Icons = {
-            Activity: ({className="w-6 h-6"}) => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>,
-            Menu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
-            Search: ({className="absolute left-3 top-2.5 text-slate-400 w-4 h-4 md:w-5 md:h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Logo: ({className="w-8 h-8 text-blue-600"}) => (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path><path d="M8.5 14.5L12 12"></path>
+                </svg>
+            ),
+            Search: ({className="w-4 h-4 md:w-5 md:h-5 text-slate-400"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
             ArrowLeft: ({className="h-5 w-5"}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
             PlayCircle: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
-            Stethoscope: ({className="w-5 h-5 md:w-6 md:h-6"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>,
+            Stethoscope: ({className="w-5 h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>,
             Database: ({className="w-4 h-4 md:w-5 md:h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>,
             Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
             Printer: ({className="h-4 w-4 md:h-5 md:w-5 mr-2"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14"/></svg>,
-            User: ({className="w-4 h-4"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+            User: ({className="w-6 h-6 text-slate-600 hover:text-blue-600 transition"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+            UserActive: ({className="w-6 h-6 text-blue-600"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
             LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
             Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
             Google: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px" className="mr-2"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>,
-            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>,
             Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         };
 
+        // Fallback Mock Data with varied heights to show off Pinterest Masonry effect
         const INITIAL_EXERCISES = [
-            { id: 1, name: "Pelvic Tilt", description: "Lie on your back with knees bent. Tighten stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
-            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest until you feel a stretch.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] }
+            { id: 1, name: "Pelvic Tilt", description: "Tighten your stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
+            { id: 2, name: "Knee to Chest", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] },
+            { id: 3, name: "Straight Leg Raise", description: "Slowly lift straight leg.", imageUrl: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80&w=400&h=500", videoUrl: "youtube", tags: ["knee pain"] },
+            { id: 4, name: "Glute Bridge", description: "Lift your hips off the floor.", imageUrl: "https://images.unsplash.com/photo-1588286840104-8957b019727f?auto=format&fit=crop&q=80&w=400&h=400", videoUrl: "", tags: ["glutes"] },
+            { id: 5, name: "Clamshells", description: "Raise top knee without moving pelvis.", imageUrl: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=400&h=700", videoUrl: "", tags: ["hip"] },
+            { id: 6, name: "Calf Stretch", description: "Lean forward into the wall.", imageUrl: "https://images.unsplash.com/photo-1554286393-27fb62ba1e98?auto=format&fit=crop&q=80&w=400&h=350", videoUrl: "", tags: ["ankle", "calf"] }
         ];
 
         function App() {
@@ -139,6 +150,7 @@
                 const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
                     if (firebaseUser) {
                         setUser({ role: 'doctor', name: firebaseUser.displayName, email: firebaseUser.email });
+                        // If we are on the login screen, jump straight to the dashboard
                         if(currentView === 'login') {
                             setCurrentView('doctor-dashboard');
                         }
@@ -164,6 +176,19 @@
                     setExercises(INITIAL_EXERCISES);
                 } finally {
                     setIsLoading(false);
+                }
+            };
+
+            const handleUserIconClick = () => {
+                if (user.role === 'doctor') {
+                    setCurrentView('doctor-dashboard');
+                } else if (user.role === 'patient') {
+                    if(window.confirm("Do you want to log out from Patient mode?")) {
+                        setUser({role: 'guest'});
+                        showToast("Logged out");
+                    }
+                } else {
+                    setCurrentView('login');
                 }
             };
 
@@ -198,11 +223,10 @@
                     showToast("Welcome to the Doctor Dashboard");
                 } catch (error) {
                     console.error("Google Login Error:", error);
-                    showToast("Google login failed. Ensure Firebase keys are set in code.");
+                    showToast("Google login failed. Ensure Firebase keys are set.");
                 }
             };
 
-            // DIRECT CLOUDINARY UPLOAD LOGIC
             const uploadFileToCloudinary = async (file) => {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -354,45 +378,50 @@
             const filteredDoctorExercises = useMemo(() => exercises.filter(ex => ex.name.toLowerCase().includes(doctorSearchQuery.toLowerCase()) || (ex.tags && ex.tags.some(tag => tag.includes(doctorSearchQuery.toLowerCase())))), [exercises, doctorSearchQuery]);
             const filteredDatabaseExercises = useMemo(() => exercises.filter(ex => ex.name.toLowerCase().includes(databaseSearchQuery.toLowerCase()) || (ex.tags && ex.tags.some(tag => tag.includes(databaseSearchQuery.toLowerCase())))), [exercises, databaseSearchQuery]);
 
+
             // --- UI RENDERERS ---
 
+            // Completely redesigned header
             const renderHeader = () => (
-                <div className="bg-white px-3 py-3 shadow-sm flex items-center justify-between sticky top-0 z-50 print:hidden border-b border-slate-200">
-                    <div className="flex items-center space-x-1.5 cursor-pointer" onClick={() => setCurrentView(user.role === 'doctor' ? 'doctor-dashboard' : 'exercise-list')}>
-                        <Icons.Activity className="text-blue-600 w-6 h-6 md:w-7 md:h-7" />
-                        <span className="font-bold text-lg md:text-xl text-slate-800">Therapeutic Hub</span>
+                <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-50 print:hidden border-b border-slate-200">
+                    {/* LEFT: Logo (Clicking it resets to home grid) */}
+                    <div className="flex-shrink-0 cursor-pointer" onClick={() => setCurrentView('exercise-list')}>
+                        <Icons.Logo />
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                        {user.role === 'guest' && (
-                            <button onClick={() => setCurrentView('login')} className="flex items-center bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition">
-                                <Icons.User className="w-4 h-4 mr-1.5" /> Login
-                            </button>
-                        )}
-
-                        {user.role === 'patient' && (
-                            <div className="flex items-center space-x-3">
-                                <span className="text-xs md:text-sm font-semibold text-slate-600 hidden sm:block">Patient: {user.phone}</span>
-                                <button onClick={handleLogout} className="flex items-center text-slate-500 hover:text-red-600 font-semibold text-sm transition">
-                                    <Icons.LogOut /> Logout
-                                </button>
-                            </div>
-                        )}
-
-                        {user.role === 'doctor' && (
-                            <div className="flex items-center space-x-2 md:space-x-4">
-                                <button onClick={() => setCurrentView(currentView === 'database-management' ? 'doctor-dashboard' : 'database-management')} className={`flex items-center justify-center p-1.5 md:px-3 md:py-1.5 rounded-lg font-bold text-xs md:text-sm transition ${currentView === 'database-management' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                                    <Icons.Database className="w-4 h-4 md:mr-1.5" /> <span className="hidden md:inline">{currentView === 'database-management' ? 'Dashboard' : 'Database'}</span>
-                                </button>
-                                <button onClick={handleLogout} className="flex items-center text-slate-500 hover:text-red-600 font-semibold text-sm transition">
-                                    <Icons.LogOut /> <span className="hidden sm:inline">Logout</span>
-                                </button>
-                            </div>
+                    {/* CENTER: Search Bar (Controls the Masonry Grid search) */}
+                    <div className="flex-grow max-w-lg mx-4 relative hidden sm:block">
+                        {currentView === 'exercise-list' && (
+                            <>
+                                <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search by name or symptom..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)} 
+                                    className="w-full bg-slate-100 border-none rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" 
+                                />
+                            </>
                         )}
                     </div>
-                </div>
+                    
+                    {/* RIGHT: Dynamic Login/User Button */}
+                    <div className="flex-shrink-0 flex items-center space-x-2">
+                        {/* Mobile Search Icon (Shows search input when tapped if we wanted, but keeping it simple for now) */}
+                        {currentView === 'exercise-list' && (
+                            <div className="sm:hidden mr-2">
+                                <Icons.Search className="w-5 h-5 text-slate-600" />
+                            </div>
+                        )}
+                        
+                        <button onClick={handleUserIconClick} className="p-1 rounded-full bg-slate-50 hover:bg-slate-100 transition shadow-sm border border-slate-200">
+                            {user.role === 'guest' ? <Icons.User /> : <Icons.UserActive />}
+                        </button>
+                    </div>
+                </header>
             );
 
+            // Login Full View
             const renderLoginView = () => (
                 <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
                     <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-slate-50 transition">
@@ -407,7 +436,7 @@
                             <>
                                 <div className="flex flex-col items-center mb-8">
                                     <div className="w-12 h-12 bg-[#2563eb] text-white rounded-xl flex items-center justify-center mb-4 shadow-md">
-                                        <Icons.Activity className="w-6 h-6" />
+                                        <Icons.Logo className="w-6 h-6 text-white" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1e3a8a]">Patient Portal</h2>
                                 </div>
@@ -443,42 +472,42 @@
                 </div>
             );
 
+            // --- PURE PINTEREST STYLE MASONRY LAYOUT ---
             const renderPatientExerciseList = () => (
-                <div className="p-3 md:p-6 max-w-7xl mx-auto pb-20">
-                    <div className="mb-6">
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-800 text-center tracking-tight">Exercise Library</h2>
-                        <p className="text-center text-slate-500 mt-2 text-sm md:text-base">Browse your physical therapy routines below</p>
-                    </div>
+                <div className="p-3 md:p-6 max-w-[1600px] mx-auto pb-20">
                     
-                    <div className="relative mb-8 max-w-2xl mx-auto">
-                        <Icons.Search className="absolute left-4 top-3.5 text-slate-400 w-5 h-5" />
-                        <input type="text" placeholder="Search by name or symptom..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-full py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
+                    {/* Mobile Search (Since header search is hidden on very small screens) */}
+                    <div className="relative mb-4 sm:hidden">
+                        <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
+                        <input type="text" placeholder="Search exercises..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-full py-2 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
                     </div>
                     
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-500"><div className="loader mb-4"></div><p>Loading database...</p></div>
+                        <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading routines...</p></div>
                     ) : (
-                        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4 space-y-3 md:space-y-4">
+                        /* Pure CSS Columns for Pinterest effect */
+                        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-5 space-y-3 md:space-y-5">
                             {filteredPatientExercises.map(ex => (
                                 <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); }} 
                                      className="break-inside-avoid inline-block w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden cursor-pointer group hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                                    <div className="relative w-full overflow-hidden">
-                                        <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out" />
+                                    <div className="relative w-full overflow-hidden bg-slate-100">
+                                        <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
                                         {ex.videoUrl && (
-                                            <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                            <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                                             </div>
                                         )}
                                     </div>
                                     <div className="p-3 md:p-4 bg-white">
                                         <h3 className="font-bold text-sm md:text-base text-slate-800 leading-tight mb-1">{ex.name}</h3>
-                                        <p className="text-xs text-slate-500 line-clamp-2 leading-snug">{ex.description}</p>
+                                        {/* Optional: Show tiny description, or just keep it super clean like Pinterest with just title */}
+                                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">{ex.description}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
-                    {filteredPatientExercises.length === 0 && !isLoading && <p className="text-center text-slate-500 py-8 text-sm">No exercises found.</p>}
+                    {filteredPatientExercises.length === 0 && !isLoading && <p className="text-center text-slate-500 py-16 text-sm">No exercises match your search.</p>}
                 </div>
             );
 
@@ -499,9 +528,9 @@
 
                 return (
                     <div className="p-3 md:p-4 max-w-3xl mx-auto pb-20">
-                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-blue-600 font-semibold mb-3 text-sm md:text-base hover:text-blue-800 transition"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Library</button>
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-                            <div className="aspect-video bg-slate-100 relative flex items-center justify-center w-full overflow-hidden">
+                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-slate-600 font-bold mb-4 text-sm md:text-base hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Board</button>
+                        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
+                            <div className="aspect-video bg-slate-50 relative flex items-center justify-center w-full overflow-hidden">
                                 {isYoutube && youtubeEmbedUrl ? (
                                     <iframe className="w-full h-full" src={youtubeEmbedUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                                 ) : selectedExercise.videoUrl ? (
@@ -521,16 +550,25 @@
 
             const renderDoctorDashboard = () => (
                 <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3">
-                        <div className="flex items-center">
-                            <Icons.Stethoscope />
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-800">Prescription Builder</h2>
+                    {/* Header with Navigation to Database */}
+                    <div className="flex flex-row items-center justify-between mb-4 md:mb-6 gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                        <div className="flex items-center px-2">
+                            <Icons.Stethoscope className="w-5 h-5 text-blue-600 mr-2" />
+                            <h2 className="text-lg md:text-xl font-bold text-slate-800">Prescription Builder</h2>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button onClick={() => setCurrentView('database-management')} className="flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition">
+                                <Icons.Database className="w-4 h-4 mr-1.5" /> Manage DB
+                            </button>
+                            <button onClick={handleLogout} className="flex items-center justify-center bg-slate-50 text-red-600 hover:bg-red-50 border border-slate-200 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition">
+                                <Icons.LogOut className="w-4 h-4 mr-0" />
+                            </button>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                         <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 h-fit">
-                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-1">1. Patient & Selection</h3>
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-1">1. Patient Details</h3>
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 mt-4">
                                 <input type="text" placeholder="Patient Name" value={prescriptionData.patientName} onChange={e => setPrescriptionData({...prescriptionData, patientName: e.target.value})} className="col-span-2 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
@@ -567,7 +605,7 @@
 
                         <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Exercises</h3>
+                                <h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Selected</h3>
                                 <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">{prescriptionData.selectedExerciseIds.length} Selected</span>
                             </div>
 
@@ -585,7 +623,7 @@
                                             <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50 text-left">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
-                                                    <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:underline">Remove</button>
+                                                    <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:underline font-bold">Remove</button>
                                                 </div>
                                                 <div className="grid grid-cols-3 gap-2 mb-2">
                                                     <div>
@@ -620,7 +658,6 @@
                 </div>
             );
 
-            // --- DIRECT CLOUDINARY UPLOAD FORM REVISED ---
             const renderDatabaseManagement = () => (
                 <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
                     <div className="flex items-center mb-4 md:mb-6">
@@ -675,7 +712,7 @@
 
                                 <div className="flex space-x-2 mt-4">
                                     <button type="submit" disabled={isLoading || isUploadingImage || isUploadingVideo} className="flex-1 bg-slate-800 text-white rounded-md py-3 text-sm font-bold flex items-center justify-center hover:bg-slate-700 transition disabled:opacity-50 shadow-sm">
-                                        {isLoading ? "Saving to Cloud..." : editingId ? "Update Database" : "Save to Database"}
+                                        {isLoading ? "Saving..." : editingId ? "Update in DB" : <><Icons.Plus /> Save to Cloud</>}
                                     </button>
                                     {editingId && (
                                         <button type="button" onClick={cancelEdit} className="px-6 bg-slate-200 text-slate-700 rounded-md py-3 text-sm font-bold hover:bg-slate-300 transition">Cancel</button>
@@ -684,7 +721,6 @@
                             </form>
                         </div>
 
-                        {/* Database List */}
                         <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[500px] lg:h-auto">
                             <div className="flex justify-between items-center mb-3">
                                 <h3 className="text-base md:text-lg font-bold text-slate-800">Cloud Sync</h3>
@@ -721,7 +757,6 @@
                 </div>
             );
 
-            // --- BORDERLESS PRINT VIEW ---
             const renderPrintPrescriptionView = () => {
                 const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
                 const today = new Date().toLocaleDateString('en-GB');
