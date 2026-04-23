@@ -152,12 +152,7 @@
         <a href="/" style="color:var(--wiki-blue); display:inline-block; margin-top:1rem; font-weight:bold;">Return Home</a>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
-
-        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
-        const db = getDatabase(app);
+    <script>
         window.siteData = {}; 
 
         window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -188,13 +183,13 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('errorMsg').style.display = 'block';
         } else {
-            // Fetch both the main 'site' data AND the new 'exercises' database simultaneously
+            // Fetch cleanly from the Public JSON Endpoints to avoid Firebase setup conflicts
             Promise.all([
-                get(ref(db, 'site')),
-                reqType === 'exercise' ? get(ref(db, 'exercises')) : Promise.resolve(null)
-            ]).then(([siteSnapshot, exercisesSnapshot]) => {
+                fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json').then(r => r.json()),
+                reqType === 'exercise' ? fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json').then(r => r.json()) : Promise.resolve(null)
+            ]).then(([siteData, exercisesData]) => {
                 document.getElementById('loading').style.display = 'none';
-                window.siteData = siteSnapshot.val() || {};
+                window.siteData = siteData || {};
                 
                 if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
 
@@ -204,7 +199,7 @@
 
                 // --- NEW EXERCISE RENDERING ---
                 if (reqType === 'exercise') {
-                    const exData = exercisesSnapshot?.val() || {};
+                    const exData = exercisesData || {};
                     const exList = Object.keys(exData).map(k => ({...exData[k], id: k}));
                     const exercise = exList.find(e => window.slugify(e.name) === reqSlug);
                     
@@ -328,7 +323,6 @@
         }
 
         window.handleSearch = function() {
-            // Reusing your exact global search code
             const query = document.getElementById('globalSearch').value.toLowerCase();
             const res = document.getElementById('searchResults');
             if (!query) { res.classList.remove('active'); return; }
@@ -359,4 +353,3 @@
     </script>
 </body>
 </html>
-
