@@ -74,10 +74,11 @@
         const { useState, useEffect, useMemo } = React;
 
         // =====================================================================
-        // UPDATED CLOUDINARY URL to your MAIN account (desvmq2l9)
+        // UPDATED CLOUDINARY URL AND PRESET
+        // Matches the screenshot exactly (dyunl0dx5 cloud, 'Exercise' preset)
         // =====================================================================
-        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/desvmq2l9/auto/upload";
-        const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "Exercise"; 
 
         const Icons = {
             Search: ({className="w-4 h-4 md:w-5 md:h-5 text-slate-400"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
