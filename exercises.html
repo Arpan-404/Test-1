@@ -74,11 +74,10 @@
         const { useState, useEffect, useMemo } = React;
 
         // =====================================================================
-        // ⚠️ CLOUDINARY SETUP: CHANGE THESE IF IT STILL FAILS!
-        // Copy the exact names from your working admin.html file
+        // VERIFIED CLOUDINARY SETUP (From your actual screenshot)
         // =====================================================================
-        const CLOUDINARY_CLOUD_NAME = "desvmq2l9"; 
-        const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
+        const CLOUDINARY_CLOUD_NAME = "dyunl0dx5"; 
+        const CLOUDINARY_UPLOAD_PRESET = "physio_uploads"; 
 
         const Icons = {
             Search: ({className="w-4 h-4 md:w-5 md:h-5 text-slate-400"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
@@ -193,7 +192,6 @@
                 formData.append('file', file); 
                 formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 
-                // Using strict endpoints to avoid API key errors
                 const endpoint = type === 'video' ? 'video/upload' : 'image/upload';
                 const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${endpoint}`;
 
@@ -507,6 +505,7 @@
                                                 <div className="ml-3 flex-1 min-w-0 text-left">
                                                     <p className="text-sm font-semibold text-slate-800 truncate leading-tight">
                                                         {ex.name || 'Unnamed'}
+                                                        {ex.imageUrl && ex.imageUrl.startsWith('blob:') && <span className="text-red-500 text-[10px] ml-2 font-bold">(Broken Image)</span>}
                                                     </p>
                                                     <p className="text-[10px] text-slate-500 truncate mt-0.5">{formatTags(ex.tags)}</p>
                                                 </div>
@@ -770,7 +769,7 @@
                         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] toast-enter w-[90vw] md:w-auto">
                             <div className={`text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center justify-center text-center leading-snug ${toastType === 'error' ? 'bg-red-600' : 'bg-slate-800'}`}>
                                 {toastType === 'error' ? <Icons.Error /> : <Icons.Check />}
-                                <span>{toastMessage}</span>
+                                <span className="ml-2">{toastMessage}</span>
                             </div>
                         </div>
                     )}
