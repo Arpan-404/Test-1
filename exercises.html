@@ -181,6 +181,8 @@
                     if(window.confirm("Do you want to log out from Patient mode?")) {
                         setUser({role: 'guest'});
                         showToast("Logged out");
+                        // Clear the URL when logging out
+                        window.history.pushState({}, '', '/exercises');
                     }
                 } else {
                     setCurrentView('login');
@@ -194,6 +196,8 @@
                 setUser({role: 'guest'});
                 setCurrentView('exercise-list');
                 showToast("Logged out successfully");
+                // Clear the URL when logging out
+                window.history.pushState({}, '', '/exercises');
             };
 
             const handlePatientLogin = (e) => {
@@ -202,6 +206,11 @@
                     setUser({ role: 'patient', phone: loginPhone, name: loginName });
                     setCurrentView('exercise-list');
                     showToast("Logged in as Patient");
+
+                    // MAGIC LINE: Update the URL to /exercises/(UPID)
+                    const urlPath = encodeURIComponent(loginName.trim().toLowerCase().replace(/\s+/g, '-'));
+                    window.history.pushState({}, '', '/exercises/' + urlPath);
+
                 } else {
                     showToast("Please enter a valid mobile number.");
                 }
