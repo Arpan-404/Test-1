@@ -11,6 +11,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Fallback Firebase Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
@@ -52,6 +53,8 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ADDED: Official Firebase Database Pipeline
+        import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // =====================================================================
         // UNIFIED FIREBASE CONFIGURATION
@@ -62,21 +65,19 @@
             projectId: "patient-records-arpan",
             storageBucket: "patient-records-arpan.firebasestorage.app",
             messagingSenderId: "599041105903",
-            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
+            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a",
+            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getDatabase(app); // Connect to Realtime Database safely
         
         setPersistence(auth, browserLocalPersistence).catch(console.error);
         const googleProvider = new GoogleAuthProvider();
 
         const { useState, useEffect, useMemo } = React;
 
-        // =====================================================================
-        // CLOUD CREDENTIALS & ENDPOINTS
-        // =====================================================================
-        const FIREBASE_DB_URL = "https://patient-records-arpan-default-rtdb.firebaseio.com/exercises";
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
@@ -97,10 +98,7 @@
             Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
         };
 
-        const INITIAL_EXERCISES = [
-            { id: 1, name: "Pelvic Tilt", description: "Tighten your stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
-            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] }
-        ];
+        const INITIAL_EXERCISES = [];
 
         function App() {
             const [user, setUser] = useState({ role: 'guest' }); 
@@ -137,17 +135,24 @@
                 return () => unsubscribe();
             }, []);
 
+            // SAFELY FETCH USING FIREBASE SDK (Not simple URL Fetch)
             const fetchExercisesFromFirebase = async () => {
                 try {
                     setIsLoading(true);
-                    const res = await fetch(`${FIREBASE_DB_URL}.json`);
-                    if (!res.ok) throw new Error("Network error");
-                    const data = await res.json();
-                    if (data && typeof data === 'object' && !data.error) {
+                    const snapshot = await get(ref(db, 'exercises'));
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
-                    } else { setExercises(INITIAL_EXERCISES); }
-                } catch (error) { setExercises(INITIAL_EXERCISES); } finally { setIsLoading(false); }
+                    } else {
+                        setExercises(INITIAL_EXERCISES); 
+                    }
+                } catch (error) {
+                    console.error("Firebase Read Error:", error);
+                    setExercises(INITIAL_EXERCISES); 
+                } finally {
+                    setIsLoading(false);
+                }
             };
 
             const handleUserIconClick = () => {
@@ -191,34 +196,52 @@
             const handleImageUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingImage(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, imageUrl: secureUrl }); setIsUploadingImage(false); } };
             const handleVideoUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingVideo(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, videoUrl: secureUrl }); setIsUploadingVideo(false); } };
 
+            // SAFELY SAVE USING FIREBASE SDK
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
                 const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
                 let finalImageUrl = newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400';
                 const exerciseData = { name: newExercise.name, description: newExercise.description, imageUrl: finalImageUrl, videoUrl: newExercise.videoUrl, tags: tagsArray };
+                
                 setIsLoading(true);
                 try {
                     if (editingId) {
-                        await fetch(`${FIREBASE_DB_URL}/${editingId}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) }); showToast("Exercise updated");
+                        await set(ref(db, 'exercises/' + editingId), exerciseData);
+                        showToast("Exercise updated successfully");
                     } else {
-                        await fetch(`${FIREBASE_DB_URL}.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) }); showToast("New exercise added");
+                        const newExRef = push(ref(db, 'exercises'));
+                        await set(newExRef, exerciseData);
+                        showToast("New exercise added successfully");
                     }
-                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); await fetchExercisesFromFirebase();
-                } catch (error) { showToast("Failed to save."); } finally { setIsLoading(false); }
+                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
+                    await fetchExercisesFromFirebase();
+                } catch (error) { 
+                    console.error(error);
+                    showToast("Failed to save. You must be logged in."); 
+                } finally { 
+                    setIsLoading(false); 
+                }
             };
 
+            // SAFELY DELETE USING FIREBASE SDK
             const handleDeleteClick = async (id) => {
                 if (window.confirm("Delete this exercise permanently?")) {
                     setIsLoading(true);
                     try {
-                        await fetch(`${FIREBASE_DB_URL}/${id}.json`, { method: 'DELETE' });
+                        await remove(ref(db, 'exercises/' + id));
                         setPrescriptionData(prev => {
                             const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
                             const newParams = { ...prev.exerciseParams }; delete newParams[id];
                             return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
                         });
-                        if (editingId === id) cancelEdit(); await fetchExercisesFromFirebase(); showToast("Exercise deleted");
-                    } catch (error) { showToast("Failed to delete."); } finally { setIsLoading(false); }
+                        if (editingId === id) cancelEdit(); 
+                        await fetchExercisesFromFirebase(); 
+                        showToast("Exercise deleted permanently");
+                    } catch (error) { 
+                        showToast("Failed to delete exercise."); 
+                    } finally { 
+                        setIsLoading(false); 
+                    }
                 }
             };
 
@@ -255,16 +278,11 @@
 
             // --- UI RENDERERS ---
 
-            // EXACT MATCH TO INDEX.HTML HEADER (60px height, blur, max-width search)
+            // HEADER: Hamburger menu moved to the right side
             const renderHeader = () => (
                 <header className="bg-white/95 backdrop-blur-md px-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-center justify-between sticky top-0 z-50 print:hidden h-[60px]">
-                    <div className="flex items-center gap-[15px] flex-shrink-0">
-                        {/* Hamburger Icon as Back to Home */}
-                        <a href="/" className="flex flex-col justify-between w-[24px] h-[20px] cursor-pointer" title="Back to Home">
-                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
-                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
-                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
-                        </a>
+                    <div className="flex items-center flex-shrink-0">
+                        {/* Logo acts as "Back to List" */}
                         <div className="cursor-pointer flex items-center" onClick={() => setCurrentView('exercise-list')}>
                             <img src="/favicon.png" alt="Logo" className="w-[36px] h-[36px] object-cover rounded-[10px]" />
                         </div>
@@ -286,10 +304,17 @@
                         </div>
                     )}
                     
-                    <div className="flex-shrink-0 flex items-center gap-[8px]">
+                    <div className="flex-shrink-0 flex items-center gap-[15px]">
                         <button onClick={handleUserIconClick} className="w-[36px] h-[36px] flex items-center justify-center cursor-pointer" title={user.role === 'guest' ? 'Login' : 'Dashboard / Profile'}>
                             {user.role === 'guest' ? <Icons.User className="w-[20px] h-[20px]"/> : <Icons.UserActive className="w-[20px] h-[20px]" />}
                         </button>
+                        
+                        {/* Hamburger Icon (Back to Home) MOVED HERE */}
+                        <a href="/" className="flex flex-col justify-between w-[24px] h-[18px] cursor-pointer" title="Back to Home">
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                        </a>
                     </div>
                 </header>
             );
@@ -322,7 +347,6 @@
                 </div>
             );
 
-            // RESPONSIVE GRID: Mobile 2, Tablet 3, Desktop 4
             const renderPatientExerciseList = () => (
                 <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
                     {isLoading ? (
@@ -351,6 +375,7 @@
                 </div>
             );
 
+            // Back to Board button REMOVED from detail view
             const renderPatientExerciseDetail = () => {
                 if (!selectedExercise) return null;
                 
@@ -368,7 +393,6 @@
 
                 return (
                     <div className="p-3 md:p-4 max-w-3xl mx-auto pb-20 mt-4">
-                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-slate-600 font-bold mb-4 text-sm md:text-base hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Board</button>
                         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden">
                             <div className="aspect-video bg-[#f4f7fb] relative flex items-center justify-center w-full overflow-hidden">
                                 {isYoutube && youtubeEmbedUrl ? (
