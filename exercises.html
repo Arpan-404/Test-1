@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Therapeutic Hub - Exercises</title>
     
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Load React, ReactDOM, and Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Firebase Compat Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
@@ -53,17 +56,15 @@
     <script type="text/babel">
 
         // =====================================================================
-        // ⚠️ FIREBASE CONFIGURATION ⚠️ 
-        // Must match your main website's config exactly!
+        // YOUR EXTRACTED FIREBASE CONFIGURATION
         // =====================================================================
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
-            projectId: "clinic-bdf92",
-            storageBucket: "clinic-bdf92.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
+            authDomain: "patient-records-arpan.firebaseapp.com",
+            projectId: "patient-records-arpan",
+            storageBucket: "patient-records-arpan.firebasestorage.app",
+            messagingSenderId: "599041105903",
+            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
         };
 
         if (!firebase.apps.length) {
@@ -74,15 +75,19 @@
 
         const { useState, useEffect, useMemo } = React;
 
-        // --- CLOUD CREDENTIALS ---
-        const FIREBASE_DB_URL = "https://clinic-bdf92-default-rtdb.firebaseio.com/exercises";
+        // =====================================================================
+        // CLOUD CREDENTIALS & ENDPOINTS
+        // =====================================================================
+        const FIREBASE_DB_URL = "https://patient-records-arpan-default-rtdb.firebaseio.com/exercises";
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
-        // ⚠️ PASTE YOUR UPLOADED LOGO URL HERE ⚠️
-        const MY_CLINIC_LOGO = "https://via.placeholder.com/150x50?text=Your+Logo+Here";
-
         const Icons = {
+            Logo: ({className="w-8 h-8 text-blue-600"}) => (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            ),
             Search: ({className="w-4 h-4 md:w-5 md:h-5 text-slate-400"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
             ArrowLeft: ({className="h-5 w-5"}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
             PlayCircle: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
@@ -97,12 +102,13 @@
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
             Google: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px" className="mr-2"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>,
-            Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
         };
 
         const INITIAL_EXERCISES = [
             { id: 1, name: "Pelvic Tilt", description: "Tighten your stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
-            { id: 2, name: "Knee to Chest", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] },
+            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] },
             { id: 3, name: "Straight Leg Raise", description: "Slowly lift straight leg.", imageUrl: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80&w=400&h=500", videoUrl: "youtube", tags: ["knee pain"] },
             { id: 4, name: "Glute Bridge", description: "Lift your hips off the floor.", imageUrl: "https://images.unsplash.com/photo-1588286840104-8957b019727f?auto=format&fit=crop&q=80&w=400&h=400", videoUrl: "", tags: ["glutes"] }
         ];
@@ -144,14 +150,14 @@
                 const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
                     if (firebaseUser) {
                         setUser({ role: 'doctor', name: firebaseUser.displayName, email: firebaseUser.email });
-                        if(currentView === 'login' || currentView === 'exercise-list') {
+                        if(currentView === 'login') {
                             setCurrentView('doctor-dashboard');
                         }
                     }
                 });
 
                 return () => unsubscribe();
-            }, []);
+            }, [currentView]);
 
             const fetchExercisesFromFirebase = async () => {
                 try {
@@ -187,11 +193,7 @@
 
             const handleLogout = async () => {
                 if (user.role === 'doctor') {
-                    try {
-                        await auth.signOut();
-                    } catch (error) {
-                        console.error("Error signing out:", error);
-                    }
+                    try { await auth.signOut(); } catch (error) { console.error(error); }
                 }
                 setUser({role: 'guest'});
                 setCurrentView('exercise-list');
@@ -216,7 +218,7 @@
                     showToast("Welcome to the Doctor Dashboard");
                 } catch (error) {
                     console.error("Google Login Error:", error);
-                    showToast("Google login failed. Ensure Firebase keys are set.");
+                    showToast("Google login failed. Ensure Firebase keys are valid.");
                 }
             };
 
@@ -228,9 +230,14 @@
                 try {
                     const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await res.json();
-                    if (data.secure_url) return data.secure_url;
-                    throw new Error(data.error?.message || "Upload Failed");
+                    
+                    if (data.secure_url) {
+                        return data.secure_url;
+                    } else {
+                        throw new Error(data.error?.message || "Upload Failed");
+                    }
                 } catch (err) {
+                    console.error("Cloudinary Error:", err);
                     showToast("Cloudinary error: Fallback to local preview.");
                     return URL.createObjectURL(file);
                 }
@@ -342,14 +349,12 @@
             // CLEAN HEADER: Logo, Search Bar, User Icon
             const renderHeader = () => (
                 <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-50 print:hidden border-b border-slate-200">
-                    {/* LEFT: Dynamic Uploaded Logo */}
-                    <div className="flex-shrink-0 cursor-pointer" onClick={() => setCurrentView('exercise-list')}>
-                        <img src={MY_CLINIC_LOGO} alt="Clinic Logo" className="h-8 md:h-10 w-auto object-contain" />
+                    <div className="flex-shrink-0 cursor-pointer text-blue-600" onClick={() => setCurrentView('exercise-list')}>
+                        <Icons.Logo />
                     </div>
                     
-                    {/* CENTER: Fixed Search Bar (Always visible) */}
                     {(currentView === 'exercise-list' || currentView === 'exercise-detail') && (
-                        <div className="flex-grow max-w-xl mx-4 relative">
+                        <div className="flex-grow max-w-xl mx-4 relative hidden sm:block">
                             <Icons.Search className="absolute left-3 top-2.5 md:top-3 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
                             <input 
                                 type="text" 
@@ -361,8 +366,12 @@
                         </div>
                     )}
                     
-                    {/* RIGHT: User Login/Dashboard Icon */}
                     <div className="flex-shrink-0 flex items-center space-x-3">
+                        {currentView === 'exercise-list' && (
+                            <div className="sm:hidden mr-2">
+                                <Icons.Search className="w-5 h-5 text-slate-600" />
+                            </div>
+                        )}
                         <button onClick={handleUserIconClick} className="p-1.5 md:p-2 rounded-full bg-slate-50 hover:bg-slate-100 transition shadow-sm border border-slate-200" title={user.role === 'guest' ? 'Login' : 'Dashboard / Profile'}>
                             {user.role === 'guest' ? <Icons.User className="w-5 h-5 md:w-6 md:h-6 text-slate-600"/> : <Icons.UserActive className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />}
                         </button>
@@ -370,32 +379,36 @@
                 </header>
             );
 
+            // Rebuilt exactly like your 35097.jpg screenshot
             const renderLoginView = () => (
                 <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
                     <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-slate-50 transition">
                         {loginTab === 'patient' ? <><Icons.Stethoscope className="w-4 h-4 mr-1.5 text-blue-600"/> Staff</> : <><Icons.User className="w-4 h-4 mr-1.5 text-blue-600"/> Patient</>}
                     </button>
+
                     <button onClick={() => setCurrentView('exercise-list')} className="absolute top-4 left-4 flex items-center text-slate-500 hover:text-slate-800 font-semibold text-sm">
                         <Icons.ArrowLeft className="w-4 h-4 mr-1" /> Back
                     </button>
 
-                    <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-full max-w-sm p-6 sm:p-8">
+                    <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 w-full max-w-[360px] p-6 sm:p-8 relative">
                         {loginTab === 'patient' ? (
                             <>
                                 <div className="flex flex-col items-center mb-8">
-                                    <img src={MY_CLINIC_LOGO} alt="Clinic Logo" className="h-16 w-auto mb-4 object-contain" />
+                                    <div className="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center mb-4">
+                                        <Icons.Activity className="w-6 h-6" />
+                                    </div>
                                     <h2 className="text-xl font-bold text-[#1e3a8a]">Patient Portal</h2>
                                 </div>
-                                <form onSubmit={handlePatientLogin} className="space-y-5">
+                                <form onSubmit={handlePatientLogin} className="space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Patient Name or UPID</label>
-                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Patient Name or UPID</label>
+                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm transition" />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
-                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Mobile Number</label>
+                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm transition" />
                                     </div>
-                                    <button type="submit" className="w-full bg-[#2563eb] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition mt-4 text-sm tracking-wide">
+                                    <button type="submit" className="w-full bg-[#2563eb] text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition mt-2 text-sm">
                                         View Records
                                     </button>
                                 </form>
@@ -403,11 +416,12 @@
                         ) : (
                             <>
                                 <div className="flex flex-col items-center mb-8">
-                                    <img src={MY_CLINIC_LOGO} alt="Clinic Logo" className="h-16 w-auto mb-4 object-contain" />
+                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 border border-blue-100">
+                                        <Icons.Stethoscope className="w-6 h-6" />
+                                    </div>
                                     <h2 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h2>
-                                    <p className="text-xs text-slate-500 mt-2 text-center">Sign in to manage the exercise database and generate prescriptions.</p>
                                 </div>
-                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border-2 border-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm mb-3">
+                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm mb-3">
                                     <Icons.Google /> Sign in with Google
                                 </button>
                             </>
@@ -419,6 +433,12 @@
             // PURE PINTEREST GRID (No extra titles, search is in header)
             const renderPatientExerciseList = () => (
                 <div className="p-3 md:p-6 max-w-[1600px] mx-auto pb-20 mt-4">
+                    {/* Mobile Search */}
+                    <div className="relative mb-6 sm:hidden">
+                        <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
+                        <input type="text" placeholder="Search exercises..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
+                    </div>
+                    
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading routines...</p></div>
                     ) : (
@@ -436,7 +456,6 @@
                                     </div>
                                     <div className="p-3 md:p-4 bg-white">
                                         <h3 className="font-bold text-sm md:text-base text-slate-800 leading-tight mb-1">{ex.name}</h3>
-                                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">{ex.description}</p>
                                     </div>
                                 </div>
                             ))}
@@ -463,6 +482,7 @@
 
                 return (
                     <div className="p-3 md:p-4 max-w-3xl mx-auto pb-20 mt-4">
+                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-slate-600 font-bold mb-4 text-sm md:text-base hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Board</button>
                         <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
                             <div className="aspect-video bg-slate-50 relative flex items-center justify-center w-full overflow-hidden">
                                 {isYoutube && youtubeEmbedUrl ? (
@@ -617,39 +637,30 @@
                                     <input type="text" placeholder="comma separated e.g. knee, back" value={newExercise.tags} onChange={e => setNewExercise({...newExercise, tags: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
                                 </div>
 
-                                <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-4">
-                                    <h4 className="text-xs font-bold text-blue-800 uppercase flex items-center"><Icons.Upload /> Direct Cloudinary Upload</h4>
-                                    
+                                <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg space-y-3">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-700">Select Image (Required)</label>
-                                        <div className="flex items-center space-x-3">
-                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-white border border-slate-200 rounded-md" />
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Upload Image to Cloudinary</label>
+                                        <div className="flex items-center space-x-2 text-xs text-slate-600">
+                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-100 file:text-blue-700 text-[10px]" />
+                                            {isUploadingImage && <span className="text-[10px] text-blue-600 font-bold animate-pulse">Uploading...</span>}
                                         </div>
-                                        {isUploadingImage && <div className="text-xs text-blue-600 font-bold animate-pulse mt-1">Uploading image to cloud...</div>}
-                                        {newExercise.imageUrl && !isUploadingImage && (
-                                            <div className="mt-2 p-2 bg-white rounded border border-slate-200 inline-block">
-                                                <img src={newExercise.imageUrl} alt="Uploaded" className="h-16 object-contain" />
-                                            </div>
-                                        )}
+                                        <input type="url" placeholder="Or Paste Image URL directly" value={newExercise.imageUrl} onChange={e => setNewExercise({...newExercise, imageUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 outline-none focus:border-blue-500 mt-2" />
+                                        {newExercise.imageUrl && <img src={newExercise.imageUrl} alt="preview" className="h-10 w-10 object-contain mix-blend-multiply rounded mt-1 bg-white border border-slate-200" />}
                                     </div>
-                                    
-                                    <hr className="border-blue-200" />
-                                    
+                                    <hr className="border-slate-200" />
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-700">Select Video (Optional)</label>
-                                        <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer bg-white border border-slate-200 rounded-md mb-2" />
-                                        <input type="url" placeholder="Or Paste YouTube URL" value={newExercise.videoUrl} onChange={e => setNewExercise({...newExercise, videoUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 outline-none focus:border-blue-500" />
-                                        {isUploadingVideo && <div className="text-xs text-blue-600 font-bold animate-pulse mt-1">Uploading video to cloud...</div>}
-                                        {newExercise.videoUrl && !isUploadingVideo && <div className="text-xs text-green-600 font-bold mt-1">✓ Video added</div>}
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Video URL (Optional)</label>
+                                        <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer bg-white border border-slate-200 rounded-md mb-2" />
+                                        <input type="url" placeholder="Paste YouTube / Video URL" value={newExercise.videoUrl} onChange={e => setNewExercise({...newExercise, videoUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 outline-none focus:border-blue-500" />
                                     </div>
                                 </div>
 
-                                <div className="flex space-x-2 mt-4">
-                                    <button type="submit" disabled={isLoading || isUploadingImage || isUploadingVideo} className="flex-1 bg-slate-800 text-white rounded-md py-3 text-sm font-bold flex items-center justify-center hover:bg-slate-700 transition disabled:opacity-50 shadow-sm">
-                                        {isLoading ? "Saving to Cloud..." : editingId ? "Update Database" : "Save to Database"}
+                                <div className="flex space-x-2 mt-2">
+                                    <button type="submit" disabled={isLoading || isUploadingImage || isUploadingVideo} className="flex-1 bg-slate-800 text-white rounded-md py-2.5 text-sm font-bold flex items-center justify-center hover:bg-slate-700 transition disabled:opacity-50 shadow-sm">
+                                        {isLoading ? "Saving to Cloud..." : editingId ? "Update in DB" : <><Icons.Plus /> Save to Cloud DB</>}
                                     </button>
                                     {editingId && (
-                                        <button type="button" onClick={cancelEdit} className="px-6 bg-slate-200 text-slate-700 rounded-md py-3 text-sm font-bold hover:bg-slate-300 transition">Cancel</button>
+                                        <button type="button" onClick={cancelEdit} className="px-4 bg-slate-200 text-slate-700 rounded-md py-2.5 text-sm font-bold hover:bg-slate-300 transition">Cancel</button>
                                     )}
                                 </div>
                             </form>
@@ -691,6 +702,7 @@
                 </div>
             );
 
+            // --- BORDERLESS PRINT VIEW ---
             const renderPrintPrescriptionView = () => {
                 const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
                 const today = new Date().toLocaleDateString('en-GB');
@@ -755,6 +767,8 @@
                                                     <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                                 </div>
                                                 <div className="w-full px-1 text-left">
+                                                    
+                                                    {/* NO NUMBERING - Just the clean name */}
                                                     <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
                                                     
                                                     <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">
