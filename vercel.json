@@ -1,5 +1,4 @@
 {
-  "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
     { "source": "/doctor/:path*", "destination": "/details.html" },
