@@ -11,6 +11,8 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- NOTE: Removed conflicting old Firebase scripts from here -->
+
     <style>
         @media print {
             body { background-color: white !important; }
@@ -49,28 +51,31 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // IMPORT FIREBASE DATABASE SDK (This was missing in the last version!)
-        import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // =====================================================================
+        // UNIFIED FIREBASE CONFIGURATION
+        // =====================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
             projectId: "patient-records-arpan",
             storageBucket: "patient-records-arpan.firebasestorage.app",
             messagingSenderId: "599041105903",
-            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a",
-            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" 
+            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app); // Connect to Database using SDK
         
         setPersistence(auth, browserLocalPersistence).catch(console.error);
         const googleProvider = new GoogleAuthProvider();
 
         const { useState, useEffect, useMemo } = React;
 
+        // =====================================================================
+        // CLOUD CREDENTIALS & ENDPOINTS
+        // =====================================================================
+        const FIREBASE_DB_URL = "https://patient-records-arpan-default-rtdb.firebaseio.com/exercises";
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
@@ -126,20 +131,21 @@
                 return () => unsubscribe();
             }, []);
 
-            // SAFELY FETCH USING FIREBASE DATABASE SDK
+            // FAST, RELIABLE FETCH USING SECURE REST API
             const fetchExercisesFromFirebase = async () => {
                 try {
                     setIsLoading(true);
-                    const snapshot = await get(ref(db, 'exercises'));
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
+                    const res = await fetch(`${FIREBASE_DB_URL}.json`);
+                    if (!res.ok) throw new Error("Network error");
+                    const data = await res.json();
+                    if (data && typeof data === 'object' && !data.error) {
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
                     } else { 
                         setExercises([]); 
                     }
                 } catch (error) { 
-                    console.error(error);
+                    console.error("Fetch Error:", error);
                     setExercises([]); 
                 } finally { 
                     setIsLoading(false); 
@@ -187,39 +193,72 @@
             const handleImageUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingImage(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, imageUrl: secureUrl }); setIsUploadingImage(false); } };
             const handleVideoUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingVideo(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, videoUrl: secureUrl }); setIsUploadingVideo(false); } };
 
-            // SAFELY SAVE USING FIREBASE DATABASE SDK
+            // =========================================================
+            // BULLETPROOF SAVE USING SECURE REST API
+            // =========================================================
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
+                
+                // Security Check
+                if (!auth.currentUser) {
+                    showToast("Error: You must be logged in as a Doctor to save.");
+                    return;
+                }
+
                 const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
                 let finalImageUrl = newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400';
                 const exerciseData = { name: newExercise.name, description: newExercise.description, imageUrl: finalImageUrl, videoUrl: newExercise.videoUrl, tags: tagsArray };
                 
                 setIsLoading(true);
                 try {
-                    if (editingId) {
-                        await set(ref(db, 'exercises/' + editingId), exerciseData);
-                        showToast("Exercise updated successfully");
-                    } else {
-                        const newExRef = push(ref(db, 'exercises'));
-                        await set(newExRef, exerciseData);
-                        showToast("New exercise added successfully");
-                    }
-                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
+                    // Grab Google security token to bypass database locks
+                    const token = await auth.currentUser.getIdToken();
+                    
+                    const url = editingId 
+                        ? `${FIREBASE_DB_URL}/${editingId}.json?auth=${token}` 
+                        : `${FIREBASE_DB_URL}.json?auth=${token}`;
+                    
+                    const method = editingId ? 'PUT' : 'POST';
+
+                    // Force HTTP request which never hangs silently
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(exerciseData)
+                    });
+
+                    if (!res.ok) throw new Error("Firebase blocked the save. Check permissions.");
+
+                    showToast(editingId ? "Exercise updated successfully" : "New exercise added successfully");
+                    setEditingId(null); 
+                    setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
                     await fetchExercisesFromFirebase();
                 } catch (error) { 
-                    console.error(error);
-                    showToast("Failed to save. Ensure you are logged in."); 
+                    console.error("Save Error:", error);
+                    showToast("Failed to save: " + error.message); 
                 } finally { 
                     setIsLoading(false); 
                 }
             };
 
-            // SAFELY DELETE USING FIREBASE DATABASE SDK
+            // =========================================================
+            // BULLETPROOF DELETE USING SECURE REST API
+            // =========================================================
             const handleDeleteClick = async (id) => {
                 if (window.confirm("Delete this exercise permanently?")) {
+                    if (!auth.currentUser) {
+                        showToast("Error: You must be logged in.");
+                        return;
+                    }
                     setIsLoading(true);
                     try {
-                        await remove(ref(db, 'exercises/' + id));
+                        const token = await auth.currentUser.getIdToken();
+                        const res = await fetch(`${FIREBASE_DB_URL}/${id}.json?auth=${token}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (!res.ok) throw new Error("Permission Denied");
+
                         setPrescriptionData(prev => {
                             const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
                             const newParams = { ...prev.exerciseParams }; delete newParams[id];
@@ -270,17 +309,14 @@
 
             // --- UI RENDERERS ---
 
-            // HEADER: Hamburger menu moved to the right side
             const renderHeader = () => (
                 <header className="bg-white/95 backdrop-blur-md px-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-center justify-between sticky top-0 z-50 print:hidden h-[60px]">
                     <div className="flex items-center flex-shrink-0">
-                        {/* Logo acts as "Back to List" */}
                         <div className="cursor-pointer flex items-center" onClick={() => setCurrentView('exercise-list')}>
                             <img src="/favicon.png" alt="Logo" className="w-[36px] h-[36px] object-cover rounded-[10px]" />
                         </div>
                     </div>
                     
-                    {/* Centered Search Bar */}
                     {(currentView === 'exercise-list' || currentView === 'exercise-detail') && (
                         <div className="flex-grow flex justify-center mx-2">
                             <div className="relative w-full max-w-[220px]">
@@ -301,7 +337,6 @@
                             {user.role === 'guest' ? <Icons.User className="w-[20px] h-[20px]"/> : <Icons.UserActive className="w-[20px] h-[20px]" />}
                         </button>
                         
-                        {/* Hamburger Icon (Back to Home) MOVED HERE */}
                         <a href="/" className="flex flex-col justify-between w-[24px] h-[18px] cursor-pointer" title="Back to Home">
                             <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
                             <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
@@ -339,7 +374,6 @@
                 </div>
             );
 
-            // RESPONSIVE GRID: Mobile 2, Tablet 3, Desktop 4
             const renderPatientExerciseList = () => (
                 <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
                     {isLoading ? (
@@ -368,7 +402,6 @@
                 </div>
             );
 
-            // Back to Board button REMOVED from detail view
             const renderPatientExerciseDetail = () => {
                 if (!selectedExercise) return null;
                 
