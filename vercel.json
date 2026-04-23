@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/doctor/:path*", "destination": "/details.html" },
     { "source": "/service/:path*", "destination": "/details.html" },
