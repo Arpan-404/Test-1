@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- EXACT SEO TAGS FOR THE HOMEPAGE & APP INSTALL -->
     <title>Therapeutic Hub</title>
     <meta name="description" content="Expert healthcare, physiotherapy, and rehabilitation services at Therapeutic Hub. Book appointments with top specialists.">
     <meta name="application-name" content="Therapeutic Hub">
@@ -39,7 +38,6 @@
         .search-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
         
         .header-actions { display: flex; align-items: center; gap: 8px; }
-
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
 
@@ -67,7 +65,7 @@
         .hero-actions { display: flex; gap: 10px; width: 100%; align-items: center; }
         .btn-book { flex: 2; background: var(--primary); color: white; border: none; padding: 14px 16px; border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3); }
         .btn-book:active { transform: scale(0.98); background: var(--primary-dark); }
-        .btn-call { flex: 1; background: var(--primary-light); color: var(--primary-dark); border-radius: 100px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 1rem; padding: 14px 16px; text-decoration: none; transition: 0.2s; }
+        .btn-call { flex: 1; background: var(--primary-light); color: var(--primary-dark); border-radius: 100px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; padding: 14px 16px; transition: 0.2s; }
         .btn-call:active { transform: scale(0.95); background: #bfdbfe; }
 
         .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; margin-top: 2rem; }
@@ -105,16 +103,12 @@
 </head>
 <body>
     <header class="header">
-        <a href="/" class="logo">
-            <img src="" alt="PT" class="logo-img" id="clinicLogo">
-        </a>
+        <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
         <div class="search-container">
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
         <div class="header-actions">
-            <div class="hamburger" onclick="window.toggleMenu()">
-                <span></span><span></span><span></span>
-            </div>
+            <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
         </div>
     </header>
 
@@ -128,6 +122,7 @@
             <li><a href="/doctors">Doctors</a></li>
             <li><a href="/products">Store</a></li>
             <li><a href="/articles">Health Feed</a></li>
+            <li><a href="/exercises">Exercise Library</a></li>
             <li><a href="/prescription">My Reports</a></li>
             <li><a href="/admin" style="color: var(--primary); background: var(--primary-light); border-radius: 8px; margin: 1rem; text-align: center;">Admin</a></li>
         </ul>
@@ -135,50 +130,27 @@
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <main class="main">
-        
         <div class="hero-wrapper">
-            <div class="slider-container">
-                <div class="slider-track" id="sliderTrack"></div>
-            </div>
-            
+            <div class="slider-container"><div class="slider-track" id="sliderTrack"></div></div>
             <div class="hero-content">
                 <div class="hero-actions">
-                    <button class="btn-book" onclick="window.bookAppointment()">
-                        Book Appointment
-                    </button>
-                    <a href="#" id="heroPhone" class="btn-call" aria-label="Call Clinic">
-                        📞 Call
-                    </a>
+                    <button class="btn-book" onclick="window.bookAppointment()">Book Appointment</button>
+                    <a href="#" id="heroPhone" class="btn-call">📞 Call</a>
                 </div>
             </div>
         </div>
 
-        <div class="section-header">
-            <h2 class="section-title">Services</h2>
-            <a href="/services" class="view-all">See All</a>
-        </div>
+        <div class="section-header"><h2 class="section-title">Services</h2><a href="/services" class="view-all">See All</a></div>
         <div class="h-scroll" id="servicesPreview"></div>
 
-        <div class="section-header">
-            <h2 class="section-title">Specialists</h2>
-            <a href="/doctors" class="view-all">See All</a>
-        </div>
+        <div class="section-header"><h2 class="section-title">Specialists</h2><a href="/doctors" class="view-all">See All</a></div>
         <div class="h-scroll" id="doctorsPreview"></div>
 
-        <div class="section-header">
-            <h2 class="section-title">Products</h2>
-            <a href="/products" class="view-all">Shop All</a>
-        </div>
+        <div class="section-header"><h2 class="section-title">Products</h2><a href="/products" class="view-all">Shop All</a></div>
         <div class="h-scroll" id="productsPreview"></div>
 
-        <div class="section-header">
-            <h2 class="section-title">Health Feed</h2>
-            <a href="/articles" class="view-all">Read All</a>
-        </div>
-        <div class="article-list" id="articleFeed">
-            <p style="text-align:center; color:var(--text-muted); font-size: 0.9rem;">Loading articles...</p>
-        </div>
-
+        <div class="section-header"><h2 class="section-title">Health Feed</h2><a href="/articles" class="view-all">Read All</a></div>
+        <div class="article-list" id="articleFeed"><p style="text-align:center; color:var(--text-muted); font-size: 0.9rem;">Loading...</p></div>
     </main>
 
     <script type="module">
@@ -221,59 +193,35 @@
                 if(window.siteData.hero) {
                     if(window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
                     setupSlider(window.siteData.hero.sliderImages || [window.siteData.hero.bannerImageUrl]);
-                    
-                    if(window.siteData.hero.phone) {
-                        const cleanPhone = window.siteData.hero.phone.replace(/[^0-9+]/g, '');
-                        document.getElementById('heroPhone').href = `tel:${cleanPhone}`;
-                    }
+                    if(window.siteData.hero.phone) { document.getElementById('heroPhone').href = `tel:${window.siteData.hero.phone.replace(/[^0-9+]/g, '')}`; }
                 }
                 
-                document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => {
-                    const mediaHtml = s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`;
-                    return `
+                document.getElementById('servicesPreview').innerHTML = (window.siteData.services || []).map(s => `
                     <a href="/service/${window.slugify(s.title)}" class="card-compact">
-                        ${mediaHtml}
-                        <div class="card-compact-info">
-                            <h4 class="card-compact-title">${s.title}</h4>
-                            <p class="card-compact-desc">${s.description}</p>
-                        </div>
-                    </a>`;
-                }).join('');
+                        ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
+                        <div class="card-compact-info"><h4 class="card-compact-title">${s.title}</h4><p class="card-compact-desc">${s.description}</p></div>
+                    </a>`).join('');
 
-                document.getElementById('doctorsPreview').innerHTML = (window.siteData.doctors || []).map(d => {
-                    const avatarHtml = d.photoUrl ? `<img src="${d.photoUrl}" class="doc-avatar" loading="lazy">` : `<div class="doc-avatar">👨‍⚕️</div>`;
-                    return `
+                document.getElementById('doctorsPreview').innerHTML = (window.siteData.doctors || []).map(d => `
                     <a href="/doctor/${window.slugify(d.name)}" class="doc-card">
-                        ${avatarHtml}
+                        ${d.photoUrl ? `<img src="${d.photoUrl}" class="doc-avatar" loading="lazy">` : `<div class="doc-avatar">👨‍⚕️</div>`}
                         <h4>${d.name}</h4><p>${d.qualification}</p>
-                    </a>`;
-                }).join('');
+                    </a>`).join('');
 
-                document.getElementById('productsPreview').innerHTML = (window.siteData.products || []).map(p => {
-                    const mediaHtml = p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="prod-img">📦</div>`;
-                    return `
+                document.getElementById('productsPreview').innerHTML = (window.siteData.products || []).map(p => `
                     <a href="/product/${window.slugify(p.name)}" class="prod-card">
-                        ${mediaHtml}
-                        <h4 class="prod-title">${p.name}</h4>
-                        <div class="prod-price">${p.price}</div>
-                    </a>`;
-                }).join('');
+                        ${p.profilePhoto ? `<img src="${p.profilePhoto}" class="prod-img" loading="lazy">` : `<div class="prod-img">📦</div>`}
+                        <h4 class="prod-title">${p.name}</h4><div class="prod-price">${p.price}</div>
+                    </a>`).join('');
 
                 const articles = window.siteData.articles || [];
-                if(articles.length === 0) {
-                    document.getElementById('articleFeed').innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No articles yet.</p>';
-                } else {
-                    const sortedArticles = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    document.getElementById('articleFeed').innerHTML = sortedArticles.map(a => `
-                        <a href="/${a.slug}" class="article-row">
-                            ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : '<div style="width:80px;height:80px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">📄</div>'}
-                            <div class="article-info">
-                                <h4>${a.title}</h4>
-                                <p>${a.content.replace(/<[^>]*>?/gm, '')}</p>
-                            </div>
-                        </a>
-                    `).join('');
-                }
+                document.getElementById('articleFeed').innerHTML = articles.length === 0 ? '<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">No articles yet.</p>' 
+                : [...articles].sort((a, b) => new Date(b.date) - new Date(a.date)).map(a => `
+                    <a href="/${a.slug}" class="article-row">
+                        ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : '<div style="width:80px;height:80px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">📄</div>'}
+                        <div class="article-info"><h4>${a.title}</h4><p>${a.content.replace(/<[^>]*>?/gm, '')}</p></div>
+                    </a>
+                `).join('');
             }
         });
 
@@ -316,4 +264,3 @@
     </script>
 </body>
 </html>
-
