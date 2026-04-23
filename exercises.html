@@ -47,7 +47,6 @@
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
-        // OFFICIAL FIREBASE SDK IMPORTS
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
@@ -74,7 +73,10 @@
 
         const { useState, useEffect, useMemo } = React;
 
-        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
+        // =====================================================================
+        // UPDATED CLOUDINARY URL to your MAIN account (desvmq2l9)
+        // =====================================================================
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/desvmq2l9/auto/upload";
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
         const Icons = {
