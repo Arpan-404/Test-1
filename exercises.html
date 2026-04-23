@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise Library - Therapeutic Hub</title>
+    <title>Therapeutic Hub - Clinic Portal</title>
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,6 +26,7 @@
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             @page { margin: 1cm; }
         }
+        
         .loader {
             border: 3px solid #f3f3f3;
             border-top: 3px solid #2563eb;
@@ -35,8 +36,12 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .toast-enter { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-sm md:text-base font-sans">
@@ -44,15 +49,17 @@
 
     <script type="text/babel">
 
-        // --- YOUR ACTUAL FIREBASE KEYS ADDED HERE ---
+        // =====================================================================
+        // ⚠️ FIREBASE CONFIGURATION ⚠️ 
+        // =====================================================================
         const firebaseConfig = {
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4",
+            apiKey: "YOUR_API_KEY",
             authDomain: "clinic-bdf92.firebaseapp.com",
             databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com",
             projectId: "clinic-bdf92",
             storageBucket: "clinic-bdf92.appspot.com",
-            messagingSenderId: "123456789", 
-            appId: "1:123456789:web:abcdef"
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         if (!firebase.apps.length) {
@@ -63,15 +70,20 @@
 
         const { useState, useEffect, useMemo } = React;
 
+        // --- CLOUD CREDENTIALS ---
         const FIREBASE_DB_URL = "https://clinic-bdf92-default-rtdb.firebaseio.com/exercises";
+        
+        // Using auto upload endpoint so it handles both images and videos
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
+        // ⚠️ MUST CREATE THIS PRESET IN CLOUDINARY SETTINGS
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
         const Icons = {
             Activity: ({className="w-6 h-6"}) => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>,
-            Home: ({className="w-5 h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+            Menu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
             Search: ({className="absolute left-3 top-2.5 text-slate-400 w-4 h-4 md:w-5 md:h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
             ArrowLeft: ({className="h-5 w-5"}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+            PlayCircle: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
             Stethoscope: ({className="w-5 h-5 md:w-6 md:h-6"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>,
             Database: ({className="w-4 h-4 md:w-5 md:h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>,
             Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
@@ -82,41 +94,57 @@
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
             Google: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px" className="mr-2"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>,
-            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+            Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         };
 
         const INITIAL_EXERCISES = [
             { id: 1, name: "Pelvic Tilt", description: "Lie on your back with knees bent. Tighten stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
+            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest until you feel a stretch.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] }
         ];
 
         function App() {
             const [user, setUser] = useState({ role: 'guest' }); 
             const [currentView, setCurrentView] = useState('exercise-list'); 
+            
             const [loginTab, setLoginTab] = useState('patient'); 
             const [loginName, setLoginName] = useState('');
             const [loginPhone, setLoginPhone] = useState('');
+            
             const [exercises, setExercises] = useState([]);
             const [isLoading, setIsLoading] = useState(true);
-            const [isUploading, setIsUploading] = useState(false);
+            const [isUploadingImage, setIsUploadingImage] = useState(false);
+            const [isUploadingVideo, setIsUploadingVideo] = useState(false);
             const [toastMessage, setToastMessage] = useState(null);
+            
             const [selectedExercise, setSelectedExercise] = useState(null);
             const [searchQuery, setSearchQuery] = useState("");
             const [doctorSearchQuery, setDoctorSearchQuery] = useState("");
             const [databaseSearchQuery, setDatabaseSearchQuery] = useState("");
+
             const [editingId, setEditingId] = useState(null);
             const [newExercise, setNewExercise] = useState({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
-            const [prescriptionData, setPrescriptionData] = useState({ patientName: '', age: '', gender: '', notes: '', selectedExerciseIds: [], exerciseParams: {} });
+            const [prescriptionData, setPrescriptionData] = useState({ 
+                patientName: '', age: '', gender: '', notes: '', selectedExerciseIds: [], exerciseParams: {} 
+            });
 
-            const showToast = (message) => { setToastMessage(message); setTimeout(() => setToastMessage(null), 3500); };
+            const showToast = (message) => {
+                setToastMessage(message);
+                setTimeout(() => setToastMessage(null), 3500);
+            };
 
             useEffect(() => {
                 fetchExercisesFromFirebase();
+
                 const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
                     if (firebaseUser) {
                         setUser({ role: 'doctor', name: firebaseUser.displayName, email: firebaseUser.email });
-                        if(currentView === 'login') setCurrentView('doctor-dashboard');
+                        if(currentView === 'login') {
+                            setCurrentView('doctor-dashboard');
+                        }
                     }
                 });
+
                 return () => unsubscribe();
             }, [currentView]);
 
@@ -128,97 +156,211 @@
                     if (data) {
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
-                    } else { setExercises(INITIAL_EXERCISES); }
-                } catch (error) { setExercises(INITIAL_EXERCISES); } finally { setIsLoading(false); }
+                    } else {
+                        setExercises(INITIAL_EXERCISES);
+                    }
+                } catch (error) {
+                    console.error("Error fetching from Firebase:", error);
+                    setExercises(INITIAL_EXERCISES);
+                } finally {
+                    setIsLoading(false);
+                }
             };
 
             const handleLogout = async () => {
-                if (user.role === 'doctor') { try { await auth.signOut(); } catch (error) {} }
-                setUser({role: 'guest'}); setCurrentView('exercise-list'); showToast("Logged out successfully");
+                if (user.role === 'doctor') {
+                    try {
+                        await auth.signOut();
+                    } catch (error) {
+                        console.error("Error signing out:", error);
+                    }
+                }
+                setUser({role: 'guest'});
+                setCurrentView('exercise-list');
+                showToast("Logged out successfully");
             };
 
             const handlePatientLogin = (e) => {
                 e.preventDefault();
                 if (loginPhone.length >= 10) {
                     setUser({ role: 'patient', phone: loginPhone, name: loginName });
-                    setCurrentView('exercise-list'); showToast("Logged in as Patient");
-                } else { showToast("Please enter a valid mobile number."); }
+                    setCurrentView('exercise-list');
+                    showToast("Logged in as Patient");
+                } else {
+                    showToast("Please enter a valid mobile number.");
+                }
             };
 
             const handleDoctorGoogleLogin = async () => {
                 try {
                     await auth.signInWithPopup(googleProvider);
-                    setCurrentView('doctor-dashboard'); showToast("Welcome to the Doctor Dashboard");
-                } catch (error) { showToast("Google login failed."); }
+                    setCurrentView('doctor-dashboard');
+                    showToast("Welcome to the Doctor Dashboard");
+                } catch (error) {
+                    console.error("Google Login Error:", error);
+                    showToast("Google login failed. Ensure Firebase keys are set in code.");
+                }
             };
 
+            // DIRECT CLOUDINARY UPLOAD LOGIC
             const uploadFileToCloudinary = async (file) => {
-                setIsUploading(true);
-                const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
                 try {
                     const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await res.json();
-                    if (data.secure_url) { setIsUploading(false); return data.secure_url; } else { throw new Error("Upload Failed"); }
-                } catch (err) { setIsUploading(false); return URL.createObjectURL(file); }
+                    
+                    if (data.secure_url) {
+                        return data.secure_url;
+                    } else {
+                        throw new Error(data.error?.message || "Upload Failed");
+                    }
+                } catch (err) {
+                    console.error("Cloudinary Error:", err);
+                    showToast("Cloudinary error: Ensure Unsigned Upload Preset is set correctly.");
+                    return null;
+                }
             };
 
-            const handleImageUpload = async (e) => { const file = e.target.files[0]; if (file) { const secureUrl = await uploadFileToCloudinary(file); setNewExercise({ ...newExercise, imageUrl: secureUrl }); } };
-            const handleVideoUpload = async (e) => { const file = e.target.files[0]; if (file) { const secureUrl = await uploadFileToCloudinary(file); setNewExercise({ ...newExercise, videoUrl: secureUrl }); } };
+            const handleImageUpload = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setIsUploadingImage(true);
+                    const secureUrl = await uploadFileToCloudinary(file);
+                    if(secureUrl) {
+                        setNewExercise({ ...newExercise, imageUrl: secureUrl });
+                        showToast("Image uploaded to Cloudinary successfully");
+                    }
+                    setIsUploadingImage(false);
+                }
+            };
+
+            const handleVideoUpload = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setIsUploadingVideo(true);
+                    const secureUrl = await uploadFileToCloudinary(file);
+                    if(secureUrl) {
+                        setNewExercise({ ...newExercise, videoUrl: secureUrl });
+                        showToast("Video uploaded to Cloudinary successfully");
+                    }
+                    setIsUploadingVideo(false);
+                }
+            };
 
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
-                const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
-                const exerciseData = { name: newExercise.name, description: newExercise.description, imageUrl: newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400', videoUrl: newExercise.videoUrl, tags: tagsArray };
+                
+                const tagsArray = typeof newExercise.tags === 'string' 
+                    ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) 
+                    : newExercise.tags;
+                    
+                let finalImageUrl = newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400';
+                
+                const exerciseData = {
+                    name: newExercise.name,
+                    description: newExercise.description,
+                    imageUrl: finalImageUrl,
+                    videoUrl: newExercise.videoUrl,
+                    tags: tagsArray
+                };
+
                 setIsLoading(true);
+
                 try {
                     if (editingId) {
-                        await fetch(`${FIREBASE_DB_URL}/${editingId}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) });
-                        showToast("Exercise updated");
+                        await fetch(`${FIREBASE_DB_URL}/${editingId}.json`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(exerciseData)
+                        });
+                        showToast("Exercise updated in Cloud Database");
                     } else {
-                        await fetch(`${FIREBASE_DB_URL}.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) });
-                        showToast("New exercise added");
+                        await fetch(`${FIREBASE_DB_URL}.json`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(exerciseData)
+                        });
+                        showToast("New exercise added to Cloud");
                     }
-                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); await fetchExercisesFromFirebase();
-                } catch (error) { showToast("Failed to save."); } finally { setIsLoading(false); }
+                    
+                    setEditingId(null);
+                    setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
+                    await fetchExercisesFromFirebase();
+                } catch (error) {
+                    console.error("Firebase write error:", error);
+                    showToast("Failed to save to database. Check API key.");
+                } finally {
+                    setIsLoading(false);
+                }
             };
 
             const handleDeleteClick = async (id) => {
-                if (window.confirm("Delete this exercise?")) {
+                if (window.confirm("Delete this exercise? This will permanently remove it from the Cloud Database.")) {
                     setIsLoading(true);
                     try {
                         await fetch(`${FIREBASE_DB_URL}/${id}.json`, { method: 'DELETE' });
-                        if (editingId === id) cancelEdit(); await fetchExercisesFromFirebase(); showToast("Exercise deleted");
-                    } catch (error) { showToast("Failed to delete."); } finally { setIsLoading(false); }
+                        
+                        setPrescriptionData(prev => {
+                            const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
+                            const newParams = { ...prev.exerciseParams };
+                            delete newParams[id];
+                            return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
+                        });
+                        
+                        if (editingId === id) cancelEdit();
+                        await fetchExercisesFromFirebase();
+                        showToast("Exercise deleted successfully");
+                    } catch (error) {
+                        console.error("Firebase delete error:", error);
+                        showToast("Failed to delete exercise.");
+                    } finally {
+                        setIsLoading(false);
+                    }
                 }
             };
-            const handleEditClick = (ex) => { setEditingId(ex.id); setNewExercise({ name: ex.name, description: ex.description, imageUrl: ex.imageUrl, videoUrl: ex.videoUrl || '', tags: ex.tags ? ex.tags.join(', ') : '' }); setCurrentView('database-management'); };
-            const cancelEdit = () => { setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); };
+
+            const cancelEdit = () => {
+                setEditingId(null);
+                setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
+            };
 
             const togglePrescriptionExercise = (id) => {
                 setPrescriptionData(prev => {
                     const isSelected = prev.selectedExerciseIds.includes(id);
-                    let newIds = [...prev.selectedExerciseIds]; let newParams = { ...prev.exerciseParams };
-                    if (isSelected) { newIds = newIds.filter(eId => eId !== id); delete newParams[id]; } else { newIds.push(id); newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
+                    let newIds = [...prev.selectedExerciseIds];
+                    let newParams = { ...prev.exerciseParams };
+
+                    if (isSelected) {
+                        newIds = newIds.filter(eId => eId !== id);
+                        delete newParams[id];
+                    } else {
+                        newIds.push(id);
+                        newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
+                    }
                     return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
                 });
             };
-            const handleParamChange = (id, field, value) => { setPrescriptionData(prev => ({ ...prev, exerciseParams: { ...prev.exerciseParams, [id]: { ...prev.exerciseParams[id], [field]: value } } })); };
+
+            const handleParamChange = (id, field, value) => {
+                setPrescriptionData(prev => ({
+                    ...prev, exerciseParams: { ...prev.exerciseParams, [id]: { ...prev.exerciseParams[id], [field]: value } }
+                }));
+            };
 
             const filteredPatientExercises = useMemo(() => exercises.filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()) || (ex.tags && ex.tags.some(tag => tag.includes(searchQuery.toLowerCase())))), [exercises, searchQuery]);
             const filteredDoctorExercises = useMemo(() => exercises.filter(ex => ex.name.toLowerCase().includes(doctorSearchQuery.toLowerCase()) || (ex.tags && ex.tags.some(tag => tag.includes(doctorSearchQuery.toLowerCase())))), [exercises, doctorSearchQuery]);
             const filteredDatabaseExercises = useMemo(() => exercises.filter(ex => ex.name.toLowerCase().includes(databaseSearchQuery.toLowerCase()) || (ex.tags && ex.tags.some(tag => tag.includes(databaseSearchQuery.toLowerCase())))), [exercises, databaseSearchQuery]);
 
+            // --- UI RENDERERS ---
+
             const renderHeader = () => (
                 <div className="bg-white px-3 py-3 shadow-sm flex items-center justify-between sticky top-0 z-50 print:hidden border-b border-slate-200">
-                    <div className="flex items-center space-x-1.5 cursor-pointer">
-                        {/* BACK TO MAIN WEBSITE BUTTON */}
-                        <a href="/" className="mr-2 text-slate-400 hover:text-blue-600 transition" title="Back to Main Site">
-                            <Icons.Home className="w-6 h-6" />
-                        </a>
-                        <div onClick={() => setCurrentView(user.role === 'doctor' ? 'doctor-dashboard' : 'exercise-list')} className="flex items-center">
-                            <Icons.Activity className="text-blue-600 w-6 h-6 md:w-7 md:h-7" />
-                            <span className="font-bold text-lg md:text-xl text-slate-800 ml-1">Therapeutic Hub</span>
-                        </div>
+                    <div className="flex items-center space-x-1.5 cursor-pointer" onClick={() => setCurrentView(user.role === 'doctor' ? 'doctor-dashboard' : 'exercise-list')}>
+                        <Icons.Activity className="text-blue-600 w-6 h-6 md:w-7 md:h-7" />
+                        <span className="font-bold text-lg md:text-xl text-slate-800">Therapeutic Hub</span>
                     </div>
                     
                     <div className="flex items-center space-x-2">
@@ -227,6 +369,7 @@
                                 <Icons.User className="w-4 h-4 mr-1.5" /> Login
                             </button>
                         )}
+
                         {user.role === 'patient' && (
                             <div className="flex items-center space-x-3">
                                 <span className="text-xs md:text-sm font-semibold text-slate-600 hidden sm:block">Patient: {user.phone}</span>
@@ -235,9 +378,10 @@
                                 </button>
                             </div>
                         )}
+
                         {user.role === 'doctor' && (
                             <div className="flex items-center space-x-2 md:space-x-4">
-                                <button onClick={() => setCurrentView(currentView === 'database-management' ? 'doctor-dashboard' : 'database-management')} className="flex items-center justify-center p-1.5 md:px-3 md:py-1.5 rounded-lg font-bold text-xs md:text-sm transition bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                <button onClick={() => setCurrentView(currentView === 'database-management' ? 'doctor-dashboard' : 'database-management')} className={`flex items-center justify-center p-1.5 md:px-3 md:py-1.5 rounded-lg font-bold text-xs md:text-sm transition ${currentView === 'database-management' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
                                     <Icons.Database className="w-4 h-4 md:mr-1.5" /> <span className="hidden md:inline">{currentView === 'database-management' ? 'Dashboard' : 'Database'}</span>
                                 </button>
                                 <button onClick={handleLogout} className="flex items-center text-slate-500 hover:text-red-600 font-semibold text-sm transition">
@@ -249,9 +393,6 @@
                 </div>
             );
 
-            // ... (Rest of your component renders are perfectly fine, omitted for brevity but they are active) ...
-            
-            // To keep the file manageable, I will just render the views you provided exactly as they were:
             const renderLoginView = () => (
                 <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
                     <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-slate-50 transition">
@@ -260,20 +401,42 @@
                     <button onClick={() => setCurrentView('exercise-list')} className="absolute top-4 left-4 flex items-center text-slate-500 hover:text-slate-800 font-semibold text-sm">
                         <Icons.ArrowLeft className="w-4 h-4 mr-1" /> Back
                     </button>
+
                     <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-full max-w-sm p-6 sm:p-8">
                         {loginTab === 'patient' ? (
                             <>
-                                <div className="flex flex-col items-center mb-8"><div className="w-12 h-12 bg-[#2563eb] text-white rounded-xl flex items-center justify-center mb-4 shadow-md"><Icons.Activity className="w-6 h-6" /></div><h2 className="text-xl font-bold text-[#1e3a8a]">Patient Portal</h2></div>
+                                <div className="flex flex-col items-center mb-8">
+                                    <div className="w-12 h-12 bg-[#2563eb] text-white rounded-xl flex items-center justify-center mb-4 shadow-md">
+                                        <Icons.Activity className="w-6 h-6" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-[#1e3a8a]">Patient Portal</h2>
+                                </div>
                                 <form onSubmit={handlePatientLogin} className="space-y-5">
-                                    <div><label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Patient Name</label><input type="text" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 text-sm bg-slate-50" /></div>
-                                    <div><label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label><input type="tel" required value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 text-sm bg-slate-50" /></div>
-                                    <button type="submit" className="w-full bg-[#2563eb] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700">View Records</button>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Patient Name or UPID</label>
+                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
+                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                    </div>
+                                    <button type="submit" className="w-full bg-[#2563eb] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition mt-4 text-sm tracking-wide">
+                                        View Records
+                                    </button>
                                 </form>
                             </>
                         ) : (
                             <>
-                                <div className="flex flex-col items-center mb-8"><div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-blue-100"><Icons.Stethoscope className="w-6 h-6" /></div><h2 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h2></div>
-                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border-2 border-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-50"><Icons.Google /> Sign in with Google</button>
+                                <div className="flex flex-col items-center mb-8">
+                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-sm border border-blue-100">
+                                        <Icons.Stethoscope className="w-6 h-6" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h2>
+                                    <p className="text-xs text-slate-500 mt-2 text-center">Sign in to manage the exercise database and generate prescriptions.</p>
+                                </div>
+                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border-2 border-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm mb-3">
+                                    <Icons.Google /> Sign in with Google
+                                </button>
                             </>
                         )}
                     </div>
@@ -282,38 +445,74 @@
 
             const renderPatientExerciseList = () => (
                 <div className="p-3 md:p-6 max-w-7xl mx-auto pb-20">
-                    <div className="mb-6 text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-800">Exercise Library</h2>
+                    <div className="mb-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-800 text-center tracking-tight">Exercise Library</h2>
+                        <p className="text-center text-slate-500 mt-2 text-sm md:text-base">Browse your physical therapy routines below</p>
                     </div>
+                    
                     <div className="relative mb-8 max-w-2xl mx-auto">
                         <Icons.Search className="absolute left-4 top-3.5 text-slate-400 w-5 h-5" />
-                        <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full border border-slate-200 rounded-full py-3.5 pl-12 pr-4 shadow-sm" />
+                        <input type="text" placeholder="Search by name or symptom..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-full py-3.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
                     </div>
-                    {isLoading ? <div className="flex flex-col items-center py-20"><div className="loader mb-4"></div></div> : (
+                    
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-500"><div className="loader mb-4"></div><p>Loading database...</p></div>
+                    ) : (
                         <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4 space-y-3 md:space-y-4">
                             {filteredPatientExercises.map(ex => (
-                                <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); }} className="break-inside-avoid inline-block w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden cursor-pointer hover:-translate-y-1 transition-all">
-                                    <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto object-cover" />
-                                    <div className="p-3 bg-white"><h3 className="font-bold text-sm text-slate-800">{ex.name}</h3></div>
+                                <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); }} 
+                                     className="break-inside-avoid inline-block w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden cursor-pointer group hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                    <div className="relative w-full overflow-hidden">
+                                        <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out" />
+                                        {ex.videoUrl && (
+                                            <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-3 md:p-4 bg-white">
+                                        <h3 className="font-bold text-sm md:text-base text-slate-800 leading-tight mb-1">{ex.name}</h3>
+                                        <p className="text-xs text-slate-500 line-clamp-2 leading-snug">{ex.description}</p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
+                    {filteredPatientExercises.length === 0 && !isLoading && <p className="text-center text-slate-500 py-8 text-sm">No exercises found.</p>}
                 </div>
             );
 
             const renderPatientExerciseDetail = () => {
                 if (!selectedExercise) return null;
+                
+                let isYoutube = selectedExercise.videoUrl && (selectedExercise.videoUrl.includes('youtube.com') || selectedExercise.videoUrl.includes('youtu.be'));
+                let youtubeEmbedUrl = "";
+                if (isYoutube) {
+                    let videoId = selectedExercise.videoUrl.split('v=')[1];
+                    if(!videoId) videoId = selectedExercise.videoUrl.split('youtu.be/')[1];
+                    if(videoId) {
+                        const ampersandPosition = videoId.indexOf('&');
+                        if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition);
+                        youtubeEmbedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    }
+                }
+
                 return (
                     <div className="p-3 md:p-4 max-w-3xl mx-auto pb-20">
-                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-blue-600 font-semibold mb-3 text-sm"><Icons.ArrowLeft className="h-4 w-4 mr-1" /> Back</button>
+                        <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-blue-600 font-semibold mb-3 text-sm md:text-base hover:text-blue-800 transition"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Library</button>
                         <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-                            <div className="aspect-video bg-slate-100 flex items-center justify-center w-full">
-                                {selectedExercise.videoUrl ? <video className="w-full h-full" controls src={selectedExercise.videoUrl}></video> : <img src={selectedExercise.imageUrl} className="w-full h-full object-contain p-4" />}
+                            <div className="aspect-video bg-slate-100 relative flex items-center justify-center w-full overflow-hidden">
+                                {isYoutube && youtubeEmbedUrl ? (
+                                    <iframe className="w-full h-full" src={youtubeEmbedUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                ) : selectedExercise.videoUrl ? (
+                                    <video className="w-full h-full" controls src={selectedExercise.videoUrl} poster={selectedExercise.imageUrl}></video>
+                                ) : (
+                                    <img src={selectedExercise.imageUrl} alt={selectedExercise.name} className="w-full h-full object-contain mix-blend-multiply p-4" />
+                                )}
                             </div>
-                            <div className="p-6 text-left">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-4">{selectedExercise.name}</h2>
-                                <p className="text-sm text-slate-600 whitespace-pre-line">{selectedExercise.description}</p>
+                            <div className="p-6 md:p-8 text-left">
+                                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">{selectedExercise.name}</h2>
+                                <p className="text-sm md:text-base text-slate-600 leading-relaxed whitespace-pre-line">{selectedExercise.description}</p>
                             </div>
                         </div>
                     </div>
@@ -321,40 +520,315 @@
             };
 
             const renderDoctorDashboard = () => (
-                <div className="p-3 md:p-4 max-w-5xl mx-auto text-center py-20 text-slate-500">
-                    <p>Dashboard logic active. (Shortened for preview, full logic remains in your source code).</p>
-                    <button onClick={() => setCurrentView('database-management')} className="mt-4 px-6 py-2 bg-blue-600 text-white rounded font-bold">Go to Database</button>
-                </div>
-            );
-
-            const renderDatabaseManagement = () => (
                 <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
-                    <div className="flex items-center mb-4"><button onClick={() => setCurrentView('doctor-dashboard')} className="p-2 mr-2 bg-slate-200 rounded-full"><Icons.ArrowLeft className="w-4 h-4" /></button><h2 className="text-xl font-bold text-slate-800">Database</h2></div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                            <h3 className="font-bold text-slate-800 mb-3">{editingId ? 'Edit Exercise' : 'Upload New'}</h3>
-                            <form onSubmit={handleAddOrUpdateExercise} className="space-y-3">
-                                <input required type="text" placeholder="Exercise Name" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} className="w-full border p-2 rounded" />
-                                <textarea required placeholder="Description" value={newExercise.description} onChange={e => setNewExercise({...newExercise, description: e.target.value})} className="w-full border p-2 rounded" rows="2" />
-                                <input type="text" placeholder="Tags" value={newExercise.tags} onChange={e => setNewExercise({...newExercise, tags: e.target.value})} className="w-full border p-2 rounded" />
-                                <input type="url" placeholder="Image URL" value={newExercise.imageUrl} onChange={e => setNewExercise({...newExercise, imageUrl: e.target.value})} className="w-full border p-2 rounded" />
-                                <input type="url" placeholder="Video URL" value={newExercise.videoUrl} onChange={e => setNewExercise({...newExercise, videoUrl: e.target.value})} className="w-full border p-2 rounded" />
-                                <button type="submit" className="w-full bg-slate-800 text-white py-2 rounded font-bold">Save</button>
-                            </form>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3">
+                        <div className="flex items-center">
+                            <Icons.Stethoscope />
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800">Prescription Builder</h2>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 h-fit">
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-1">1. Patient & Selection</h3>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 mt-4">
+                                <input type="text" placeholder="Patient Name" value={prescriptionData.patientName} onChange={e => setPrescriptionData({...prescriptionData, patientName: e.target.value})} className="col-span-2 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                <input type="number" placeholder="Age" value={prescriptionData.age} onChange={e => setPrescriptionData({...prescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                <select value={prescriptionData.gender} onChange={e => setPrescriptionData({...prescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-blue-500">
+                                    <option value="">Gender</option><option value="M">Male</option><option value="F">Female</option>
+                                </select>
+                                <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={prescriptionData.notes} onChange={e => setPrescriptionData({...prescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="2" />
+                            </div>
+
+                            <div className="border-t border-slate-100 pt-4">
+                                <div className="relative mb-2">
+                                    <Icons.Search className="absolute left-2.5 top-2 text-slate-400 w-4 h-4" />
+                                    <input type="text" placeholder="Search Cloud Database..." value={doctorSearchQuery} onChange={(e) => setDoctorSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-blue-500" />
+                                </div>
+                                
+                                <div className="h-[200px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1">
+                                    {isLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading from cloud...</div> :
+                                    filteredDoctorExercises.map(ex => {
+                                        const isSelected = prescriptionData.selectedExerciseIds.includes(ex.id);
+                                        return (
+                                            <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
+                                                <input type="checkbox" className="w-4 h-4 rounded text-blue-600" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
+                                                <div className="ml-3 flex-1 min-w-0 text-left">
+                                                    <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{ex.name}</p>
+                                                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags?.join(', ') || ''}</p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Exercises</h3>
+                                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">{prescriptionData.selectedExerciseIds.length} Selected</span>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-1" style={{maxHeight: '400px'}}>
+                                {prescriptionData.selectedExerciseIds.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm">
+                                        <p>No exercises selected.</p>
+                                        <p className="text-xs mt-1">Check exercises in the list to configure them here.</p>
+                                    </div>
+                                ) : (
+                                    prescriptionData.selectedExerciseIds.map(id => {
+                                        const ex = exercises.find(e => e.id === id);
+                                        if (!ex) return null;
+                                        return (
+                                            <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50 text-left">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
+                                                    <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:underline">Remove</button>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Reps</label>
+                                                        <input type="text" value={prescriptionData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Sets</label>
+                                                        <input type="text" value={prescriptionData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Freq</label>
+                                                        <input type="text" value={prescriptionData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <input type="text" value={prescriptionData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500"/>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-slate-100">
+                                <button onClick={() => setCurrentView('print-prescription')} disabled={prescriptionData.selectedExerciseIds.length === 0} className="w-full px-6 bg-blue-600 text-white rounded-lg py-3 text-sm font-bold shadow hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50">
+                                    <Icons.Printer /> Generate PDF
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             );
 
+            // --- DIRECT CLOUDINARY UPLOAD FORM REVISED ---
+            const renderDatabaseManagement = () => (
+                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
+                    <div className="flex items-center mb-4 md:mb-6">
+                        <button onClick={() => setCurrentView('doctor-dashboard')} className="p-2 mr-2 bg-slate-200 hover:bg-slate-300 rounded-full text-slate-700 transition"><Icons.ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /></button>
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-800">Cloud Database Management</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                        <div className={`bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border ${editingId ? 'border-blue-400 ring-1 ring-blue-400' : 'border-slate-100'} h-fit`}>
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-3">{editingId ? 'Edit Exercise' : 'Upload New Exercise'}</h3>
+                            <form onSubmit={handleAddOrUpdateExercise} className="space-y-3">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Exercise Name</label>
+                                    <input required type="text" placeholder="e.g. Knee Extension" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                </div>
+                                
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Description (For Patient App)</label>
+                                    <textarea required placeholder="Instructions for patient..." value={newExercise.description} onChange={e => setNewExercise({...newExercise, description: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="2" />
+                                </div>
+                                
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Tags (Search Keywords)</label>
+                                    <input type="text" placeholder="comma separated e.g. knee, back" value={newExercise.tags} onChange={e => setNewExercise({...newExercise, tags: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                </div>
+
+                                <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-4">
+                                    <h4 className="text-xs font-bold text-blue-800 uppercase flex items-center"><Icons.Upload /> Direct Cloudinary Upload</h4>
+                                    
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-slate-700">Select Image (Required)</label>
+                                        <div className="flex items-center space-x-3">
+                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-white border border-slate-200 rounded-md" />
+                                        </div>
+                                        {isUploadingImage && <div className="text-xs text-blue-600 font-bold animate-pulse mt-1">Uploading image to cloud...</div>}
+                                        {newExercise.imageUrl && !isUploadingImage && (
+                                            <div className="mt-2 p-2 bg-white rounded border border-slate-200 inline-block">
+                                                <img src={newExercise.imageUrl} alt="Uploaded" className="h-16 object-contain" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <hr className="border-blue-200" />
+                                    
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-slate-700">Select Video (Optional)</label>
+                                        <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer bg-white border border-slate-200 rounded-md" />
+                                        {isUploadingVideo && <div className="text-xs text-blue-600 font-bold animate-pulse mt-1">Uploading video to cloud...</div>}
+                                        {newExercise.videoUrl && !isUploadingVideo && <div className="text-xs text-green-600 font-bold mt-1">✓ Video uploaded successfully</div>}
+                                    </div>
+                                </div>
+
+                                <div className="flex space-x-2 mt-4">
+                                    <button type="submit" disabled={isLoading || isUploadingImage || isUploadingVideo} className="flex-1 bg-slate-800 text-white rounded-md py-3 text-sm font-bold flex items-center justify-center hover:bg-slate-700 transition disabled:opacity-50 shadow-sm">
+                                        {isLoading ? "Saving to Cloud..." : editingId ? "Update Database" : "Save to Database"}
+                                    </button>
+                                    {editingId && (
+                                        <button type="button" onClick={cancelEdit} className="px-6 bg-slate-200 text-slate-700 rounded-md py-3 text-sm font-bold hover:bg-slate-300 transition">Cancel</button>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Database List */}
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[500px] lg:h-auto">
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className="text-base md:text-lg font-bold text-slate-800">Cloud Sync</h3>
+                                <span className="bg-blue-100 text-blue-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full">{exercises.length} Total</span>
+                            </div>
+                            
+                            <div className="relative mb-3">
+                                <Icons.Search className="absolute left-2.5 top-2 text-slate-400 w-4 h-4" />
+                                <input type="text" placeholder="Search database..." value={databaseSearchQuery} onChange={(e) => setDatabaseSearchQuery(e.target.value)} className="w-full text-xs md:text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 outline-none focus:border-blue-500" />
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                                {isLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading from cloud...</div> :
+                                filteredDatabaseExercises.map(ex => (
+                                    <div key={ex.id} className="flex items-center justify-between border border-slate-100 rounded-lg p-2 bg-white shadow-sm">
+                                        <div className="flex items-center flex-1 min-w-0 mr-2 text-left">
+                                            <div className="w-10 h-10 shrink-0 bg-slate-50 flex items-center justify-center rounded border border-slate-100 mr-3">
+                                                <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply" alt="" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-[13px] md:text-sm text-slate-800 truncate leading-tight">{ex.name}</p>
+                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags?.join(', ') || ''}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-0.5 shrink-0">
+                                            <button onClick={() => handleEditClick(ex)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded bg-slate-50"><Icons.Edit /></button>
+                                            <button onClick={() => handleDeleteClick(ex.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded bg-slate-50"><Icons.Trash /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // --- BORDERLESS PRINT VIEW ---
+            const renderPrintPrescriptionView = () => {
+                const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
+                const today = new Date().toLocaleDateString('en-GB');
+
+                return (
+                    <div className="bg-slate-200 min-h-screen pt-4 md:pt-8 pb-20 print:bg-white print:p-0">
+                        <div className="max-w-4xl mx-auto mb-4 flex justify-between items-center print:hidden px-3 md:px-4">
+                            <button onClick={() => setCurrentView('doctor-dashboard')} className="flex items-center text-slate-600 font-semibold bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><Icons.ArrowLeft className="h-4 w-4 mr-1" /> Edit</button>
+                            <button onClick={() => window.print()} className="flex items-center text-white bg-blue-600 font-bold px-4 py-1.5 md:px-6 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><Icons.Printer className="h-4 w-4 mr-1 md:mr-2" /> Print</button>
+                        </div>
+                        
+                        <div className="bg-white max-w-[21cm] min-h-[29.7cm] mx-auto print:shadow-none p-6 sm:p-10 text-slate-900 flex flex-col font-sans">
+                            <div className="flex justify-between items-start mb-4 text-left">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-[#1e3a8a] italic tracking-tight" style={{fontFamily: 'Georgia, serif'}}>Dr. Arpan Das (PT)</h1>
+                                    <p className="text-[#1e3a8a] font-bold text-[11px] mt-1">BPT (KPC Medical College and Hospital)</p>
+                                    <p className="text-[#1e3a8a] font-bold text-[11px]">Consultant Physiotherapist</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-[#1e3a8a] flex items-center justify-end text-sm"><Icons.Phone /> +91 9641568109</p>
+                                    <div className="flex items-center justify-end mt-4 text-[11px] font-bold text-[#1e3a8a]">
+                                        <span className="mr-2">Date:</span> 
+                                        <span className="border-b border-[#1e3a8a] pb-0.5 px-2 text-black">{today}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-end border-t border-b border-[#1e3a8a] py-2 mb-6 text-[11px] font-bold text-left">
+                                <div className="flex-1 flex items-end">
+                                    <span className="text-[#1e3a8a] mr-2">Patient's name:</span>
+                                    <span className="text-black">{prescriptionData.patientName}</span>
+                                </div>
+                                <div className="w-24 flex items-end">
+                                    <span className="text-[#1e3a8a] mr-2">Age:</span>
+                                    <span className="text-black">{prescriptionData.age}</span>
+                                </div>
+                                <div className="w-32 flex items-end">
+                                    <span className="text-[#1e3a8a] mr-2">Gender:</span>
+                                    <span className="text-black">{prescriptionData.gender === 'M' ? 'Male' : prescriptionData.gender === 'F' ? 'Female' : ''}</span>
+                                </div>
+                                <div className="w-24 flex items-end justify-end">
+                                    <span className="text-[#1e3a8a] mr-2">UPID:</span>
+                                    <span className="text-black">{Math.floor(Math.random() * 9000) + 1000}</span>
+                                </div>
+                            </div>
+                            
+                            {prescriptionData.notes && (
+                                <div className="mb-6 px-1">
+                                    <p className="text-slate-800 text-xs font-medium whitespace-pre-line text-left">{prescriptionData.notes}</p>
+                                </div>
+                            )}
+
+                            <div className="flex-1">
+                                <div className="grid grid-cols-3 gap-x-6 gap-y-10">
+                                    {prescribedExercises.map((ex) => {
+                                        const params = prescriptionData.exerciseParams[ex.id] || {};
+                                        const customNote = params.note;
+                                        
+                                        return (
+                                            <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left">
+                                                <div className="h-32 sm:h-40 w-full flex items-center justify-center mb-2">
+                                                    <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                                </div>
+                                                <div className="w-full px-1 text-left">
+                                                    
+                                                    {/* NO NUMBERING - Just the clean name */}
+                                                    <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
+                                                    
+                                                    <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">
+                                                        {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
+                                                        {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
+                                                        {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
+                                                    </div>
+                                                    
+                                                    {customNote && (
+                                                        <p className="text-[9px] text-slate-600 leading-tight font-medium text-left">{customNote}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
             return (
                 <main className="relative">
-                    {toastMessage && <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] toast-enter"><div className="bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center"><Icons.Check />{toastMessage}</div></div>}
+                    {/* Global Notification Toast Overlay */}
+                    {toastMessage && (
+                        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] toast-enter">
+                            <div className="bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center whitespace-nowrap">
+                                <Icons.Check />
+                                {toastMessage}
+                            </div>
+                        </div>
+                    )}
+                
                     {currentView !== 'login' && renderHeader()}
                     {currentView === 'login' && renderLoginView()}
                     {currentView === 'exercise-list' && renderPatientExerciseList()}
                     {currentView === 'exercise-detail' && renderPatientExerciseDetail()}
                     {currentView === 'doctor-dashboard' && user.role === 'doctor' && renderDoctorDashboard()}
                     {currentView === 'database-management' && user.role === 'doctor' && renderDatabaseManagement()}
+                    {currentView === 'print-prescription' && user.role === 'doctor' && renderPrintPrescriptionView()}
                 </main>
             );
         }
