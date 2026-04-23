@@ -40,14 +40,13 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Hide scrollbar for clean Pinterest look */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-50 text-sm md:text-base font-sans">
+<body class="bg-[#f4f7fb] text-[15px] font-sans text-[#0f172a]">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
@@ -84,19 +83,17 @@
         const Icons = {
             Search: ({className="w-4 h-4 md:w-5 md:h-5 text-slate-400"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
             ArrowLeft: ({className="h-5 w-5"}) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
-            PlayCircle: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
             Stethoscope: ({className="w-5 h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>,
             Database: ({className="w-4 h-4 md:w-5 md:h-5"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>,
             Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
             Printer: ({className="h-4 w-4 md:h-5 md:w-5 mr-2"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14"/></svg>,
-            User: ({className="w-6 h-6 text-slate-600 hover:text-blue-600 transition"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
-            UserActive: ({className="w-6 h-6 text-blue-600"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
+            User: ({className="w-6 h-6 text-[#0f172a] hover:text-[#1d4ed8] transition"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+            UserActive: ({className="w-6 h-6 text-[#1d4ed8]"}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
             LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
             Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
             Google: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px" className="mr-2"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>,
-            Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
             Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
         };
 
@@ -108,7 +105,6 @@
         function App() {
             const [user, setUser] = useState({ role: 'guest' }); 
             const [currentView, setCurrentView] = useState('exercise-list'); 
-            
             const [loginTab, setLoginTab] = useState('patient'); 
             const [loginName, setLoginName] = useState('');
             const [loginPhone, setLoginPhone] = useState('');
@@ -126,171 +122,89 @@
 
             const [editingId, setEditingId] = useState(null);
             const [newExercise, setNewExercise] = useState({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
-            const [prescriptionData, setPrescriptionData] = useState({ 
-                patientName: '', age: '', gender: '', notes: '', selectedExerciseIds: [], exerciseParams: {} 
-            });
+            const [prescriptionData, setPrescriptionData] = useState({ patientName: '', age: '', gender: '', notes: '', selectedExerciseIds: [], exerciseParams: {} });
 
-            const showToast = (message) => {
-                setToastMessage(message);
-                setTimeout(() => setToastMessage(null), 3500);
-            };
+            const showToast = (message) => { setToastMessage(message); setTimeout(() => setToastMessage(null), 3500); };
 
-            // Firebase Auth Listener
             useEffect(() => {
                 fetchExercisesFromFirebase();
-
                 const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
                     if (firebaseUser) {
                         setUser({ role: 'doctor', name: firebaseUser.displayName, email: firebaseUser.email });
-                        setCurrentView(prev => {
-                            if (prev === 'login' || prev === 'exercise-list') return 'doctor-dashboard';
-                            return prev;
-                        });
+                        setCurrentView(prev => { if (prev === 'login' || prev === 'exercise-list') return 'doctor-dashboard'; return prev; });
                     }
                 });
-
                 return () => unsubscribe();
             }, []);
 
-            // Safe Firebase Fetch
             const fetchExercisesFromFirebase = async () => {
                 try {
                     setIsLoading(true);
                     const res = await fetch(`${FIREBASE_DB_URL}.json`);
                     if (!res.ok) throw new Error("Network error");
-                    
                     const data = await res.json();
                     if (data && typeof data === 'object' && !data.error) {
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
-                    } else {
-                        setExercises(INITIAL_EXERCISES);
-                    }
-                } catch (error) {
-                    console.error("Firebase Read Error:", error);
-                    setExercises(INITIAL_EXERCISES); 
-                } finally {
-                    setIsLoading(false);
-                }
+                    } else { setExercises(INITIAL_EXERCISES); }
+                } catch (error) { setExercises(INITIAL_EXERCISES); } finally { setIsLoading(false); }
             };
 
             const handleUserIconClick = () => {
-                if (user.role === 'doctor') {
-                    setCurrentView('doctor-dashboard');
-                } else if (user.role === 'patient') {
+                if (user.role === 'doctor') { setCurrentView('doctor-dashboard'); } 
+                else if (user.role === 'patient') {
                     if(window.confirm("Do you want to log out from Patient mode?")) {
-                        setUser({role: 'guest'});
-                        showToast("Logged out");
-                        // Clear the URL when logging out
-                        window.history.pushState({}, '', '/exercises');
+                        setUser({role: 'guest'}); showToast("Logged out"); window.history.pushState({}, '', '/exercises');
                     }
-                } else {
-                    setCurrentView('login');
-                }
+                } else { setCurrentView('login'); }
             };
 
             const handleLogout = async () => {
-                if (user.role === 'doctor') {
-                    try { await signOut(auth); } catch (error) { console.error(error); }
-                }
-                setUser({role: 'guest'});
-                setCurrentView('exercise-list');
-                showToast("Logged out successfully");
-                // Clear the URL when logging out
-                window.history.pushState({}, '', '/exercises');
+                if (user.role === 'doctor') { try { await signOut(auth); } catch (error) {} }
+                setUser({role: 'guest'}); setCurrentView('exercise-list'); showToast("Logged out successfully"); window.history.pushState({}, '', '/exercises');
             };
 
             const handlePatientLogin = (e) => {
                 e.preventDefault();
                 if (loginPhone.length >= 10) {
                     setUser({ role: 'patient', phone: loginPhone, name: loginName });
-                    setCurrentView('exercise-list');
-                    showToast("Logged in as Patient");
-
-                    // MAGIC LINE: Update the URL to /exercises/(UPID)
+                    setCurrentView('exercise-list'); showToast("Logged in as Patient");
                     const urlPath = encodeURIComponent(loginName.trim().toLowerCase().replace(/\s+/g, '-'));
                     window.history.pushState({}, '', '/exercises/' + urlPath);
-
-                } else {
-                    showToast("Please enter a valid mobile number.");
-                }
+                } else { showToast("Please enter a valid mobile number."); }
             };
 
             const handleDoctorGoogleLogin = async () => {
-                try {
-                    await signInWithPopup(auth, googleProvider);
-                    showToast("Welcome to the Doctor Dashboard");
-                } catch (error) {
-                    console.error("Google Login Error:", error);
-                    showToast("Google login failed. Ensure Firebase keys are valid.");
-                }
+                try { await signInWithPopup(auth, googleProvider); showToast("Welcome to the Doctor Dashboard"); } 
+                catch (error) { showToast("Google login failed."); }
             };
 
             const uploadFileToCloudinary = async (file) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
+                const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 try {
                     const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await res.json();
-                    
-                    if (data.secure_url) {
-                        return data.secure_url;
-                    } else {
-                        throw new Error(data.error?.message || "Upload Failed");
-                    }
-                } catch (err) {
-                    console.error("Cloudinary Error:", err);
-                    showToast("Cloudinary error: Fallback to local preview.");
-                    return URL.createObjectURL(file);
-                }
+                    if (data.secure_url) return data.secure_url; else throw new Error("Upload Failed");
+                } catch (err) { return URL.createObjectURL(file); }
             };
 
-            const handleImageUpload = async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    setIsUploadingImage(true);
-                    const secureUrl = await uploadFileToCloudinary(file);
-                    if(secureUrl) setNewExercise({ ...newExercise, imageUrl: secureUrl });
-                    setIsUploadingImage(false);
-                }
-            };
-
-            const handleVideoUpload = async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    setIsUploadingVideo(true);
-                    const secureUrl = await uploadFileToCloudinary(file);
-                    if(secureUrl) setNewExercise({ ...newExercise, videoUrl: secureUrl });
-                    setIsUploadingVideo(false);
-                }
-            };
+            const handleImageUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingImage(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, imageUrl: secureUrl }); setIsUploadingImage(false); } };
+            const handleVideoUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingVideo(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, videoUrl: secureUrl }); setIsUploadingVideo(false); } };
 
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
                 const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
                 let finalImageUrl = newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400';
-                
                 const exerciseData = { name: newExercise.name, description: newExercise.description, imageUrl: finalImageUrl, videoUrl: newExercise.videoUrl, tags: tagsArray };
                 setIsLoading(true);
-
                 try {
                     if (editingId) {
-                        await fetch(`${FIREBASE_DB_URL}/${editingId}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) });
-                        showToast("Exercise updated in Cloud");
+                        await fetch(`${FIREBASE_DB_URL}/${editingId}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) }); showToast("Exercise updated");
                     } else {
-                        await fetch(`${FIREBASE_DB_URL}.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) });
-                        showToast("New exercise added");
+                        await fetch(`${FIREBASE_DB_URL}.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exerciseData) }); showToast("New exercise added");
                     }
-                    setEditingId(null);
-                    setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
-                    await fetchExercisesFromFirebase();
-                } catch (error) {
-                    showToast("Failed to save to database.");
-                } finally {
-                    setIsLoading(false);
-                }
+                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); await fetchExercisesFromFirebase();
+                } catch (error) { showToast("Failed to save."); } finally { setIsLoading(false); }
             };
 
             const handleDeleteClick = async (id) => {
@@ -300,50 +214,27 @@
                         await fetch(`${FIREBASE_DB_URL}/${id}.json`, { method: 'DELETE' });
                         setPrescriptionData(prev => {
                             const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
-                            const newParams = { ...prev.exerciseParams };
-                            delete newParams[id];
+                            const newParams = { ...prev.exerciseParams }; delete newParams[id];
                             return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
                         });
-                        if (editingId === id) cancelEdit();
-                        await fetchExercisesFromFirebase();
-                        showToast("Exercise deleted");
-                    } catch (error) {
-                        showToast("Failed to delete exercise.");
-                    } finally {
-                        setIsLoading(false);
-                    }
+                        if (editingId === id) cancelEdit(); await fetchExercisesFromFirebase(); showToast("Exercise deleted");
+                    } catch (error) { showToast("Failed to delete."); } finally { setIsLoading(false); }
                 }
             };
 
-            const cancelEdit = () => {
-                setEditingId(null);
-                setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
-            };
+            const cancelEdit = () => { setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); };
+            const handleEditClick = (ex) => { setEditingId(ex.id); setNewExercise({ name: ex.name, description: ex.description, imageUrl: ex.imageUrl, videoUrl: ex.videoUrl || '', tags: ex.tags ? ex.tags.join(', ') : '' }); setCurrentView('database-management'); };
 
             const togglePrescriptionExercise = (id) => {
                 setPrescriptionData(prev => {
-                    const isSelected = prev.selectedExerciseIds.includes(id);
-                    let newIds = [...prev.selectedExerciseIds];
-                    let newParams = { ...prev.exerciseParams };
-
-                    if (isSelected) {
-                        newIds = newIds.filter(eId => eId !== id);
-                        delete newParams[id];
-                    } else {
-                        newIds.push(id);
-                        newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
-                    }
+                    const isSelected = prev.selectedExerciseIds.includes(id); let newIds = [...prev.selectedExerciseIds]; let newParams = { ...prev.exerciseParams };
+                    if (isSelected) { newIds = newIds.filter(eId => eId !== id); delete newParams[id]; } 
+                    else { newIds.push(id); newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
                     return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
                 });
             };
+            const handleParamChange = (id, field, value) => { setPrescriptionData(prev => ({ ...prev, exerciseParams: { ...prev.exerciseParams, [id]: { ...prev.exerciseParams[id], [field]: value } } })); };
 
-            const handleParamChange = (id, field, value) => {
-                setPrescriptionData(prev => ({
-                    ...prev, exerciseParams: { ...prev.exerciseParams, [id]: { ...prev.exerciseParams[id], [field]: value } }
-                }));
-            };
-
-            // Safe Array Check
             const formatTags = (tags) => Array.isArray(tags) ? tags.join(', ') : (tags || '');
 
             const filteredPatientExercises = useMemo(() => exercises.filter(ex => 
@@ -364,93 +255,84 @@
 
             // --- UI RENDERERS ---
 
-            // CLEAN HEADER: Logo, Search Bar, User Icon
+            // EXACT MATCH TO INDEX.HTML HEADER (60px height, blur, max-width search)
             const renderHeader = () => (
-                <header className="bg-white px-3 py-2 md:px-4 md:py-3 shadow-sm flex items-center justify-between sticky top-0 z-50 print:hidden border-b border-slate-200">
-                    <div className="flex-shrink-0 cursor-pointer" onClick={() => setCurrentView('exercise-list')}>
-                        <img src="/favicon.png" alt="Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md" />
+                <header className="bg-white/95 backdrop-blur-md px-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-center justify-between sticky top-0 z-50 print:hidden h-[60px]">
+                    <div className="flex items-center gap-[15px] flex-shrink-0">
+                        {/* Hamburger Icon as Back to Home */}
+                        <a href="/" className="flex flex-col justify-between w-[24px] h-[20px] cursor-pointer" title="Back to Home">
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                            <span className="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+                        </a>
+                        <div className="cursor-pointer flex items-center" onClick={() => setCurrentView('exercise-list')}>
+                            <img src="/favicon.png" alt="Logo" className="w-[36px] h-[36px] object-cover rounded-[10px]" />
+                        </div>
                     </div>
                     
-                    {/* Always visible search bar in the middle */}
+                    {/* Centered Search Bar */}
                     {(currentView === 'exercise-list' || currentView === 'exercise-detail') && (
-                        <div className="flex-grow max-w-xl mx-3 md:mx-4 relative">
-                            <Icons.Search className="absolute left-3 top-2.5 md:top-3 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
-                            <input 
-                                type="text" 
-                                placeholder="Search exercises..." 
-                                value={searchQuery} 
-                                onChange={(e) => {setSearchQuery(e.target.value); setCurrentView('exercise-list');}} 
-                                className="w-full bg-slate-100 border border-slate-200 rounded-full py-2 md:py-2.5 pl-9 md:pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm transition-shadow" 
-                            />
+                        <div className="flex-grow flex justify-center mx-2">
+                            <div className="relative w-full max-w-[220px]">
+                                <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => {setSearchQuery(e.target.value); setCurrentView('exercise-list');}} 
+                                    className="w-full bg-[#f1f5f9] border-none rounded-full py-2 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-[#dbeafe] text-[0.9rem] text-[#0f172a] h-[36px]" 
+                                />
+                            </div>
                         </div>
                     )}
                     
-                    <div className="flex-shrink-0 flex items-center">
-                        <button onClick={handleUserIconClick} className="p-1.5 md:p-2 rounded-full bg-slate-50 hover:bg-slate-100 transition shadow-sm border border-slate-200" title={user.role === 'guest' ? 'Login' : 'Dashboard / Profile'}>
-                            {user.role === 'guest' ? <Icons.User className="w-5 h-5 md:w-6 md:h-6 text-slate-600"/> : <Icons.UserActive className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />}
+                    <div className="flex-shrink-0 flex items-center gap-[8px]">
+                        <button onClick={handleUserIconClick} className="w-[36px] h-[36px] flex items-center justify-center cursor-pointer" title={user.role === 'guest' ? 'Login' : 'Dashboard / Profile'}>
+                            {user.role === 'guest' ? <Icons.User className="w-[20px] h-[20px]"/> : <Icons.UserActive className="w-[20px] h-[20px]" />}
                         </button>
                     </div>
                 </header>
             );
 
-            // Login View matches Screenshot
             const renderLoginView = () => (
                 <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
                     <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 text-[#1e3a8a] px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors">
                         {loginTab === 'patient' ? <><Icons.Stethoscope className="w-4 h-4 text-blue-600"/> Staff</> : <><Icons.User className="w-4 h-4 text-blue-600"/> Patient</>}
                     </button>
-
                     <button onClick={() => setCurrentView('exercise-list')} className="absolute top-4 left-4 flex items-center text-slate-500 hover:text-slate-800 font-semibold text-sm">
                         <Icons.ArrowLeft className="w-4 h-4 mr-1" /> Back
                     </button>
-
                     <div className="bg-white rounded-xl shadow-[0_2px_10px_rgba(29,78,216,0.05)] border border-slate-200 w-full max-w-[360px] p-6 sm:p-8 relative mt-10">
                         {loginTab === 'patient' ? (
                             <>
-                                <div className="text-center mb-6">
-                                    <div className="flex justify-center text-blue-600 mb-1"><Icons.Activity className="w-10 h-10" /></div>
-                                    <h1 className="text-xl font-bold text-[#1e3a8a]">Patient Records</h1>
-                                </div>
+                                <div className="text-center mb-6"><div className="flex justify-center text-[#1d4ed8] mb-1"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><h1 className="text-xl font-bold text-[#1e3a8a]">Patient Records</h1></div>
                                 <form onSubmit={handlePatientLogin} className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label>
-                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
-                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" />
-                                    </div>
-                                    <button type="submit" className="w-full bg-[#1d4ed8] text-white font-bold py-2.5 rounded-md hover:bg-[#1e3a8a] shadow-sm mt-2 text-sm transition-colors">
-                                        View Records
-                                    </button>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label><input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label><input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" /></div>
+                                    <button type="submit" className="w-full bg-[#1d4ed8] text-white font-bold py-2.5 rounded-md hover:bg-[#1e3a8a] shadow-sm mt-2 text-sm transition-colors">View Records</button>
                                 </form>
                             </>
                         ) : (
                             <>
-                                <div className="text-center mb-6">
-                                    <div className="flex justify-center text-blue-600 mb-2"><Icons.Stethoscope className="w-10 h-10" /></div>
-                                    <h1 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h1>
-                                </div>
-                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm mb-3">
-                                    <Icons.Google /> Sign in with Google
-                                </button>
+                                <div className="text-center mb-6"><div className="flex justify-center text-[#1d4ed8] mb-2"><Icons.Stethoscope className="w-10 h-10" /></div><h1 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h1></div>
+                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm mb-3"><Icons.Google /> Sign in with Google</button>
                             </>
                         )}
                     </div>
                 </div>
             );
 
-            // PURE PINTEREST GRID
+            // RESPONSIVE GRID: Mobile 2, Tablet 3, Desktop 4
             const renderPatientExerciseList = () => (
-                <div className="p-3 md:p-6 max-w-[1600px] mx-auto pb-20">
+                <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading routines...</p></div>
                     ) : (
-                        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4">
+                        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4">
                             {filteredPatientExercises.map(ex => (
                                 <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); }} 
-                                     className="break-inside-avoid inline-block w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden cursor-pointer group hover:shadow-md hover:-translate-y-1 transition-all duration-300 mb-4">
-                                    <div className="relative w-full overflow-hidden bg-slate-100">
+                                     className="break-inside-avoid inline-block w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 mb-3 md:mb-4">
+                                    <div className="relative w-full overflow-hidden bg-[#f4f7fb]">
                                         <img src={ex.imageUrl} alt={ex.name || 'Exercise'} className="w-full h-auto object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
                                         {ex.videoUrl && (
                                             <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm">
@@ -459,7 +341,7 @@
                                         )}
                                     </div>
                                     <div className="p-3 md:p-4 bg-white">
-                                        <h3 className="font-bold text-sm md:text-base text-slate-800 leading-tight mb-1">{ex.name || 'Unnamed Exercise'}</h3>
+                                        <h3 className="font-bold text-[15px] text-[#0f172a] leading-tight">{ex.name || 'Unnamed Exercise'}</h3>
                                     </div>
                                 </div>
                             ))}
@@ -487,8 +369,8 @@
                 return (
                     <div className="p-3 md:p-4 max-w-3xl mx-auto pb-20 mt-4">
                         <button onClick={() => setCurrentView('exercise-list')} className="flex items-center text-slate-600 font-bold mb-4 text-sm md:text-base hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-1" /> Back to Board</button>
-                        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
-                            <div className="aspect-video bg-slate-50 relative flex items-center justify-center w-full overflow-hidden">
+                        <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden">
+                            <div className="aspect-video bg-[#f4f7fb] relative flex items-center justify-center w-full overflow-hidden">
                                 {isYoutube && youtubeEmbedUrl ? (
                                     <iframe className="w-full h-full" src={youtubeEmbedUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                                 ) : selectedExercise.videoUrl ? (
@@ -498,8 +380,8 @@
                                 )}
                             </div>
                             <div className="p-6 md:p-8 text-left">
-                                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">{selectedExercise.name}</h2>
-                                <p className="text-sm md:text-base text-slate-600 leading-relaxed whitespace-pre-line">{selectedExercise.description}</p>
+                                <h2 className="text-2xl md:text-3xl font-bold text-[#0f172a] mb-4">{selectedExercise.name}</h2>
+                                <p className="text-[15px] text-slate-600 leading-relaxed whitespace-pre-line">{selectedExercise.description}</p>
                             </div>
                         </div>
                     </div>
@@ -507,8 +389,8 @@
             };
 
             const renderDoctorDashboard = () => (
-                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100 mt-2">
+                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20 mt-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
                         <div className="flex items-center px-2">
                             <Icons.Stethoscope className="w-5 h-5 text-blue-600 mr-2" />
                             <h2 className="text-lg md:text-xl font-bold text-slate-800">Prescription Builder</h2>
@@ -606,7 +488,7 @@
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-slate-100">
-                                <button onClick={() => setCurrentView('print-prescription')} disabled={prescriptionData.selectedExerciseIds.length === 0} className="w-full px-6 bg-blue-600 text-white rounded-lg py-3 text-sm font-bold shadow hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50">
+                                <button onClick={() => setCurrentView('print-prescription')} disabled={prescriptionData.selectedExerciseIds.length === 0} className="w-full px-6 bg-[#1d4ed8] text-white rounded-lg py-3 text-sm font-bold shadow hover:bg-[#1e3a8a] transition flex items-center justify-center disabled:opacity-50">
                                     <Icons.Printer /> Generate PDF
                                 </button>
                             </div>
@@ -616,7 +498,7 @@
             );
 
             const renderDatabaseManagement = () => (
-                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20">
+                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20 mt-4">
                     <div className="flex items-center mb-4 md:mb-6">
                         <button onClick={() => setCurrentView('doctor-dashboard')} className="p-2 mr-2 bg-slate-200 hover:bg-slate-300 rounded-full text-slate-700 transition"><Icons.ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /></button>
                         <h2 className="text-xl md:text-2xl font-bold text-slate-800">Cloud Database Management</h2>
@@ -770,16 +652,12 @@
                                                     <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                                 </div>
                                                 <div className="w-full px-1 text-left">
-                                                    
-                                                    {/* NO NUMBERING - Just the clean name */}
                                                     <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
-                                                    
                                                     <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">
                                                         {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
                                                         {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
                                                         {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
                                                     </div>
-                                                    
                                                     {customNote && (
                                                         <p className="text-[9px] text-slate-600 leading-tight font-medium text-left">{customNote}</p>
                                                     )}
