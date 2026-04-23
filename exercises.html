@@ -11,8 +11,6 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- NOTE: Removed conflicting old Firebase scripts from here -->
-
     <style>
         @media print {
             body { background-color: white !important; }
@@ -49,8 +47,10 @@
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
+        // OFFICIAL FIREBASE SDK IMPORTS
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // =====================================================================
         // UNIFIED FIREBASE CONFIGURATION
@@ -61,21 +61,19 @@
             projectId: "patient-records-arpan",
             storageBucket: "patient-records-arpan.firebasestorage.app",
             messagingSenderId: "599041105903",
-            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
+            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a",
+            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getDatabase(app);
         
         setPersistence(auth, browserLocalPersistence).catch(console.error);
         const googleProvider = new GoogleAuthProvider();
 
         const { useState, useEffect, useMemo } = React;
 
-        // =====================================================================
-        // CLOUD CREDENTIALS & ENDPOINTS
-        // =====================================================================
-        const FIREBASE_DB_URL = "https://patient-records-arpan-default-rtdb.firebaseio.com/exercises";
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dyunl0dx5/auto/upload";
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
@@ -131,21 +129,21 @@
                 return () => unsubscribe();
             }, []);
 
-            // FAST, RELIABLE FETCH USING SECURE REST API
+            // BULLETPROOF FETCH USING FIREBASE SDK
             const fetchExercisesFromFirebase = async () => {
                 try {
                     setIsLoading(true);
-                    const res = await fetch(`${FIREBASE_DB_URL}.json`);
-                    if (!res.ok) throw new Error("Network error");
-                    const data = await res.json();
-                    if (data && typeof data === 'object' && !data.error) {
+                    const snapshot = await get(ref(db, 'exercises'));
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
                     } else { 
                         setExercises([]); 
                     }
                 } catch (error) { 
-                    console.error("Fetch Error:", error);
+                    console.error("Firebase Read Error:", error);
+                    showToast("Warning: Could not load exercises. Check database rules.");
                     setExercises([]); 
                 } finally { 
                     setIsLoading(false); 
@@ -193,17 +191,10 @@
             const handleImageUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingImage(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, imageUrl: secureUrl }); setIsUploadingImage(false); } };
             const handleVideoUpload = async (e) => { const file = e.target.files[0]; if (file) { setIsUploadingVideo(true); const secureUrl = await uploadFileToCloudinary(file); if(secureUrl) setNewExercise({ ...newExercise, videoUrl: secureUrl }); setIsUploadingVideo(false); } };
 
-            // =========================================================
-            // BULLETPROOF SAVE USING SECURE REST API
-            // =========================================================
+            // BULLETPROOF SAVE USING FIREBASE SDK
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
-                
-                // Security Check
-                if (!auth.currentUser) {
-                    showToast("Error: You must be logged in as a Doctor to save.");
-                    return;
-                }
+                if (!auth.currentUser) { showToast("Error: You must be logged in to save."); return; }
 
                 const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
                 let finalImageUrl = newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400';
@@ -211,54 +202,31 @@
                 
                 setIsLoading(true);
                 try {
-                    // Grab Google security token to bypass database locks
-                    const token = await auth.currentUser.getIdToken();
-                    
-                    const url = editingId 
-                        ? `${FIREBASE_DB_URL}/${editingId}.json?auth=${token}` 
-                        : `${FIREBASE_DB_URL}.json?auth=${token}`;
-                    
-                    const method = editingId ? 'PUT' : 'POST';
-
-                    // Force HTTP request which never hangs silently
-                    const res = await fetch(url, {
-                        method: method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(exerciseData)
-                    });
-
-                    if (!res.ok) throw new Error("Firebase blocked the save. Check permissions.");
-
-                    showToast(editingId ? "Exercise updated successfully" : "New exercise added successfully");
-                    setEditingId(null); 
-                    setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
+                    if (editingId) {
+                        await set(ref(db, 'exercises/' + editingId), exerciseData);
+                        showToast("Exercise updated successfully");
+                    } else {
+                        const newExRef = push(ref(db, 'exercises'));
+                        await set(newExRef, exerciseData);
+                        showToast("New exercise added successfully");
+                    }
+                    setEditingId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
                     await fetchExercisesFromFirebase();
                 } catch (error) { 
-                    console.error("Save Error:", error);
-                    showToast("Failed to save: " + error.message); 
+                    console.error(error);
+                    showToast("Failed to save. Check your database rules."); 
                 } finally { 
                     setIsLoading(false); 
                 }
             };
 
-            // =========================================================
-            // BULLETPROOF DELETE USING SECURE REST API
-            // =========================================================
+            // BULLETPROOF DELETE USING FIREBASE SDK
             const handleDeleteClick = async (id) => {
                 if (window.confirm("Delete this exercise permanently?")) {
-                    if (!auth.currentUser) {
-                        showToast("Error: You must be logged in.");
-                        return;
-                    }
+                    if (!auth.currentUser) { showToast("Error: You must be logged in."); return; }
                     setIsLoading(true);
                     try {
-                        const token = await auth.currentUser.getIdToken();
-                        const res = await fetch(`${FIREBASE_DB_URL}/${id}.json?auth=${token}`, {
-                            method: 'DELETE'
-                        });
-                        
-                        if (!res.ok) throw new Error("Permission Denied");
-
+                        await remove(ref(db, 'exercises/' + id));
                         setPrescriptionData(prev => {
                             const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
                             const newParams = { ...prev.exerciseParams }; delete newParams[id];
