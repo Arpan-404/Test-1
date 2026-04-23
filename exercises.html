@@ -53,10 +53,12 @@
 <body class="bg-slate-50 text-sm md:text-base font-sans">
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // =====================================================================
-        // YOUR EXTRACTED FIREBASE CONFIGURATION
+        // UNIFIED FIREBASE CONFIGURATION (Exact match to Patient Records)
         // =====================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
@@ -67,11 +69,12 @@
             appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Force the browser to share the login cookie with your main app
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+        const googleProvider = new GoogleAuthProvider();
 
         const { useState, useEffect, useMemo } = React;
 
@@ -83,8 +86,16 @@
         const CLOUDINARY_UPLOAD_PRESET = "unsigned_preset"; 
 
         const Icons = {
-            Logo: ({className="w-8 h-8 text-blue-600"}) => (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            Logo: ({className="w-10 h-10 text-blue-600"}) => (
+                <div className="bg-blue-600 rounded-lg p-2 shadow-sm flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+            ),
+            // RESTORED ACTIVITY ICON (This was causing the blank screen crash!)
+            Activity: ({className="w-6 h-6"}) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
             ),
@@ -108,9 +119,7 @@
 
         const INITIAL_EXERCISES = [
             { id: 1, name: "Pelvic Tilt", description: "Tighten your stomach muscles.", imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=400&h=600", videoUrl: "", tags: ["low back pain", "core"] },
-            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] },
-            { id: 3, name: "Straight Leg Raise", description: "Slowly lift straight leg.", imageUrl: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80&w=400&h=500", videoUrl: "youtube", tags: ["knee pain"] },
-            { id: 4, name: "Glute Bridge", description: "Lift your hips off the floor.", imageUrl: "https://images.unsplash.com/photo-1588286840104-8957b019727f?auto=format&fit=crop&q=80&w=400&h=400", videoUrl: "", tags: ["glutes"] }
+            { id: 2, name: "Knee to Chest Stretch", description: "Pull one knee up to your chest.", imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&q=80&w=400&h=300", videoUrl: "", tags: ["low back pain", "stretching"] }
         ];
 
         function App() {
@@ -143,20 +152,16 @@
                 setTimeout(() => setToastMessage(null), 3500);
             };
 
-            // ⚠️ FIX 1: Removed currentView from dependency array to prevent infinite loop crashes
+            // Firebase Auth Listener
             useEffect(() => {
                 fetchExercisesFromFirebase();
 
-                const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+                const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
                     if (firebaseUser) {
                         setUser({ role: 'doctor', name: firebaseUser.displayName, email: firebaseUser.email });
-                        
-                        // Use functional state update to safely route doctor on initial load without looping
-                        setCurrentView(prevView => {
-                            if (prevView === 'login' || prevView === 'exercise-list') {
-                                return 'doctor-dashboard';
-                            }
-                            return prevView;
+                        setCurrentView(prev => {
+                            if (prev === 'login' || prev === 'exercise-list') return 'doctor-dashboard';
+                            return prev;
                         });
                     }
                 });
@@ -164,17 +169,14 @@
                 return () => unsubscribe();
             }, []);
 
-            // ⚠️ FIX 2: Added safety checks to prevent database mapping crashes
+            // Safe Firebase Fetch
             const fetchExercisesFromFirebase = async () => {
                 try {
                     setIsLoading(true);
                     const res = await fetch(`${FIREBASE_DB_URL}.json`);
-                    
-                    if (!res.ok) throw new Error("Network response was not ok");
+                    if (!res.ok) throw new Error("Network error");
                     
                     const data = await res.json();
-                    
-                    // Safely check if data exists and is a valid object, not an error message
                     if (data && typeof data === 'object' && !data.error) {
                         const exArray = Object.keys(data).map(key => ({ ...data[key], id: key }));
                         setExercises(exArray.reverse()); 
@@ -182,8 +184,8 @@
                         setExercises(INITIAL_EXERCISES);
                     }
                 } catch (error) {
-                    console.error("Error fetching from Firebase:", error);
-                    setExercises(INITIAL_EXERCISES); // Safe fallback
+                    console.error("Firebase Read Error:", error);
+                    setExercises(INITIAL_EXERCISES); 
                 } finally {
                     setIsLoading(false);
                 }
@@ -204,7 +206,7 @@
 
             const handleLogout = async () => {
                 if (user.role === 'doctor') {
-                    try { await auth.signOut(); } catch (error) { console.error(error); }
+                    try { await signOut(auth); } catch (error) { console.error(error); }
                 }
                 setUser({role: 'guest'});
                 setCurrentView('exercise-list');
@@ -224,8 +226,7 @@
 
             const handleDoctorGoogleLogin = async () => {
                 try {
-                    await auth.signInWithPopup(googleProvider);
-                    // Listener handles routing
+                    await signInWithPopup(auth, googleProvider);
                     showToast("Welcome to the Doctor Dashboard");
                 } catch (error) {
                     console.error("Google Login Error:", error);
@@ -242,11 +243,8 @@
                     const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await res.json();
                     
-                    if (data.secure_url) {
-                        return data.secure_url;
-                    } else {
-                        throw new Error(data.error?.message || "Upload Failed");
-                    }
+                    if (data.secure_url) return data.secure_url;
+                    throw new Error(data.error?.message || "Upload Failed");
                 } catch (err) {
                     console.error("Cloudinary Error:", err);
                     showToast("Cloudinary error: Fallback to local preview.");
@@ -350,20 +348,22 @@
                 }));
             };
 
-            // ⚠️ FIX 3: Added Safe optional chaining (?.) to prevent crashes on empty/corrupt database entries
+            // Safe Array Check
+            const formatTags = (tags) => Array.isArray(tags) ? tags.join(', ') : (tags || '');
+
             const filteredPatientExercises = useMemo(() => exercises.filter(ex => 
                 (ex.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
-                (ex.tags && ex.tags.some(tag => tag.includes(searchQuery.toLowerCase())))
+                (Array.isArray(ex.tags) && ex.tags.some(tag => tag.includes(searchQuery.toLowerCase())))
             ), [exercises, searchQuery]);
             
             const filteredDoctorExercises = useMemo(() => exercises.filter(ex => 
                 (ex.name || "").toLowerCase().includes(doctorSearchQuery.toLowerCase()) || 
-                (ex.tags && ex.tags.some(tag => tag.includes(doctorSearchQuery.toLowerCase())))
+                (Array.isArray(ex.tags) && ex.tags.some(tag => tag.includes(doctorSearchQuery.toLowerCase())))
             ), [exercises, doctorSearchQuery]);
             
             const filteredDatabaseExercises = useMemo(() => exercises.filter(ex => 
                 (ex.name || "").toLowerCase().includes(databaseSearchQuery.toLowerCase()) || 
-                (ex.tags && ex.tags.some(tag => tag.includes(databaseSearchQuery.toLowerCase())))
+                (Array.isArray(ex.tags) && ex.tags.some(tag => tag.includes(databaseSearchQuery.toLowerCase())))
             ), [exercises, databaseSearchQuery]);
 
 
@@ -401,45 +401,43 @@
                 </header>
             );
 
+            // Rebuilt login exactly matching Patient Records
             const renderLoginView = () => (
                 <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
-                    <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-slate-50 transition">
-                        {loginTab === 'patient' ? <><Icons.Stethoscope className="w-4 h-4 mr-1.5 text-blue-600"/> Staff</> : <><Icons.User className="w-4 h-4 mr-1.5 text-blue-600"/> Patient</>}
+                    <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 text-[#1e3a8a] px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors">
+                        {loginTab === 'patient' ? <><Icons.Stethoscope className="w-4 h-4 text-blue-600"/> Staff</> : <><Icons.User className="w-4 h-4 text-blue-600"/> Patient</>}
                     </button>
+
                     <button onClick={() => setCurrentView('exercise-list')} className="absolute top-4 left-4 flex items-center text-slate-500 hover:text-slate-800 font-semibold text-sm">
                         <Icons.ArrowLeft className="w-4 h-4 mr-1" /> Back
                     </button>
 
-                    <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-full max-w-sm p-6 sm:p-8">
+                    <div className="max-w-sm w-full bg-white rounded-xl shadow-[0_2px_10px_rgba(29,78,216,0.05)] border border-slate-200 p-6 relative">
                         {loginTab === 'patient' ? (
                             <>
-                                <div className="flex flex-col items-center mb-8">
-                                    <div className="w-12 h-12 bg-[#2563eb] text-white rounded-xl flex items-center justify-center mb-4 shadow-md">
-                                        <Icons.Activity className="w-6 h-6" />
-                                    </div>
-                                    <h2 className="text-xl font-bold text-[#1e3a8a]">Patient Portal</h2>
+                                <div className="text-center mb-6">
+                                    <div className="flex justify-center text-blue-600 mb-1"><Icons.Activity className="w-10 h-10" /></div>
+                                    <h1 className="text-xl font-bold text-[#1e3a8a]">Patient Records</h1>
                                 </div>
-                                <form onSubmit={handlePatientLogin} className="space-y-5">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Patient Name or UPID</label>
-                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                <form onSubmit={handlePatientLogin} className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label>
+                                        <input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" />
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
-                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full border border-slate-200 rounded-xl p-3.5 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm bg-slate-50 focus:bg-white transition" />
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
+                                        <input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" />
                                     </div>
-                                    <button type="submit" className="w-full bg-[#2563eb] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition mt-4 text-sm tracking-wide">
+                                    <button type="submit" className="w-full bg-[#1d4ed8] text-white font-bold py-2.5 rounded-md hover:bg-[#1e3a8a] shadow-sm mt-2 text-sm transition-colors">
                                         View Records
                                     </button>
                                 </form>
                             </>
                         ) : (
                             <>
-                                <div className="flex flex-col items-center mb-8">
-                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-blue-100">
-                                        <Icons.Stethoscope className="w-6 h-6" />
-                                    </div>
-                                    <h2 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h2>
+                                <div className="text-center mb-6">
+                                    <div className="flex justify-center text-blue-600 mb-2"><Icons.Stethoscope className="w-10 h-10" /></div>
+                                    <h1 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h1>
                                 </div>
                                 <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm mb-3">
                                     <Icons.Google /> Sign in with Google
@@ -450,9 +448,9 @@
                 </div>
             );
 
+            // PURE PINTEREST GRID
             const renderPatientExerciseList = () => (
                 <div className="p-3 md:p-6 max-w-[1600px] mx-auto pb-20 mt-4">
-                    {/* Mobile Search */}
                     <div className="relative mb-6 sm:hidden">
                         <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
                         <input type="text" placeholder="Search exercises..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
@@ -566,7 +564,7 @@
                                                 <input type="checkbox" className="w-4 h-4 rounded text-blue-600" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
                                                 <div className="ml-3 flex-1 min-w-0 text-left">
                                                     <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags?.join(', ') || ''}</p>
+                                                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{formatTags(ex.tags)}</p>
                                                 </div>
                                             </label>
                                         );
@@ -706,7 +704,7 @@
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-[13px] md:text-sm text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags?.join(', ') || ''}</p>
+                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{formatTags(ex.tags)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-0.5 shrink-0">
@@ -721,7 +719,6 @@
                 </div>
             );
 
-            // --- BORDERLESS PRINT VIEW ---
             const renderPrintPrescriptionView = () => {
                 const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
                 const today = new Date().toLocaleDateString('en-GB');
@@ -786,6 +783,8 @@
                                                     <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                                 </div>
                                                 <div className="w-full px-1 text-left">
+                                                    
+                                                    {/* NO NUMBERING - Just the clean name */}
                                                     <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
                                                     
                                                     <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">
@@ -835,3 +834,4 @@
     </script>
 </body>
 </html>
+
