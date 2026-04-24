@@ -51,6 +51,9 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // =====================================================================
+        // UNIFIED FIREBASE CONFIGURATION
+        // =====================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -102,6 +105,8 @@
             
             const [isMenuOpen, setIsMenuOpen] = useState(false); 
             
+            const [colCount, setColCount] = useState(2);
+            
             const [exercises, setExercises] = useState([]);
             const [isLoading, setIsLoading] = useState(true);
             const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -125,7 +130,19 @@
                 setTimeout(() => setToastMessage(null), 4500); 
             };
 
-            // INITIAL LOAD: Check URL for deep-linking (e.g. /exercises/1102)
+            // Responsive Layout Calculator (Mobile 2, Tablet 3, PC 4)
+            useEffect(() => {
+                const handleResize = () => {
+                    if (window.innerWidth >= 1024) setColCount(4);
+                    else if (window.innerWidth >= 768) setColCount(3);
+                    else setColCount(2);
+                };
+                handleResize();
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            // URL Deep Linking
             useEffect(() => {
                 const path = window.location.pathname;
                 if (path.startsWith('/exercises/')) {
@@ -206,8 +223,7 @@
                 e.preventDefault();
                 if (loginPhone.length >= 10) {
                     setUser({ role: 'patient', phone: loginPhone, name: loginName });
-                    setCurrentView('exercise-list'); 
-                    showToast("Logged in as Patient");
+                    setCurrentView('exercise-list'); showToast("Logged in as Patient");
                     const urlPath = encodeURIComponent(loginName.trim().toLowerCase().replace(/\s+/g, '-'));
                     window.history.pushState({}, '', '/exercises/' + urlPath);
                 } else { showToast("Please enter a valid mobile number.", 'error'); }
@@ -429,47 +445,57 @@
             );
 
             // =========================================================================
-            // STRICT GRID SYSTEM
-            // Exactly 2 columns on mobile, 3 on tablet, 4 on desktop. 
-            // aspect-square forces images into perfect alignment with zero blank gaps.
+            // MASONRY LAYOUT FIX: Uncropped natural images, perfectly split into columns
             // =========================================================================
-            const renderPatientExerciseList = () => (
-                <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading routines...</p></div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 items-start">
-                            {filteredPatientExercises.map(ex => (
-                                <div key={ex.id} onClick={() => { 
-                                         setSelectedExercise(ex); 
-                                         setCurrentView('exercise-detail'); 
-                                         window.history.pushState({}, '', '/exercise/' + slugify(ex.name || 'unnamed'));
-                                     }} 
-                                     className="w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                                    
-                                    {/* Forces uniform box size for images */}
-                                    <div className="relative w-full aspect-square bg-[#f4f7fb]">
-                                        {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                            <div className="w-full h-full flex items-center justify-center bg-red-50 text-red-400 text-xs text-center p-4">Broken Image.<br/>Re-upload.</div>
-                                        ) : (
-                                            <img src={ex.imageUrl} alt={ex.name || 'Exercise'} className="w-full h-full object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
-                                        )}
-                                        {ex.videoUrl && (
-                                            <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            const renderPatientExerciseList = () => {
+                // Split exercises into arrays based on current screen width (2, 3, or 4 columns)
+                const masonryColumns = Array.from({ length: colCount }, () => []);
+                filteredPatientExercises.forEach((ex, index) => {
+                    masonryColumns[index % colCount].push(ex);
+                });
+
+                return (
+                    <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading routines...</p></div>
+                        ) : (
+                            <div className="flex gap-3 md:gap-4 items-start w-full">
+                                {masonryColumns.map((column, colIndex) => (
+                                    <div key={colIndex} className="flex flex-col gap-3 md:gap-4 flex-1">
+                                        {column.map(ex => (
+                                            <div key={ex.id} onClick={() => { 
+                                                     setSelectedExercise(ex); 
+                                                     setCurrentView('exercise-detail'); 
+                                                     window.history.pushState({}, '', '/exercise/' + slugify(ex.name || 'unnamed'));
+                                                 }} 
+                                                 className="w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                                                
+                                                {/* FIX: Removed 'aspect-square' and 'h-full'. Image determines height naturally! */}
+                                                <div className="relative w-full overflow-hidden bg-[#f4f7fb]">
+                                                    {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
+                                                        <div className="w-full aspect-square flex items-center justify-center bg-red-50 text-red-400 text-xs text-center p-4">Broken Image.<br/>Doctor must re-upload.</div>
+                                                    ) : (
+                                                        <img src={ex.imageUrl} alt={ex.name || 'Exercise'} className="w-full h-auto block object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
+                                                    )}
+                                                    {ex.videoUrl && (
+                                                        <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-3 md:p-4 bg-white flex-grow flex items-center justify-center text-center">
+                                                    <h3 className="font-bold text-[14px] md:text-[15px] text-[#0f172a] leading-tight line-clamp-2">{ex.name || 'Unnamed Exercise'}</h3>
+                                                </div>
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
-                                    <div className="p-3 md:p-4 bg-white flex-grow flex items-center justify-center text-center border-t border-slate-50">
-                                        <h3 className="font-bold text-[14px] md:text-[15px] text-[#0f172a] leading-tight line-clamp-2">{ex.name || 'Unnamed Exercise'}</h3>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    {filteredPatientExercises.length === 0 && !isLoading && <p className="text-center text-slate-500 py-16 text-sm">No exercises match your search.</p>}
-                </div>
-            );
+                                ))}
+                            </div>
+                        )}
+                        {filteredPatientExercises.length === 0 && !isLoading && <p className="text-center text-slate-500 py-16 text-sm">No exercises match your search.</p>}
+                    </div>
+                );
+            };
 
             const renderPatientExerciseDetail = () => {
                 if (!selectedExercise) return null;
