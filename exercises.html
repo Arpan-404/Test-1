@@ -21,19 +21,26 @@
             @page { margin: 1cm; }
         }
         
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .toast-enter { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Physiopedia Wiki Styles */
-        .wiki-font { font-family: "Linux Libertine", "Georgia", "Times", serif; }
-        .wiki-border { border: 1px solid #a2a9b1; }
-        .wiki-bg { background-color: #f8f9fa; }
     </style>
 </head>
 <body class="bg-[#f4f7fb] text-[15px] font-sans text-[#0f172a]">
@@ -44,6 +51,9 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // =====================================================================
+        // UNIFIED FIREBASE CONFIGURATION
+        // =====================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -60,8 +70,12 @@
         
         setPersistence(auth, browserLocalPersistence).catch(console.error);
         const googleProvider = new GoogleAuthProvider();
+
         const { useState, useEffect, useMemo } = React;
 
+        // =====================================================================
+        // CLOUDINARY SETUP
+        // =====================================================================
         const CLOUDINARY_CLOUD_NAME = "dyuni0dx5"; 
         const CLOUDINARY_UPLOAD_PRESET = "Physio_uploads"; 
 
@@ -78,7 +92,6 @@
             Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
-            Google: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px" className="mr-2"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>,
             Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>,
             Error: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-red-100"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         };
@@ -98,6 +111,7 @@
             const [groups, setGroups] = useState([]); 
             const [isLoading, setIsLoading] = useState(true);
             const [isUploadingImage, setIsUploadingImage] = useState(false);
+            const [isUploadingVideo, setIsUploadingVideo] = useState(false);
             
             const [toastMessage, setToastMessage] = useState(null);
             const [toastType, setToastType] = useState('success'); 
@@ -106,9 +120,9 @@
             const [selectedGroup, setSelectedGroup] = useState(null); 
             
             const [searchQuery, setSearchQuery] = useState("");
+            const [doctorSearchQuery, setDoctorSearchQuery] = useState("");
             const [databaseSearchQuery, setDatabaseSearchQuery] = useState("");
 
-            // Form States
             const [editingId, setEditingId] = useState(null);
             const [newExercise, setNewExercise] = useState({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
             
@@ -220,6 +234,11 @@
                 } else { showToast("Please enter a valid mobile number.", 'error'); }
             };
 
+            const handleDoctorGoogleLogin = async () => {
+                try { await signInWithPopup(auth, googleProvider); showToast("Welcome to the Doctor Dashboard"); } 
+                catch (error) { showToast("Google login failed.", 'error'); }
+            };
+
             const uploadFileToCloudinary = async (file, type = 'image') => {
                 const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 const endpoint = type === 'video' ? 'video/upload' : 'image/upload';
@@ -243,6 +262,18 @@
                 } 
             };
 
+            const handleVideoUpload = async (e) => { 
+                const file = e.target.files[0]; 
+                if (file) { 
+                    setIsUploadingVideo(true); 
+                    const secureUrl = await uploadFileToCloudinary(file, 'video'); 
+                    if(secureUrl) {
+                        setNewExercise(prev => ({ ...prev, videoUrl: secureUrl })); 
+                    }
+                    setIsUploadingVideo(false); 
+                } 
+            };
+
             // --- EXERCISE CRUD ---
             const handleAddOrUpdateExercise = async (e) => {
                 e.preventDefault();
@@ -260,7 +291,16 @@
             const handleDeleteClick = async (id) => {
                 if (window.confirm("Delete this exercise permanently?")) {
                     setIsLoading(true);
-                    try { await remove(ref(db, 'exercises/' + id)); await fetchFirebaseData(); showToast("Exercise deleted"); } 
+                    try { 
+                        await remove(ref(db, 'exercises/' + id)); 
+                        setPrescriptionData(prev => {
+                            const newIds = (prev.selectedExerciseIds || []).filter(eId => eId !== id);
+                            const newParams = { ...(prev.exerciseParams || {}) }; 
+                            delete newParams[id];
+                            return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
+                        });
+                        await fetchFirebaseData(); showToast("Exercise deleted"); 
+                    } 
                     catch (error) { showToast("Failed to delete.", 'error'); } finally { setIsLoading(false); }
                 }
             };
@@ -294,6 +334,18 @@
             }
             const editGroup = (g) => { setEditingGroupId(g.id); setNewGroup({ name: g.name, description: g.description, imageUrl: g.imageUrl, exerciseIds: g.exerciseIds || [] }); setAdminTab('groups'); setCurrentView('database-management'); }
 
+            const togglePrescriptionExercise = (id) => {
+                setPrescriptionData(prev => {
+                    const isSelected = (prev.selectedExerciseIds || []).includes(id); 
+                    let newIds = [...(prev.selectedExerciseIds || [])]; 
+                    let newParams = { ...(prev.exerciseParams || {}) };
+                    if (isSelected) { newIds = newIds.filter(eId => eId !== id); delete newParams[id]; } 
+                    else { newIds.push(id); newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
+                    return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
+                });
+            };
+            const handleParamChange = (id, field, value) => { setPrescriptionData(prev => ({ ...prev, exerciseParams: { ...(prev.exerciseParams||{}), [id]: { ...(prev.exerciseParams||{})[id], [field]: value } } })); };
+
             // Filtering
             const filteredPatientExercises = useMemo(() => exercises.filter(ex => (ex.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || (Array.isArray(ex.tags) && ex.tags.some(tag => tag.includes(searchQuery.toLowerCase())))), [exercises, searchQuery]);
             const filteredDatabaseItems = adminTab === 'exercises' ? exercises.filter(ex => (ex.name || "").toLowerCase().includes(databaseSearchQuery.toLowerCase())) : groups.filter(g => (g.name || "").toLowerCase().includes(databaseSearchQuery.toLowerCase()));
@@ -322,66 +374,93 @@
                 </header>
             );
 
-            // MAIN EXERCISE LIST
-            const renderPatientExerciseList = () => {
-                const masonryColumns = Array.from({ length: colCount }, () => []);
-                filteredPatientExercises.forEach((ex, index) => { masonryColumns[index % colCount].push(ex); });
-
-                return (
-                    <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
-                        {isLoading ? <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading library...</p></div> : (
+            const renderLoginView = () => (
+                <div className="min-h-screen bg-[#f8faff] flex flex-col items-center justify-center p-4 relative">
+                    <button onClick={() => setLoginTab(loginTab === 'patient' ? 'doctor' : 'patient')} className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 text-[#1e3a8a] px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors">
+                        {loginTab === 'patient' ? <><Icons.Stethoscope className="w-4 h-4 text-blue-600"/> Staff</> : <><Icons.User className="w-4 h-4 text-blue-600"/> Patient</>}
+                    </button>
+                    <button onClick={() => { setCurrentView('exercise-list'); window.history.pushState({}, '', '/exercises'); }} className="absolute top-4 left-4 flex items-center text-slate-500 hover:text-slate-800 font-semibold text-sm">
+                        <Icons.ArrowLeft className="w-4 h-4 mr-1" /> Back
+                    </button>
+                    <div className="bg-white rounded-xl shadow-[0_2px_10px_rgba(29,78,216,0.05)] border border-slate-200 w-full max-w-[360px] p-6 sm:p-8 relative mt-10">
+                        {loginTab === 'patient' ? (
                             <>
-                                {/* EXERCISE GROUPS SECTION */}
-                                {!searchQuery && groups.length > 0 && (
-                                    <div className="mb-8">
-                                        <h2 className="font-bold text-lg md:text-xl text-[#0f172a] mb-4 border-b border-slate-200 pb-2">Exercise Programs</h2>
-                                        <div className="flex overflow-x-auto gap-4 pb-4" style={{scrollbarWidth:'none'}}>
-                                            {groups.map(g => (
-                                                <div key={g.id} onClick={() => { setSelectedGroup(g); setCurrentView('group-detail'); window.history.pushState({}, '', '/exercises/group/' + slugify(g.name)); }} className="min-w-[140px] md:min-w-[180px] bg-white rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden cursor-pointer shrink-0 hover:-translate-y-1 transition-all">
-                                                    <div className="w-full h-[100px] bg-[#f4f7fb]"><img src={g.imageUrl} className="w-full h-full object-cover mix-blend-multiply" /></div>
-                                                    <div className="p-3 text-center"><h3 className="font-bold text-[13px] md:text-[14px] leading-tight line-clamp-2">{g.name}</h3><p className="text-[10px] text-blue-600 font-bold mt-1">{(g.exerciseIds||[]).length} Exercises</p></div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <h2 className="font-bold text-lg md:text-xl text-[#0f172a] mb-4 border-b border-slate-200 pb-2">{searchQuery ? 'Search Results' : 'All Exercises'}</h2>
-                                
-                                {/* GRID: Completely Crash-Proof Inline Rendering */}
-                                <div className="flex gap-3 md:gap-4 items-start w-full">
-                                    {masonryColumns.map((column, colIndex) => (
-                                        <div key={colIndex} className="flex flex-col gap-3 md:gap-4 flex-1">
-                                            {column.map(ex => (
-                                                <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); window.history.pushState({}, '', '/exercise/' + slugify(ex.name)); }} className="w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                                                    <div className="relative w-full overflow-hidden bg-[#f4f7fb]">
-                                                        <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto block object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
-                                                        {ex.videoUrl && <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>}
-                                                    </div>
-                                                    <div className="p-3 md:p-4 bg-white flex-grow flex items-center justify-center text-center"><h3 className="font-bold text-[14px] md:text-[15px] text-[#0f172a] leading-tight line-clamp-2">{ex.name}</h3></div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                                {filteredPatientExercises.length === 0 && <p className="text-center text-slate-500 py-16 text-sm">No exercises match your search.</p>}
+                                <div className="text-center mb-6"><div className="flex justify-center text-[#1d4ed8] mb-1"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><h1 className="text-xl font-bold text-[#1e3a8a]">Patient Records</h1></div>
+                                <form onSubmit={handlePatientLogin} className="space-y-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label><input type="text" placeholder="e.g. John or 4092" value={loginName} onChange={(e) => setLoginName(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label><input type="tel" required placeholder="9876543210" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition" /></div>
+                                    <button type="submit" className="w-full bg-[#1d4ed8] text-white font-bold py-2.5 rounded-md hover:bg-[#1e3a8a] shadow-sm mt-2 text-sm transition-colors">View Records</button>
+                                </form>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-center mb-6"><div className="flex justify-center text-[#1d4ed8] mb-2"><Icons.Stethoscope className="w-10 h-10" /></div><h1 className="text-xl font-bold text-[#1e3a8a]">Staff Portal</h1></div>
+                                <button onClick={handleDoctorGoogleLogin} className="w-full flex items-center justify-center bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm mb-3"><Icons.Google /> Sign in with Google</button>
                             </>
                         )}
+                    </div>
+                </div>
+            );
+
+            // Reusable uncropped grid function
+            const renderGrid = (items) => {
+                const masonryColumns = Array.from({ length: colCount }, () => []);
+                items.forEach((ex, index) => masonryColumns[index % colCount].push(ex));
+                return (
+                    <div className="flex gap-3 md:gap-4 items-start w-full">
+                        {masonryColumns.map((column, colIndex) => (
+                            <div key={colIndex} className="flex flex-col gap-3 md:gap-4 flex-1">
+                                {column.map(ex => (
+                                    <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); window.history.pushState({}, '', '/exercise/' + slugify(ex.name)); }} className="w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                                        <div className="relative w-full overflow-hidden bg-[#f4f7fb]">
+                                            {typeof ex.imageUrl === 'string' && ex.imageUrl.startsWith('blob:') ? (
+                                                <div className="w-full aspect-square flex items-center justify-center bg-red-50 text-red-400 text-xs text-center p-4">Broken Image.<br/>Re-upload.</div>
+                                            ) : (
+                                                <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto block object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
+                                            )}
+                                            {ex.videoUrl && <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>}
+                                        </div>
+                                        <div className="p-3 md:p-4 bg-white flex-grow flex items-center justify-center text-center"><h3 className="font-bold text-[14px] md:text-[15px] text-[#0f172a] leading-tight line-clamp-2">{ex.name}</h3></div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 );
             };
 
+            const renderPatientExerciseList = () => (
+                <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
+                    {isLoading ? <div className="flex flex-col items-center justify-center py-32 text-slate-500"><div className="loader mb-4"></div><p>Loading library...</p></div> : (
+                        <>
+                            {!searchQuery && groups.length > 0 && (
+                                <div className="mb-8">
+                                    <h2 className="font-bold text-lg md:text-xl text-[#0f172a] mb-4 border-b border-slate-200 pb-2">Exercise Programs</h2>
+                                    <div className="flex overflow-x-auto gap-4 pb-4" style={{scrollbarWidth:'none'}}>
+                                        {groups.map(g => (
+                                            <div key={g.id} onClick={() => { setSelectedGroup(g); setCurrentView('group-detail'); window.history.pushState({}, '', '/exercises/group/' + slugify(g.name)); }} className="min-w-[140px] md:min-w-[180px] bg-white rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden cursor-pointer shrink-0 hover:-translate-y-1 transition-all">
+                                                <div className="w-full h-[100px] bg-[#f4f7fb]"><img src={g.imageUrl} className="w-full h-full object-cover mix-blend-multiply" /></div>
+                                                <div className="p-3 text-center"><h3 className="font-bold text-[13px] md:text-[14px] leading-tight line-clamp-2">{g.name}</h3><p className="text-[10px] text-blue-600 font-bold mt-1">{(g.exerciseIds||[]).length} Exercises</p></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <h2 className="font-bold text-lg md:text-xl text-[#0f172a] mb-4 border-b border-slate-200 pb-2">{searchQuery ? 'Search Results' : 'All Exercises'}</h2>
+                            {renderGrid(filteredPatientExercises)}
+                            {filteredPatientExercises.length === 0 && <p className="text-center text-slate-500 py-16 text-sm">No exercises match your search.</p>}
+                        </>
+                    )}
+                </div>
+            );
+
             const renderGroupDetail = () => {
                 if(!selectedGroup) return null;
                 const groupExercises = exercises.filter(ex => (selectedGroup.exerciseIds || []).includes(ex.id));
-                
-                const groupMasonryColumns = Array.from({ length: colCount }, () => []);
-                groupExercises.forEach((ex, index) => { groupMasonryColumns[index % colCount].push(ex); });
-
                 return (
                     <div className="p-3 md:p-6 max-w-[1200px] mx-auto pb-20 mt-4">
-                        <button onClick={() => { setCurrentView('exercise-list'); window.history.pushState({}, '', '/exercises'); }} className="flex items-center text-slate-600 font-bold mb-4 text-sm hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 mr-1" /> Back to Library</button>
-                        
+                        <button onClick={() => { setCurrentView('exercise-list'); setSelectedGroup(null); window.history.pushState({}, '', '/exercises'); }} className="flex items-center text-slate-600 font-bold mb-4 text-sm hover:text-slate-800 transition bg-white px-4 py-2 rounded-full shadow-sm w-fit"><Icons.ArrowLeft className="h-4 w-4 mr-1" /> Back to Library</button>
                         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden mb-8 flex flex-col md:flex-row">
                             <div className="md:w-1/3 bg-[#f4f7fb] shrink-0"><img src={selectedGroup.imageUrl} className="w-full h-full object-contain mix-blend-multiply max-h-[300px] p-4" /></div>
                             <div className="p-6 md:p-8 flex flex-col justify-center">
@@ -390,30 +469,12 @@
                                 <div className="mt-4"><span className="bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs px-3 py-1 rounded-full">{groupExercises.length} Exercises Included</span></div>
                             </div>
                         </div>
-
                         <h2 className="font-bold text-xl text-[#0f172a] mb-4 border-b border-slate-200 pb-2">Program Exercises</h2>
-                        
-                        {/* GRID: Crash-Proof Inline Rendering */}
-                        <div className="flex gap-3 md:gap-4 items-start w-full">
-                            {groupMasonryColumns.map((column, colIndex) => (
-                                <div key={colIndex} className="flex flex-col gap-3 md:gap-4 flex-1">
-                                    {column.map(ex => (
-                                        <div key={ex.id} onClick={() => { setSelectedExercise(ex); setCurrentView('exercise-detail'); window.history.pushState({}, '', '/exercise/' + slugify(ex.name)); }} className="w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(29,78,216,0.05)] border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                                            <div className="relative w-full overflow-hidden bg-[#f4f7fb]">
-                                                <img src={ex.imageUrl} alt={ex.name} className="w-full h-auto block object-cover mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500 ease-out" />
-                                                {ex.videoUrl && <div className="absolute top-2 right-2 bg-black bg-opacity-40 backdrop-blur-md rounded-full p-1.5 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>}
-                                            </div>
-                                            <div className="p-3 md:p-4 bg-white flex-grow flex items-center justify-center text-center"><h3 className="font-bold text-[14px] md:text-[15px] text-[#0f172a] leading-tight line-clamp-2">{ex.name}</h3></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
+                        {renderGrid(groupExercises)}
                     </div>
                 );
             };
 
-            // PHYSIOPEDIA STYLE EXERCISE DETAIL
             const renderPatientExerciseDetail = () => {
                 if (!selectedExercise) return null;
                 let isYoutube = selectedExercise.videoUrl && (selectedExercise.videoUrl.includes('youtube.com') || selectedExercise.videoUrl.includes('youtu.be'));
@@ -423,37 +484,33 @@
                     if(!videoId) videoId = selectedExercise.videoUrl.split('youtu.be/')[1];
                     if(videoId) { const ampersandPosition = videoId.indexOf('&'); if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition); youtubeEmbedUrl = `https://www.youtube.com/embed/${videoId}`; }
                 }
-
                 const tagsStr = Array.isArray(selectedExercise.tags) ? selectedExercise.tags.join(', ') : '';
 
                 return (
                     <div className="p-3 md:p-6 max-w-[1000px] mx-auto pb-20 mt-2">
                         <button onClick={() => { setCurrentView('exercise-list'); setSelectedExercise(null); window.history.pushState({}, '', '/exercises'); }} className="flex items-center text-slate-600 font-bold mb-4 text-sm hover:text-slate-800 transition"><Icons.ArrowLeft className="h-4 w-4 mr-1" /> Back</button>
                         
-                        {/* PHYSIOPEDIA WIKI LAYOUT */}
-                        <div className="bg-white wiki-border p-5 md:p-8 font-sans text-[#202122] shadow-sm">
-                            <h1 className="text-3xl md:text-4xl border-b border-[#a2a9b1] pb-2 mb-6 wiki-font font-normal">{selectedExercise.name}</h1>
-                            
+                        <div className="bg-white border border-[#a2a9b1] p-5 md:p-8 font-sans text-[#202122] shadow-sm">
+                            <h1 className="text-3xl md:text-4xl border-b border-[#a2a9b1] pb-2 mb-6 font-serif font-normal">{selectedExercise.name}</h1>
                             <div className="flex flex-col md:flex-row-reverse gap-6 md:gap-8">
-                                <div className="md:w-[350px] shrink-0 wiki-border wiki-bg p-3 h-fit">
-                                    <div className="text-center font-bold bg-[#eaecf0] p-2 mb-3 wiki-border text-[15px]">{selectedExercise.name}</div>
-                                    <div className="w-full bg-white wiki-border mb-3 aspect-square relative flex items-center justify-center overflow-hidden p-2">
-                                        {selectedExercise.imageUrl && <img src={selectedExercise.imageUrl} className="max-w-full max-h-full object-contain" alt="Demonstration" />}
+                                <div className="md:w-[350px] shrink-0 border border-[#a2a9b1] bg-[#f8f9fa] p-3 h-fit">
+                                    <div className="text-center font-bold bg-[#eaecf0] p-2 mb-3 border border-[#a2a9b1] text-[15px]">{selectedExercise.name}</div>
+                                    <div className="w-full bg-white border border-[#a2a9b1] mb-3 relative flex items-center justify-center overflow-hidden p-2">
+                                        {selectedExercise.imageUrl && <img src={selectedExercise.imageUrl} className="max-w-full h-auto object-contain" alt="Demonstration" />}
                                     </div>
                                     {selectedExercise.videoUrl && (
-                                        <div className="w-full wiki-border bg-black aspect-video relative flex items-center justify-center overflow-hidden mb-3">
+                                        <div className="w-full border border-[#a2a9b1] bg-black aspect-video relative flex items-center justify-center overflow-hidden mb-3">
                                             {isYoutube ? <iframe className="w-full h-full" src={youtubeEmbedUrl} frameBorder="0" allowFullScreen></iframe> : <video className="w-full h-full" controls src={selectedExercise.videoUrl}></video>}
                                         </div>
                                     )}
                                     {tagsStr && (
-                                        <div className="text-xs bg-white wiki-border p-2 mt-2">
+                                        <div className="text-xs bg-white border border-[#a2a9b1] p-2 mt-2">
                                             <span className="font-bold">Keywords: </span><span className="text-[#0645ad]">{tagsStr}</span>
                                         </div>
                                     )}
                                 </div>
-
                                 <div className="flex-1">
-                                    <h2 className="text-2xl border-b border-[#a2a9b1] pb-1 mb-3 mt-0 wiki-font font-normal">Description & Technique</h2>
+                                    <h2 className="text-2xl border-b border-[#a2a9b1] pb-1 mb-3 mt-0 font-serif font-normal">Description & Technique</h2>
                                     <div className="text-[15px] leading-[1.6] whitespace-pre-line text-[#202122]">
                                         {selectedExercise.description}
                                     </div>
@@ -463,6 +520,77 @@
                     </div>
                 );
             };
+
+            const renderDoctorDashboard = () => (
+                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20 mt-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                        <div className="flex items-center px-2">
+                            <Icons.Stethoscope className="w-5 h-5 text-blue-600 mr-2" />
+                            <h2 className="text-lg md:text-xl font-bold text-slate-800">Prescription Builder</h2>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button onClick={() => setCurrentView('database-management')} className="flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition">
+                                <Icons.Database className="w-4 h-4 mr-1.5" /> Manage DB
+                            </button>
+                            <button onClick={handleLogout} className="flex items-center justify-center bg-slate-50 text-red-600 hover:bg-red-50 border border-slate-200 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition" title="Logout">
+                                <Icons.LogOut className="w-4 h-4 mr-0" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 h-fit">
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-1">1. Patient Details</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 mt-4">
+                                <input type="text" placeholder="Patient Name" value={prescriptionData.patientName} onChange={e => setPrescriptionData({...prescriptionData, patientName: e.target.value})} className="col-span-2 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                <input type="number" placeholder="Age" value={prescriptionData.age} onChange={e => setPrescriptionData({...prescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
+                                <select value={prescriptionData.gender} onChange={e => setPrescriptionData({...prescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-blue-500"><option value="">Gender</option><option value="M">Male</option><option value="F">Female</option></select>
+                                <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={prescriptionData.notes} onChange={e => setPrescriptionData({...prescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="2" />
+                            </div>
+                            <div className="border-t border-slate-100 pt-4">
+                                <div className="relative mb-2"><Icons.Search className="absolute left-2.5 top-2 text-slate-400 w-4 h-4" /><input type="text" placeholder="Search Cloud Database..." value={doctorSearchQuery} onChange={(e) => setDoctorSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-blue-500" /></div>
+                                <div className="h-[200px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1">
+                                    {isLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading from cloud...</div> :
+                                    filteredDoctorExercises.map(ex => {
+                                        const isSelected = (prescriptionData.selectedExerciseIds || []).includes(ex.id);
+                                        return (
+                                            <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
+                                                <input type="checkbox" className="w-4 h-4 rounded text-blue-600" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
+                                                <div className="ml-3 flex-1 min-w-0 text-left"><p className="text-sm font-semibold text-slate-800 truncate leading-tight">{ex.name}</p><p className="text-[10px] text-slate-500 truncate mt-0.5">{formatTags(ex.tags)}</p></div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+                            <div className="flex justify-between items-center mb-4"><h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Selected</h3><span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">{(prescriptionData.selectedExerciseIds || []).length} Selected</span></div>
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-1" style={{maxHeight: '400px'}}>
+                                {(prescriptionData.selectedExerciseIds || []).length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm"><p>No exercises selected.</p></div>
+                                ) : (
+                                    (prescriptionData.selectedExerciseIds || []).map(id => {
+                                        const ex = exercises.find(e => e.id === id);
+                                        if (!ex) return null;
+                                        return (
+                                            <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50 text-left">
+                                                <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-sm text-slate-800">{ex.name}</h4><button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:underline font-bold">Remove</button></div>
+                                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Reps</label><input type="text" value={(prescriptionData.exerciseParams || {})[ex.id]?.reps || ''} onChange={(e) => handleParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
+                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Sets</label><input type="text" value={(prescriptionData.exerciseParams || {})[ex.id]?.sets || ''} onChange={(e) => handleParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
+                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Freq</label><input type="text" value={(prescriptionData.exerciseParams || {})[ex.id]?.freq || ''} onChange={(e) => handleParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
+                                                </div>
+                                                <div><input type="text" value={(prescriptionData.exerciseParams || {})[ex.id]?.note || ''} onChange={(e) => handleParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500"/></div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-slate-100"><button onClick={() => setCurrentView('print-prescription')} disabled={(prescriptionData.selectedExerciseIds || []).length === 0} className="w-full px-6 bg-[#1d4ed8] text-white rounded-lg py-3 text-sm font-bold shadow hover:bg-[#1e3a8a] transition flex items-center justify-center disabled:opacity-50"><Icons.Printer /> Generate PDF</button></div>
+                        </div>
+                    </div>
+                </div>
+            );
 
             const renderDatabaseManagement = () => (
                 <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20 mt-4">
@@ -484,7 +612,7 @@
                                     <h3 className="text-base md:text-lg font-bold text-slate-800 mb-3">{editingId ? 'Edit Exercise' : 'Upload New Exercise'}</h3>
                                     <form onSubmit={handleAddOrUpdateExercise} className="space-y-3">
                                         <div><label className="text-xs font-bold text-slate-500 mb-1 block">Exercise Name</label><input required type="text" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" /></div>
-                                        <div><label className="text-xs font-bold text-slate-500 mb-1 block">Description</label><textarea required value={newExercise.description} onChange={e => setNewExercise({...newExercise, description: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="3" /></div>
+                                        <div><label className="text-xs font-bold text-slate-500 mb-1 block">Description (For Patient App)</label><textarea required value={newExercise.description} onChange={e => setNewExercise({...newExercise, description: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="3" /></div>
                                         <div><label className="text-xs font-bold text-slate-500 mb-1 block">Tags (comma separated)</label><input type="text" value={newExercise.tags} onChange={e => setNewExercise({...newExercise, tags: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" /></div>
                                         <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg space-y-3">
                                             <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 uppercase">Upload Image</label><input type="file" accept="image/*" onChange={(e)=>handleImageUpload(e,false)} className="w-full text-xs" /><input type="url" value={newExercise.imageUrl} onChange={e => setNewExercise({...newExercise, imageUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 mt-2" />{newExercise.imageUrl && <img src={newExercise.imageUrl} className="h-10 w-10 object-contain rounded mt-1 bg-white border border-slate-200" />}</div>
@@ -542,72 +670,8 @@
                 </div>
             );
 
-            // ... renderDoctorDashboard & renderPrintPrescriptionView remain identical
-            const renderDoctorDashboard = () => (
-                <div className="p-3 md:p-4 max-w-5xl mx-auto pb-20 mt-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
-                        <div className="flex items-center px-2"><Icons.Stethoscope className="w-5 h-5 text-blue-600 mr-2" /><h2 className="text-lg md:text-xl font-bold text-slate-800">Prescription Builder</h2></div>
-                        <div className="flex items-center space-x-2">
-                            <button onClick={() => setCurrentView('database-management')} className="flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition"><Icons.Database className="w-4 h-4 mr-1.5" /> Manage DB</button>
-                            <button onClick={handleLogout} className="flex items-center justify-center bg-slate-50 text-red-600 hover:bg-red-50 border border-slate-200 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xs md:text-sm transition" title="Logout"><Icons.LogOut className="w-4 h-4 mr-0" /></button>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 h-fit">
-                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-1">1. Patient Details</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 mt-4">
-                                <input type="text" placeholder="Patient Name" value={prescriptionData.patientName} onChange={e => setPrescriptionData({...prescriptionData, patientName: e.target.value})} className="col-span-2 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
-                                <input type="number" placeholder="Age" value={prescriptionData.age} onChange={e => setPrescriptionData({...prescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" />
-                                <select value={prescriptionData.gender} onChange={e => setPrescriptionData({...prescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-blue-500"><option value="">Gender</option><option value="M">Male</option><option value="F">Female</option></select>
-                                <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={prescriptionData.notes} onChange={e => setPrescriptionData({...prescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-blue-500" rows="2" />
-                            </div>
-                            <div className="border-t border-slate-100 pt-4">
-                                <div className="relative mb-2"><Icons.Search className="absolute left-2.5 top-2 text-slate-400 w-4 h-4" /><input type="text" placeholder="Search Cloud Database..." value={doctorSearchQuery} onChange={(e) => setDoctorSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-blue-500" /></div>
-                                <div className="h-[200px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1">
-                                    {isLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading from cloud...</div> :
-                                    filteredDoctorExercises.map(ex => {
-                                        const isSelected = prescriptionData.selectedExerciseIds.includes(ex.id);
-                                        return (
-                                            <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
-                                                <input type="checkbox" className="w-4 h-4 rounded text-blue-600" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
-                                                <div className="ml-3 flex-1 min-w-0 text-left"><p className="text-sm font-semibold text-slate-800 truncate leading-tight">{ex.name}</p><p className="text-[10px] text-slate-500 truncate mt-0.5">{formatTags(ex.tags)}</p></div>
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-                            <div className="flex justify-between items-center mb-4"><h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Selected</h3><span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">{prescriptionData.selectedExerciseIds.length} Selected</span></div>
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-1" style={{maxHeight: '400px'}}>
-                                {prescriptionData.selectedExerciseIds.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm"><p>No exercises selected.</p></div>
-                                ) : (
-                                    prescriptionData.selectedExerciseIds.map(id => {
-                                        const ex = exercises.find(e => e.id === id);
-                                        if (!ex) return null;
-                                        return (
-                                            <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50 text-left">
-                                                <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-sm text-slate-800">{ex.name}</h4><button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:underline font-bold">Remove</button></div>
-                                                <div className="grid grid-cols-3 gap-2 mb-2">
-                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Reps</label><input type="text" value={prescriptionData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
-                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Sets</label><input type="text" value={prescriptionData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
-                                                    <div><label className="block text-[9px] font-bold text-blue-800 uppercase mb-0.5 text-left">Freq</label><input type="text" value={prescriptionData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500" /></div>
-                                                </div>
-                                                <div><input type="text" value={prescriptionData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-blue-500"/></div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                            <div className="mt-4 pt-4 border-t border-slate-100"><button onClick={() => setCurrentView('print-prescription')} disabled={prescriptionData.selectedExerciseIds.length === 0} className="w-full px-6 bg-[#1d4ed8] text-white rounded-lg py-3 text-sm font-bold shadow hover:bg-[#1e3a8a] transition flex items-center justify-center disabled:opacity-50"><Icons.Printer /> Generate PDF</button></div>
-                        </div>
-                    </div>
-                </div>
-            );
-
             const renderPrintPrescriptionView = () => {
-                const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
+                const prescribedExercises = exercises.filter(ex => (prescriptionData.selectedExerciseIds || []).includes(ex.id));
                 const today = new Date().toLocaleDateString('en-GB');
 
                 return (
@@ -632,11 +696,17 @@
                             <div className="flex-1">
                                 <div className="grid grid-cols-3 gap-x-6 gap-y-10">
                                     {prescribedExercises.map((ex) => {
-                                        const params = prescriptionData.exerciseParams[ex.id] || {};
+                                        const params = (prescriptionData.exerciseParams || {})[ex.id] || {};
                                         const customNote = params.note;
                                         return (
                                             <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left">
-                                                <div className="h-32 sm:h-40 w-full flex items-center justify-center mb-2"><img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" /></div>
+                                                <div className="h-32 sm:h-40 w-full flex items-center justify-center mb-2">
+                                                    {typeof ex.imageUrl === 'string' && ex.imageUrl.startsWith('blob:') ? (
+                                                        <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.<br/>Please re-upload.</div>
+                                                    ) : (
+                                                        <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                                    )}
+                                                </div>
                                                 <div className="w-full px-1 text-left">
                                                     <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
                                                     <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">{params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}{params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}{params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}</div>
