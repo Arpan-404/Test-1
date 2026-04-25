@@ -1,5 +1,4 @@
 {
-  "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
@@ -13,8 +12,6 @@
     { "source": "/service/:path*", "destination": "/details.html" },
     { "source": "/product/:path*", "destination": "/details.html" },
     { "source": "/exercise/:path*", "destination": "/details.html" },
-    { "source": "/exercises/group/:path*", "destination": "/exercises.html" },
-    { "source": "/exercises/dashboard", "destination": "/exercises.html" },
     { "source": "/exercises/:path*", "destination": "/exercises.html" },
     { "source": "/:slug([^/.]+)", "destination": "/details.html" }
   ]
