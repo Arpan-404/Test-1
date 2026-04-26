@@ -66,7 +66,10 @@
             <li><a href="/articles">Health Feed</a></li>
             <li><a href="/exercises" style="color: #1d4ed8;">Exercise Library</a></li>
             <li><a href="/prescription">My Reports</a></li>
-            <li><a href="/doctor-panel" class="block py-3 mt-4 text-center border border-blue-200 bg-blue-50 text-blue-700 rounded-lg font-bold text-[1.05rem]">Doctor Login</a></li>
+            
+            <!-- Secure Admin & Doctor Panel Links -->
+            <li class="mt-4"><a href="/admin" class="block py-3 text-center border border-slate-300 bg-slate-50 text-slate-700 rounded-lg font-bold text-[1.05rem]">Admin Panel</a></li>
+            <li><a href="/doctor-panel" class="block py-3 text-center border border-blue-200 bg-blue-50 text-blue-700 rounded-lg font-bold text-[1.05rem]">Doctor Panel</a></li>
         </ul>
     </div>
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
@@ -117,7 +120,6 @@
             
             let html = '<div class="max-w-[1200px] mx-auto px-4">';
             
-            // Render Groups
             if(!query && window.groups.length > 0) {
                 html += `
                 <div class="mb-8">
@@ -133,7 +135,6 @@
                 </div>`;
             }
 
-            // Render Exercises
             html += `<h2 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">${query ? 'Search Results' : 'All Exercises'}</h2>`;
             if(filteredEx.length === 0) {
                 html += '<p class="text-slate-500 py-10 text-center">No exercises found.</p>';
@@ -203,13 +204,17 @@
             container.innerHTML = `
             <div class="wiki-container">
                 <div class="mb-4"><a href="/exercises" class="text-blue-600 font-bold hover:underline font-sans">← Back to Library</a></div>
-                <h1 class="wiki-title">${ex.name}</h1>
+                <h1 class="wiki-article-title">${ex.name}</h1>
+                
                 <div class="wiki-infobox font-sans">
                     <div class="text-center font-bold bg-[#eaecf0] p-2 mb-3 border border-[#a2a9b1]">${ex.name}</div>
                     ${ex.imageUrl ? `<div class="wiki-infobox-media"><img src="${ex.imageUrl}" alt="${ex.name}"></div>` : ''}
                     ${videoHtml}
                 </div>
-                <div class="ql-editor">${ex.description}</div>
+
+                <div class="wiki-content ql-editor">
+                    ${ex.description}
+                </div>
             </div>`;
         }
     </script>
