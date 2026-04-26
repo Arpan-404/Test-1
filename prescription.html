@@ -4,14 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Reports - Physio Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
     <style>
         body { background-color: #f4f7fb; color: #0f172a; font-family: sans-serif; }
+        .editable-cell { min-width: 30px; max-width: 100%; word-break: break-word; white-space: pre-wrap; }
+        
+        /* Mobile Menu Styles */
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: white; z-index: 1001; transition: 0.3s ease; padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu ul { list-style: none; padding: 0; }
+        .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; color: #0f172a; text-decoration: none;}
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
+        .overlay.active { display: block; }
+
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -25,7 +37,30 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    
+    <!-- Unified Hamburger Menu -->
+    <div class="no-print bg-white shadow-sm h-[60px] flex justify-between items-center px-4 fixed top-0 w-full z-50">
+        <a href="/" class="font-bold text-blue-800 text-lg flex items-center gap-2"><i class="ph-bold ph-activity text-blue-600"></i> My Reports</a>
+        <button onclick="document.getElementById('mobileMenu').classList.add('active'); document.getElementById('overlay').classList.add('active');" class="text-2xl"><i class="ph-bold ph-list"></i></button>
+    </div>
+
+    <div class="mobile-menu no-print" id="mobileMenu">
+        <button onclick="document.getElementById('mobileMenu').classList.remove('active'); document.getElementById('overlay').classList.remove('active');" class="absolute top-4 right-4 bg-slate-100 border-none w-9 h-9 rounded-full text-lg font-bold">✕</button>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/doctors">Doctors</a></li>
+            <li><a href="/products">Store</a></li>
+            <li><a href="/articles">Health Feed</a></li>
+            <li><a href="/exercises">Exercise Library</a></li>
+            <li><a href="/prescription" style="color: #1d4ed8;">My Reports</a></li>
+            <li class="mt-4"><a href="/admin" class="block py-3 text-center border border-slate-300 bg-slate-50 text-slate-700 rounded-lg font-bold text-[1.05rem]">Admin Panel</a></li>
+            <li><a href="/doctor-panel" class="block py-3 text-center border border-blue-200 bg-blue-50 text-blue-700 rounded-lg font-bold text-[1.05rem]">Doctor Panel</a></li>
+        </ul>
+    </div>
+    <div class="overlay no-print" id="overlay" onclick="document.getElementById('mobileMenu').classList.remove('active'); document.getElementById('overlay').classList.remove('active');"></div>
+
+    <div id="root" class="pt-[60px]"></div>
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -38,6 +73,27 @@
         const rtdb = getDatabase(app);
 
         const { useState, useEffect } = React;
+
+        // CustomTableEditor explicitly for read-only view in Patient Portal
+        function CustomTableEditor({ table }) {
+            return (
+                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto mb-4 page-break-inside-avoid">
+                    {table.title && <div className="bg-blue-50/50 px-3 py-2 border-b border-slate-200 font-bold text-[13px] text-[#1e3a8a]">{table.title}</div>}
+                    <div className="p-1.5">
+                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto">
+                            <thead>
+                                <tr>{table.headers.map((h, i) => <th key={i} className="border border-slate-200 p-2 bg-slate-50 font-bold text-[#1e3a8a] text-[12px]">{h}</th>)}</tr>
+                            </thead>
+                            <tbody>
+                                {table.rows.map((row, rIdx) => (
+                                    <tr key={rIdx}>{row.map((cell, cIdx) => <td key={cIdx} className="border border-slate-200 p-2 text-slate-800 text-[12px] whitespace-pre-wrap">{cell}</td>)}</tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
 
         function App() {
             const [view, setView] = useState('login');
@@ -58,6 +114,14 @@
                     snap.forEach(doc => {
                         const p = doc.data();
                         if ((p.ipId === loginId || p.name.toLowerCase() === loginId.toLowerCase()) && p.contact === loginPhone) {
+                            // Ensure JSON arrays are parsed
+                            if (p.customTables) {
+                                p.customTables = p.customTables.map(t => {
+                                    let parsedRows = [];
+                                    try { parsedRows = typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows; } catch(err){}
+                                    return { ...t, rows: parsedRows };
+                                });
+                            }
                             foundPatient = { id: doc.id, ...p };
                         }
                     });
@@ -82,19 +146,18 @@
 
             if (view === 'login') {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="min-h-[calc(100vh-60px)] flex items-center justify-center p-4">
                         <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 max-w-sm w-full">
                             <div className="text-center mb-6">
                                 <i className="ph-fill ph-file-text text-5xl text-blue-600 mb-2"></i>
-                                <h1 className="text-2xl font-bold text-slate-800">My Reports</h1>
-                                <p class="text-sm text-slate-500 mt-1">Enter your details to view your prescription.</p>
+                                <h1 className="text-2xl font-bold text-slate-800">Patient Login</h1>
+                                <p className="text-sm text-slate-500 mt-1">Enter your details to view your prescription.</p>
                             </div>
                             <form onSubmit={handleLogin} className="space-y-4">
                                 {error && <div className="p-2 bg-red-50 text-red-600 text-xs rounded border border-red-200 text-center">{error}</div>}
-                                <div><label className="text-xs font-bold text-slate-500">Name or UPID</label><input type="text" required value={loginId} onChange={e=>setLoginId(e.target.value)} className="w-full border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 mt-1"></div>
-                                <div><label className="text-xs font-bold text-slate-500">Mobile Number</label><input type="tel" required value={loginPhone} onChange={e=>setLoginPhone(e.target.value)} className="w-full border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 mt-1"></div>
-                                <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 shadow">{isLoading ? 'Searching...' : 'View My Report'}</button>
-                                <a href="/" className="block text-center text-sm text-slate-500 hover:text-slate-800 mt-4 font-bold">← Back to Home</a>
+                                <div><label className="text-xs font-bold text-slate-500">Name or UPID</label><input type="text" required value={loginId} onChange={e=>setLoginId(e.target.value)} className="w-full border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 mt-1"/></div>
+                                <div><label className="text-xs font-bold text-slate-500">Mobile Number</label><input type="tel" required value={loginPhone} onChange={e=>setLoginPhone(e.target.value)} className="w-full border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 mt-1"/></div>
+                                <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow">{isLoading ? 'Searching...' : 'View My Report'}</button>
                             </form>
                         </div>
                     </div>
@@ -109,14 +172,13 @@
                     </div>
 
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                        {/* Print Header */}
                         <div className="print-header hidden print:block">
                             <h1 style={{fontSize:'28px', fontFamily:'Georgia, serif', color:'#1e3a8a', fontStyle:'italic'}}>Dr. Arpan Das (PT)</h1>
                             <p style={{fontWeight:'bold', color:'#1e3a8a'}}>BPT (KPC Medical College and Hospital)</p>
                             <p style={{fontWeight:'bold', color:'#1e3a8a'}}>Consultant Physiotherapist</p>
                         </div>
 
-                        <div className="flex flex-wrap justify-between items-center pb-4 mb-6 border-b-2 border-slate-100 print:border-[#1e3a8a]">
+                        <div className="flex flex-wrap justify-between items-end pb-4 mb-6 border-b-2 border-slate-100 print:border-[#1e3a8a]">
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-800 print:text-[#1e3a8a]">{patientData.name}</h2>
                                 <p className="text-slate-500 print:text-[#1e3a8a] font-bold mt-1">Age: {patientData.age} | Gender: {patientData.gender} | UPID: {patientData.ipId}</p>
@@ -128,8 +190,85 @@
 
                         <div className="space-y-6">
                             {patientData.chiefComplaints && <div><h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">Chief Complaint</h3><p className="text-slate-700 whitespace-pre-wrap pl-2">{patientData.chiefComplaints}</p></div>}
-                            {patientData.assessmentNote && <div><h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">Assessment</h3><p className="text-slate-700 whitespace-pre-wrap pl-2">{patientData.assessmentNote}</p></div>}
-                            {patientData.treatmentNote && <div><h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">Treatment Plan</h3><p className="text-slate-700 whitespace-pre-wrap pl-2">{patientData.treatmentNote}</p></div>}
+                            {patientData.history && <div><h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">History</h3><p className="text-slate-700 whitespace-pre-wrap pl-2">{patientData.history}</p></div>}
+                            
+                            {(patientData.assessmentNote || (patientData.customTables && patientData.customTables.filter(t=>t.section==='assessment').length > 0)) && (
+                                <div>
+                                    <h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">Assessment</h3>
+                                    {patientData.assessmentNote && <p className="text-slate-700 whitespace-pre-wrap pl-2 mb-4">{patientData.assessmentNote}</p>}
+                                    <div className="flex flex-wrap gap-4 pl-2">
+                                        {(patientData.customTables || []).filter(t=>t.section==='assessment').map(t => <CustomTableEditor key={t.id} table={t} />)}
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {(patientData.treatmentNote || (patientData.customTables && patientData.customTables.filter(t=>t.section==='treatment').length > 0)) && (
+                                <div>
+                                    <h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-2">Treatment Plan</h3>
+                                    {patientData.treatmentNote && <p className="text-slate-700 whitespace-pre-wrap pl-2 mb-4">{patientData.treatmentNote}</p>}
+                                    <div className="flex flex-wrap gap-4 pl-2">
+                                        {(patientData.customTables || []).filter(t=>t.section==='treatment').map(t => <CustomTableEditor key={t.id} table={t} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {patientData.reassessmentTables && patientData.reassessmentTables.length > 0 && (
+                                <div className="mt-8">
+                                    <h3 className="font-bold text-slate-800 print:text-[#1e3a8a] print:text-[18px] border-b pb-1 mb-4">Progression Tracking</h3>
+                                    {patientData.reassessmentTables.map(rtable => (
+                                        <div key={rtable.id} className="mb-6 pl-2 page-break-inside-avoid overflow-x-auto">
+                                            <h4 className="font-bold text-[#1e3a8a] mb-2">{rtable.title}</h4>
+                                            {rtable.trackedMetrics && rtable.trackedMetrics.length > 0 ? (
+                                                <table className="w-full text-sm border-collapse border border-slate-300">
+                                                    <thead>
+                                                        <tr className="bg-slate-50 text-[#1e3a8a]">
+                                                            <th className="border border-slate-300 p-2 text-left">Date</th>
+                                                            {rtable.trackedMetrics.map(m => (
+                                                                <th key={m.id} className="border border-slate-300 p-1 text-center align-top">
+                                                                    <div className="flex flex-col h-full">
+                                                                        <span className="mb-1">{m.title}</span>
+                                                                        {m.isBilateral && <div className="flex text-xs border-t border-slate-300 mt-auto"><div className="flex-1 border-r border-slate-300 p-1">R</div><div className="flex-1 p-1">L</div></div>}
+                                                                        {m.type === 'Custom 2-Column' && <div className="flex text-xs border-t border-slate-300 mt-auto"><div className="flex-1 border-r border-slate-300 p-1">{m.col1}</div><div className="flex-1 p-1">{m.col2}</div></div>}
+                                                                        {m.type === 'ROM with VAS' && <div className="flex text-xs border-t border-slate-300 mt-auto"><div className="flex-1 border-r border-slate-300 p-1">VAS</div><div className="flex-1 p-1">ROM</div></div>}
+                                                                    </div>
+                                                                </th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {(rtable.records || []).map(r => (
+                                                            <tr key={r.id}>
+                                                                <td className="border border-slate-300 p-2 font-medium">{r.date ? new Date(r.date).toLocaleDateString('en-GB') : ''}</td>
+                                                                {rtable.trackedMetrics.map(m => {
+                                                                    const v = r.values[m.id];
+                                                                    if(m.isBilateral) return <td key={m.id} className="border border-slate-300 p-0"><div className="flex h-full"><div className="flex-1 border-r border-slate-300 p-2 text-center">{v?.r||'-'}</div><div className="flex-1 p-2 text-center">{v?.l||'-'}</div></div></td>;
+                                                                    if(m.type === 'Custom 2-Column') return <td key={m.id} className="border border-slate-300 p-0"><div className="flex h-full"><div className="flex-1 border-r border-slate-300 p-2 text-center">{v?.c1||'-'}</div><div className="flex-1 p-2 text-center">{v?.c2||'-'}</div></div></td>;
+                                                                    if(m.type === 'ROM with VAS') return <td key={m.id} className="border border-slate-300 p-0"><div className="flex h-full"><div className="flex-1 border-r border-slate-300 p-2 text-center">{v?.vas||'-'}</div><div className="flex-1 p-2 text-center">{v?.rom||'-'}</div></div></td>;
+                                                                    return <td key={m.id} className="border border-slate-300 p-2 text-center">{v||'-'}</td>;
+                                                                })}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            ) : ( <p className="text-slate-500 italic text-sm">No metrics tracked.</p> )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {patientData.reports && patientData.reports.length > 0 && (
+                                <div className="mt-8 no-print">
+                                    <h3 className="font-bold text-slate-800 border-b pb-2 mb-4">Attached Documents</h3>
+                                    <div className="flex flex-wrap gap-4 pl-2">
+                                        {patientData.reports.map(rep => (
+                                            <a key={rep.id} href={rep.url} target="_blank" className="block w-24 border border-slate-200 rounded p-1 hover:border-blue-500 transition">
+                                                {rep.type.startsWith('image/') ? <img src={rep.url} className="w-full h-20 object-cover rounded" /> : <div className="w-full h-20 bg-slate-100 flex items-center justify-center text-3xl">📄</div>}
+                                                <div className="text-[10px] text-center mt-1 truncate px-1 text-slate-600 font-bold">{rep.name}</div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {assignedExercises.length > 0 && (
