@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Rich Text Editor -->
+    <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
@@ -34,6 +34,9 @@
         .ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; border-color: #e2e8f0 !important; }
         .ql-container { border-radius: 0 0 8px 8px; border-color: #e2e8f0 !important; font-family: sans-serif; font-size: 14px; background: white;}
 
+        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+
         @page { size: A4; margin: 10mm; }
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
@@ -45,42 +48,24 @@
             tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
             .editable-cell:empty:before { content: none !important; display: none !important; }
             .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            
+            .print-container { width: 100%; }
+            .print-header { border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
+            .print-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; color: #1e3a8a; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px;}
+            .print-title { font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+            .ex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+            .ex-card { border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
-    
-    <!-- HIDDEN PRINT LAYOUT (Preserved Exactly) -->
-    <div id="print-layout" class="hidden print-only print-container font-sans text-slate-900">
-        <div class="print-header" style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
-            <h1 style="font-size:28px; font-family: Georgia, serif; color:#1e3a8a; font-style:italic;">Dr. Arpan Das (PT)</h1>
-            <p style="font-weight:bold; color:#1e3a8a; margin-top:4px;">BPT (KPC Medical College and Hospital)</p>
-            <p style="font-weight:bold; color:#1e3a8a;">Consultant Physiotherapist</p>
-            <div style="position:absolute; right:15mm; top:15mm; text-align:right;">
-                <p style="font-weight:bold; color:#1e3a8a;">+91 9641568109</p>
-                <p style="font-weight:bold; margin-top:10px;">Date: <span id="print-date" style="border-b:1px solid #000; padding:0 10px;"></span></p>
-            </div>
-        </div>
-
-        <div class="print-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px; font-weight: bold; color: #1e3a8a;">
-            <div>Patient: <span id="print-name" style="font-weight:normal; color:#0f172a;"></span></div>
-            <div>Age: <span id="print-age" style="font-weight:normal; color:#0f172a;"></span></div>
-            <div>Gender: <span id="print-gender" style="font-weight:normal; color:#0f172a;"></span></div>
-            <div>UPID: <span id="print-upid" style="font-weight:normal; color:#0f172a;"></span></div>
-        </div>
-
-        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Chief Complaint</div><div id="print-cc" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">History</div><div id="print-hx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Assessment</div><div id="print-ax" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Treatment Plan</div><div id="print-tx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-
-        <div id="print-exercises-section" style="margin-bottom: 20px;">
-            <div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Prescribed Exercises</div>
-            <div id="print-exercises-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+    <div id="root">
+        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; color: #1e3a8a;">
+            <div class="native-loader"></div>
+            <div style="font-weight: bold; font-size: 1.1rem;">Loading Workspace...</div>
         </div>
     </div>
-
-    <div id="root" class="no-print"></div>
 
     <script type="text/babel" data-type="module">
         const { useState, useEffect, useRef } = React;
@@ -88,7 +73,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref as dbRef, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref as rtdbRef, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
 
@@ -98,8 +83,11 @@
         const db = getFirestore(app);
         const rtdb = getDatabase(app);
 
+        const CLOUDINARY_CLOUD_NAME = "dyuni0dx5"; 
+        const CLOUDINARY_UPLOAD_PRESET = "Physio_uploads";
+
         // ==========================================
-        // COMPONENTS
+        // UI COMPONENTS (Rich Text & Tracking Tables)
         // ==========================================
 
         function RichTextEditor({ value, onChange }) {
@@ -119,9 +107,9 @@
                                         input.onchange = async () => {
                                             const file = input.files[0];
                                             if (/^image\//.test(file.type)) {
-                                                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
+                                                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                                                 try {
-                                                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
+                                                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
                                                     const data = await res.json();
                                                     if(data.secure_url) {
                                                         const range = quillRef.current.getSelection() || { index: quillRef.current.getLength() };
@@ -227,10 +215,49 @@
             );
         }
 
+        function AddMetricModal({ onClose, onAdd }) {
+            const [type, setType] = useState('ROM'); const [romMode, setRomMode] = useState('Active');
+            const jointsList = Object.keys(JOINTS_DATA); const [selectedJointGroup, setSelectedJointGroup] = useState(jointsList[2]); const [selectedMovementIdx, setSelectedMovementIdx] = useState(0); 
+            const [side, setSide] = useState('R'); const [customName, setCustomName] = useState(''); const [col1Name, setCol1Name] = useState('Col 1'); const [col2Name, setCol2Name] = useState('Col 2');
+            
+            const handleAdd = () => {
+                let title = ''; const movement = JOINTS_DATA[selectedJointGroup][selectedMovementIdx]; let isBilateral = false; let normalVal = ''; let c1 = '', c2 = '';
+                if (type === 'ROM') { title = `${romMode} ${selectedJointGroup} ${movement.name}`; normalVal = movement.normal; isBilateral = movement.type === 'bilateral'; } 
+                else if (type === 'ROM with VAS') { title = `${selectedJointGroup} ${movement.name}`; normalVal = movement.normal; if (movement.type === 'bilateral') title += ` (${side})`; isBilateral = false; }
+                else if (type === 'MMT') { title = `${selectedJointGroup} ${movement.name}`; isBilateral = movement.type === 'bilateral'; normalVal = '5/5'; } 
+                else if (type === 'VAS') { title = customName || 'VAS'; isBilateral = false; normalVal = '0-10'; }
+                else if (type === 'Custom 2-Column') { title = customName || 'Custom Tracker'; c1 = col1Name || 'Col 1'; c2 = col2Name || 'Col 2'; isBilateral = false; }
+                else { title = customName || 'Custom Column'; isBilateral = false; normalVal = ''; }
+                onAdd({ id: generateId(), type, title, isBilateral, normal: normalVal, romMode, col1: c1, col2: c2 });
+            };
+            const currentMovements = JOINTS_DATA[selectedJointGroup]; const selectedMovement = currentMovements[selectedMovementIdx] || currentMovements[0]; 
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-3 print:hidden">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200">
+                        <div className="flex justify-between items-center p-3 border-b bg-slate-50"><h3 className="font-bold text-sm text-blue-900">New Column</h3><button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-200 rounded-full"><i className="ph-bold ph-x"></i></button></div>
+                        <div className="p-4 space-y-4">
+                            <select value={type} onChange={e=>setType(e.target.value)} className="w-full p-2 text-sm bg-slate-50 border rounded-md outline-none focus:border-blue-600"><option value="ROM">Range of Motion (ROM)</option><option value="MMT">Manual Muscle Test (MMT)</option><option value="ROM with VAS">ROM + VAS (Single Side)</option><option value="VAS">VAS (Pain Scale)</option><option value="Custom 2-Column">Custom 2-Column</option><option value="Other">Other</option></select>
+                            {(type === 'ROM' || type === 'ROM with VAS' || type === 'MMT') && (
+                                <>
+                                    {(type === 'ROM' || type === 'ROM with VAS') && <div className="flex gap-4"><label><input type="radio" checked={romMode==='Active'} onChange={()=>setRomMode('Active')}/> Active</label><label><input type="radio" checked={romMode==='Passive'} onChange={()=>setRomMode('Passive')}/> Passive</label></div>}
+                                    <div className="grid grid-cols-2 gap-3"><select value={selectedJointGroup} onChange={e=>{setSelectedJointGroup(e.target.value); setSelectedMovementIdx(0);}} className="w-full p-2 text-sm bg-slate-50 border rounded-md outline-none focus:border-blue-600">{Object.keys(JOINTS_DATA).map(j => <option key={j} value={j}>{j}</option>)}</select><select value={selectedMovementIdx} onChange={e=>setSelectedMovementIdx(Number(e.target.value))} className="w-full p-2 text-sm bg-slate-50 border rounded-md outline-none focus:border-blue-600">{currentMovements.map((m, i) => <option key={i} value={i}>{m.name}</option>)}</select></div>
+                                    {type === 'ROM with VAS' && selectedMovement.type === 'bilateral' && <div className="flex gap-4"><label><input type="radio" checked={side==='R'} onChange={()=>setSide('R')}/> Right</label><label><input type="radio" checked={side==='L'} onChange={()=>setSide('L')}/> Left</label></div>}
+                                </>
+                            )}
+                            {type === 'Custom 2-Column' && <div className="space-y-3"><input type="text" value={customName} onChange={e=>setCustomName(e.target.value)} placeholder="Main Name (e.g. Balance)" className="w-full p-2 text-sm border rounded-md outline-none" /><div className="grid grid-cols-2 gap-3"><input type="text" value={col1Name} onChange={e=>setCol1Name(e.target.value)} placeholder="Left Col" className="w-full p-2 text-sm border rounded-md outline-none" /><input type="text" value={col2Name} onChange={e=>setCol2Name(e.target.value)} placeholder="Right Col" className="w-full p-2 text-sm border rounded-md outline-none" /></div></div>}
+                            {(type === 'Other' || type === 'VAS') && <input type="text" value={customName} onChange={e=>setCustomName(e.target.value)} placeholder={type==='VAS'?"e.g. Resting VAS":"Name"} className="w-full p-2 text-sm border rounded-md outline-none" />}
+                        </div>
+                        <div className="p-3 border-t bg-slate-50"><button onClick={handleAdd} className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">Add Tracking Column</button></div>
+                    </div>
+                </div>
+            );
+        }
+
         // ==========================================
         // EXERCISE DB COMPONENT
         // ==========================================
-        function ExerciseDBView({ exercises, groups, dbRef, rtdb }) {
+        function ExerciseDBView({ exercises, groups }) {
             const [tab, setTab] = useState('exercises');
             const [search, setSearch] = useState('');
             const [editingEx, setEditingEx] = useState(null);
@@ -238,9 +265,9 @@
             
             const handleUpload = async (e, setter) => {
                 const file = e.target.files[0]; if(!file) return;
-                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
+                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 try {
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
                     const data = await res.json();
                     if(data.secure_url) setter(data.secure_url);
                 } catch(e) { alert('Upload failed'); }
@@ -249,15 +276,15 @@
             const saveEx = async () => {
                 const tags = typeof editingEx.tags === 'string' ? editingEx.tags.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t) : editingEx.tags;
                 const data = { name: editingEx.name, description: editingEx.description, imageUrl: editingEx.imageUrl, videoUrl: editingEx.videoUrl, tags };
-                if(editingEx.id) await set(dbRef(rtdb, 'exercises/' + editingEx.id), data);
-                else await set(push(dbRef(rtdb, 'exercises')), data);
+                if(editingEx.id) await set(rtdbRef(rtdb, 'exercises/' + editingEx.id), data);
+                else await set(push(rtdbRef(rtdb, 'exercises')), data);
                 setEditingEx(null);
             };
 
             const saveGrp = async () => {
                 const data = { name: editingGrp.name, description: editingGrp.description, imageUrl: editingGrp.imageUrl, exerciseIds: editingGrp.exerciseIds || [] };
-                if(editingGrp.id) await set(dbRef(rtdb, 'exerciseGroups/' + editingGrp.id), data);
-                else await set(push(dbRef(rtdb, 'exerciseGroups')), data);
+                if(editingGrp.id) await set(rtdbRef(rtdb, 'exerciseGroups/' + editingGrp.id), data);
+                else await set(push(rtdbRef(rtdb, 'exerciseGroups')), data);
                 setEditingGrp(null);
             };
 
@@ -266,7 +293,7 @@
             return (
                 <div className="animate-in fade-in">
                     <div className="flex justify-between items-center mb-6">
-                        <div className="flex gap-2 bg-slate-200 p-1 rounded-lg">
+                        <div className="flex gap-2 bg-slate-200 p-1 rounded-lg shadow-inner">
                             <button onClick={()=>setTab('exercises')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition ${tab === 'exercises' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-600 hover:text-slate-800'}`}>Exercises</button>
                             <button onClick={()=>setTab('groups')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition ${tab === 'groups' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-600 hover:text-slate-800'}`}>Programs</button>
                         </div>
@@ -283,7 +310,7 @@
                                     <h4 className="font-bold text-sm text-slate-800 mb-2 leading-tight line-clamp-2">{item.name}</h4>
                                     <div className="flex justify-between mt-auto">
                                         <button onClick={()=>tab==='exercises'?setEditingEx(item):setEditingGrp(item)} className="text-xs font-bold text-blue-600 hover:underline">Edit</button>
-                                        <button onClick={()=>tab==='exercises'?remove(dbRef(rtdb, 'exercises/' + item.id)):remove(dbRef(rtdb, 'exerciseGroups/' + item.id))} className="text-xs font-bold text-red-500 hover:underline">Del</button>
+                                        <button onClick={()=>tab==='exercises'?remove(rtdbRef(rtdb, 'exercises/' + item.id)):remove(rtdbRef(rtdb, 'exerciseGroups/' + item.id))} className="text-xs font-bold text-red-500 hover:underline">Del</button>
                                     </div>
                                 </div>
                             </div>
@@ -315,7 +342,7 @@
                                         </div>
                                     </div>
                                     <div className="flex flex-col h-[400px]">
-                                        <label className="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style) <span className="text-blue-500 ml-2 font-normal text-[10px]">Click 🖼️ icon to insert images</span></label>
+                                        <label className="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style)</label>
                                         <RichTextEditor value={editingEx.description} onChange={v => setEditingEx({...editingEx, description: v})} />
                                     </div>
                                 </div>
@@ -338,9 +365,9 @@
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-slate-500 mb-1 block">Select Exercises</label>
-                                        <div className="h-48 overflow-y-auto border rounded p-2 bg-slate-50 space-y-1">
+                                        <div className="h-40 overflow-y-auto border rounded p-2 bg-slate-50 space-y-1">
                                             {exercises.map(ex => (
-                                                <label key={ex.id} className="flex items-center text-xs p-1.5 hover:bg-slate-200 cursor-pointer rounded">
+                                                <label key={ex.id} className="flex items-center text-xs p-1 hover:bg-slate-200 cursor-pointer rounded">
                                                     <input type="checkbox" checked={(editingGrp.exerciseIds||[]).includes(ex.id)} onChange={()=>{ const ids = editingGrp.exerciseIds||[]; setEditingGrp({...editingGrp, exerciseIds: ids.includes(ex.id)?ids.filter(x=>x!==ex.id):[...ids, ex.id]}) }} className="mr-2"/> {ex.name}
                                                 </label>
                                             ))}
@@ -362,7 +389,7 @@
             const [user, setUser] = useState(null);
             const [isChecking, setIsChecking] = useState(true);
             
-            // Global Toggles exactly like your screenshot
+            // Global Toggles
             const [globalTab, setGlobalTab] = useState('main-rx'); // 'main-rx' or 'exercise-db'
             const [rxView, setRxView] = useState('home'); // 'home' or 'patient'
             
@@ -390,12 +417,12 @@
                     });
                     setPatients(data);
                 });
-                onValue(dbRef(rtdb, 'exercises'), (snap) => {
+                onValue(rtdbRef(rtdb, 'exercises'), (snap) => {
                     const exData = [];
                     if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => exData.push({id: k, ...data[k]})); exData.reverse(); }
                     setExercises(exData);
                 });
-                onValue(dbRef(rtdb, 'exerciseGroups'), (snap) => {
+                onValue(rtdbRef(rtdb, 'exerciseGroups'), (snap) => {
                     const grpData = [];
                     if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => grpData.push({id: k, ...data[k]})); }
                     setGroups(grpData);
@@ -405,12 +432,11 @@
             if (isChecking) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-800">Loading Workspace...</div>;
 
             if (!user) return (
-                <div className="min-h-screen flex items-center justify-center bg-appbg p-4 no-print">
+                <div className="min-h-[calc(100vh-60px)] flex items-center justify-center bg-appbg p-4 no-print">
                     <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
                         <i className="ph-fill ph-stethoscope text-5xl text-blue-600 mb-4"></i>
                         <h1 className="text-2xl font-bold text-slate-800 mb-6">Doctor Workspace</h1>
                         <button onClick={() => signInWithPopup(auth, new GoogleAuthProvider())} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Sign in with Google</button>
-                        <a href="/" className="block mt-6 text-sm text-slate-500 font-bold hover:underline">← Back to Site</a>
                     </div>
                 </div>
             );
@@ -418,7 +444,7 @@
             // --- PATIENT EDITOR LOGIC ---
             const createPatient = () => {
                 let upid = Math.floor(1000 + Math.random() * 9000).toString();
-                const p = { id: generateId(), ipId: upid, doctorId: user.uid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }], exerciseIds: [], exerciseParams: {} };
+                const p = { id: generateId(), ipId: upid, doctorId: user.uid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }], exerciseIds: [], exerciseParams: {}, reports: [] };
                 setActivePatient(p); setRxView('patient');
             };
 
@@ -428,6 +454,7 @@
                 if(!copy.reassessmentTables || copy.reassessmentTables.length === 0) copy.reassessmentTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
                 if(!copy.exerciseIds) copy.exerciseIds = [];
                 if(!copy.exerciseParams) copy.exerciseParams = {};
+                if(!copy.reports) copy.reports = [];
                 setActivePatient(copy); setRxView('patient');
             };
 
@@ -436,34 +463,13 @@
                 const p = {...activePatient};
                 if(p.customTables) p.customTables = p.customTables.map(t => ({...t, rows: JSON.stringify(t.rows)}));
                 
-                // Grab DOM exercise params directly (keeping your old architecture safe)
-                p.exerciseIds.forEach(id => {
-                    p.exerciseParams[id] = {
-                        reps: document.getElementById(`rep-${id}`)?.value || '',
-                        sets: document.getElementById(`set-${id}`)?.value || '',
-                        freq: document.getElementById(`freq-${id}`)?.value || '',
-                        note: document.getElementById(`note-${id}`)?.value || ''
-                    };
-                });
-
                 await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p);
                 setTimeout(() => setIsSaving(false), 500);
             };
 
-            // Global trigger print (Matches your old structure perfectly)
+            // Global trigger print (Updates hidden DOM before printing)
             window.triggerPrint = () => {
                 const p = activePatient;
-                p.name = document.getElementById('pat-name').value;
-                p.age = document.getElementById('pat-age').value;
-                p.gender = document.getElementById('pat-gender').value;
-                p.date = document.getElementById('pat-date').value;
-                p.chiefComplaints = document.getElementById('pat-cc').value;
-                p.history = document.getElementById('pat-hx').value;
-                p.assessmentNote = document.getElementById('pat-ax').value;
-                p.treatmentNote = document.getElementById('pat-tx').value;
-                
-                p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
-
                 document.getElementById('print-date').innerText = p.date ? new Date(p.date).toLocaleDateString('en-GB') : '';
                 document.getElementById('print-name').innerText = p.name; document.getElementById('print-age').innerText = p.age; document.getElementById('print-gender').innerText = p.gender; document.getElementById('print-upid').innerText = p.ipId;
 
@@ -475,7 +481,7 @@
                     document.getElementById('print-exercises-section').style.display = 'block';
                     exContainer.innerHTML = p.exerciseIds.map(id => {
                         const ex = exercises.find(e => e.id === id); if(!ex) return '';
-                        const params = p.exerciseParams[id];
+                        const params = p.exerciseParams[id] || {};
                         return `<div class="ex-card">${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}<div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div><div style="font-size:11px; color:#1e3a8a; font-weight:bold;">${params.reps ? `Reps: <span style="color:#000">${params.reps}</span> &nbsp;` : ''}${params.sets ? `Sets: <span style="color:#000">${params.sets}</span> &nbsp;` : ''}${params.freq ? `Freq: <span style="color:#000">${params.freq}</span>` : ''}</div>${params.note ? `<div style="font-size:11px; margin-top:4px;">${params.note}</div>` : ''}</div>`;
                     }).join('');
                 } else { document.getElementById('print-exercises-section').style.display = 'none'; }
@@ -490,6 +496,20 @@
             const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
             const [activeRTableId, setActiveRTableId] = useState(null);
 
+            // Cloudinary for Attachments
+            const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+            const fileInputRef = useRef(null);
+            const handleAttachmentUpload = async (e) => {
+                const file = e.target.files[0]; if (!file) return;
+                setIsUploadingAttachment(true);
+                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                try {
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (data.secure_url) { setActivePatient(prev => ({ ...prev, reports: [...(prev.reports || []), { id: generateId(), url: data.secure_url, name: file.name, type: file.type || 'unknown', date: new Date().toISOString() }] })); }
+                } catch (err) { alert("Upload error."); } finally { setIsUploadingAttachment(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            };
+
             return (
                 <div className="min-h-screen pt-[60px] pb-20 print:p-0 print:m-0">
                     {/* Header Toggle */}
@@ -502,7 +522,7 @@
                     </div>
 
                     <div className="max-w-6xl mx-auto px-4">
-                        {globalTab === 'exercise-db' && <ExerciseDBView exercises={exercises} groups={groups} dbRef={dbRef} rtdb={rtdb} />}
+                        {globalTab === 'exercise-db' && <ExerciseDBView exercises={exercises} groups={groups} />}
 
                         {globalTab === 'main-rx' && rxView === 'home' && (
                             <div className="animate-in fade-in no-print">
@@ -541,28 +561,47 @@
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                                             <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">Clinical Details</h3>
                                             <div className="grid grid-cols-3 gap-3 mb-4">
-                                                <input type="text" id="pat-name" value={activePatient.name} onChange={e=>updateP('name',e.target.value)} placeholder="Name" className="col-span-2 border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
+                                                <input type="text" value={activePatient.name} onChange={e=>updateP('name',e.target.value)} placeholder="Name" className="col-span-2 border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
                                                 <input type="text" value={activePatient.ipId} readOnly className="border p-2 rounded bg-slate-50 font-bold text-blue-700 text-center" />
-                                                <input type="number" id="pat-age" value={activePatient.age} onChange={e=>updateP('age',e.target.value)} placeholder="Age" className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
-                                                <select id="pat-gender" value={activePatient.gender} onChange={e=>updateP('gender',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white"><option value="">Gen</option><option value="M">M</option><option value="F">F</option></select>
-                                                <input type="date" id="pat-date" value={activePatient.date} onChange={e=>updateP('date',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 text-xs font-bold bg-slate-50 focus:bg-white" />
+                                                <input type="number" value={activePatient.age} onChange={e=>updateP('age',e.target.value)} placeholder="Age" className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
+                                                <select value={activePatient.gender} onChange={e=>updateP('gender',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white"><option value="">Gen</option><option value="M">M</option><option value="F">F</option></select>
+                                                <input type="date" value={activePatient.date} onChange={e=>updateP('date',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 text-xs font-bold bg-slate-50 focus:bg-white" />
                                             </div>
                                             <div className="space-y-3">
-                                                <AutoTextArea id="pat-cc" value={activePatient.chiefComplaints} onChange={e=>updateP('chiefComplaints',e.target.value)} placeholder="Chief Complaints" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
-                                                <AutoTextArea id="pat-hx" value={activePatient.history} onChange={e=>updateP('history',e.target.value)} placeholder="History" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
+                                                <AutoTextArea value={activePatient.chiefComplaints} onChange={e=>updateP('chiefComplaints',e.target.value)} placeholder="Chief Complaints" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
+                                                <AutoTextArea value={activePatient.history} onChange={e=>updateP('history',e.target.value)} placeholder="History" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
                                             </div>
                                         </div>
                                         
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                                             <div className="flex justify-between mb-2"><h3 className="font-bold text-slate-800">Assessment</h3><button onClick={()=>setActivePatient(prev => ({...prev, customTables: [...prev.customTables, {id: generateId(), section: 'assessment', title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] }))} className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">+ Table</button></div>
-                                            <AutoTextArea id="pat-ax" value={activePatient.assessmentNote} onChange={e=>updateP('assessmentNote',e.target.value)} placeholder="Assessment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
+                                            <AutoTextArea value={activePatient.assessmentNote} onChange={e=>updateP('assessmentNote',e.target.value)} placeholder="Assessment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
                                             <div className="flex flex-wrap gap-2">{(activePatient.customTables||[]).filter(t=>t.section==='assessment').map(t=><CustomTableEditor key={t.id} table={t} updateTable={(newT)=>setActivePatient(p=>({...p, customTables: p.customTables.map(x=>x.id===newT.id?newT:x)}))} removeTable={()=>setActivePatient(p=>({...p, customTables: p.customTables.filter(x=>x.id!==t.id)}))} />)}</div>
                                         </div>
 
                                         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                                             <div className="flex justify-between mb-2"><h3 className="font-bold text-slate-800">Treatment Plan</h3><button onClick={()=>setActivePatient(prev => ({...prev, customTables: [...prev.customTables, {id: generateId(), section: 'treatment', title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] }))} className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">+ Table</button></div>
-                                            <AutoTextArea id="pat-tx" value={activePatient.treatmentNote} onChange={e=>updateP('treatmentNote',e.target.value)} placeholder="Treatment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
+                                            <AutoTextArea value={activePatient.treatmentNote} onChange={e=>updateP('treatmentNote',e.target.value)} placeholder="Treatment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
                                             <div className="flex flex-wrap gap-2">{(activePatient.customTables||[]).filter(t=>t.section==='treatment').map(t=><CustomTableEditor key={t.id} table={t} updateTable={(newT)=>setActivePatient(p=>({...p, customTables: p.customTables.map(x=>x.id===newT.id?newT:x)}))} removeTable={()=>setActivePatient(p=>({...p, customTables: p.customTables.filter(x=>x.id!==t.id)}))} />)}</div>
+                                        </div>
+
+                                        {/* Attachments Section */}
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                                            <div className="flex items-center justify-between mb-4 border-b pb-2">
+                                                <h3 className="font-bold text-slate-800">Attached Reports</h3>
+                                                <div><input type="file" ref={fileInputRef} onChange={handleAttachmentUpload} className="hidden" accept="image/*,application/pdf" /><button onClick={() => fileInputRef.current?.click()} disabled={isUploadingAttachment} className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">{isUploadingAttachment ? 'Uploading...' : '+ File'}</button></div>
+                                            </div>
+                                            {activePatient.reports && activePatient.reports.length > 0 ? (
+                                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                                    {activePatient.reports.map(report => (
+                                                        <div key={report.id} className="relative group border border-slate-200 rounded bg-slate-50 flex flex-col">
+                                                            <div className="h-16 flex items-center justify-center overflow-hidden">{report.type.startsWith('image/') ? <img src={report.url} className="w-full h-full object-cover" /> : <div className="text-2xl text-slate-400">📄</div>}</div>
+                                                            <a href={report.url} target="_blank" className="p-1 truncate text-[10px] font-bold text-navy text-center bg-white border-t border-slate-100">{report.name}</a>
+                                                            <button onClick={() => { if(confirm('Delete report?')) setActivePatient(p=>({...p, reports: p.reports.filter(r=>r.id!==report.id)})) }} className="absolute top-1 right-1 bg-white/90 text-red-500 p-0.5 rounded opacity-0 group-hover:opacity-100"><i className="ph-bold ph-x text-[10px]"></i></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : ( <p className="text-xs text-slate-400">No reports attached.</p> )}
                                         </div>
 
                                         <div className="space-y-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -631,11 +670,11 @@
                                                     <div key={id} className="border border-slate-200 rounded p-3 bg-slate-50">
                                                         <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-sm text-slate-800">{ex.name}</h4><button onClick={()=>toggleEx(id)} className="text-xs text-red-500 font-bold hover:underline">Remove</button></div>
                                                         <div className="grid grid-cols-3 gap-2 mb-2">
-                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id={`rep-${id}`} value={params.reps||''} onChange={e=>updExPrm(id,'reps',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
-                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id={`set-${id}`} value={params.sets||''} onChange={e=>updExPrm(id,'sets',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
-                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id={`freq-${id}`} value={params.freq||''} onChange={e=>updExPrm(id,'freq',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id={`rep-${id}`} defaultValue={params.reps||''} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id={`set-${id}`} defaultValue={params.sets||''} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id={`freq-${id}`} defaultValue={params.freq||''} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
                                                         </div>
-                                                        <input type="text" id={`note-${id}`} value={params.note||''} onChange={e=>updExPrm(id,'note',e.target.value)} placeholder="Instructions..." className="w-full text-xs p-1.5 border rounded outline-none"/>
+                                                        <input type="text" id={`note-${id}`} defaultValue={params.note||''} placeholder="Instructions..." className="w-full text-xs p-1.5 border rounded outline-none"/>
                                                     </div>
                                                 );
                                             })}
