@@ -3,20 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard - Physio Hub</title>
+    <title>Doctor Workspace - Physio Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
     <style>
         body { background-color: #f4f7fb; color: #0f172a; font-family: sans-serif; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        
-        /* Quill Editor overrides to match Tailwind UI */
         .ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; border-color: #e2e8f0 !important; }
         .ql-container { border-radius: 0 0 8px 8px; border-color: #e2e8f0 !important; font-family: sans-serif; font-size: 14px; background: white;}
         
@@ -28,34 +24,29 @@
             @page { size: A4; margin: 15mm; }
             .print-container { width: 100%; }
             .print-header { border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
-            .print-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+            .print-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px; font-weight: bold; color: #1e3a8a;}
             .print-section { margin-bottom: 20px; }
             .print-title { font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
             .ex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
             .ex-card { border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; page-break-inside: avoid; }
-            .ex-img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px; }
+            .ex-img { width: 100%; height: 120px; object-contain: contain; margin-bottom: 8px; }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center no-print">
         <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
             <i class="ph-fill ph-stethoscope text-5xl text-blue-600 mb-4"></i>
-            <h1 class="text-2xl font-bold text-slate-800 mb-6">Doctor Portal</h1>
-            <button onclick="window.login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">
-                Sign in with Google
-            </button>
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">Doctor Workspace</h1>
+            <button onclick="window.login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Sign in with Google</button>
+            <a href="/" class="block mt-4 text-sm text-slate-500 font-bold hover:underline">← Back to Site</a>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
     <div id="dashboard-screen" class="hidden min-h-screen no-print">
         <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div class="flex items-center gap-2 font-bold text-blue-800 text-lg">
-                    <i class="ph-fill ph-activity text-2xl"></i> Clinical Dashboard
-                </div>
+                <div class="flex items-center gap-2 font-bold text-blue-800 text-lg"><i class="ph-fill ph-activity text-2xl"></i> Clinical Workspace</div>
                 <div class="flex gap-4">
                     <button onclick="window.switchTab('patients')" id="tab-patients" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition">Prescriptions</button>
                     <button onclick="window.switchTab('exercises')" id="tab-exercises" class="font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition">Exercise DB</button>
@@ -72,21 +63,27 @@
                     <h2 class="text-xl font-bold text-slate-800">Patient Records</h2>
                     <button onclick="window.createNewPatient()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ New Patient</button>
                 </div>
-                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <p class="text-slate-500">Loading patients...</p>
-                </div>
+                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><p class="text-slate-500">Loading patients...</p></div>
             </div>
 
             <!-- EXERCISES DB TAB -->
             <div id="view-exercises" class="hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-800">Exercise Database</h2>
-                    <button onclick="window.openExerciseForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ Add Exercise</button>
+                    <div class="flex gap-2">
+                        <button onclick="window.openGroupForm()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-indigo-700">+ Add Program</button>
+                        <button onclick="window.openExerciseForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ Add Exercise</button>
+                    </div>
                 </div>
+                
+                <h3 class="font-bold text-slate-600 mb-2 mt-6 border-b pb-1">Programs (Groups)</h3>
+                <div id="groups-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+
+                <h3 class="font-bold text-slate-600 mb-2 border-b pb-1">Individual Exercises</h3>
                 <div id="exercises-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </div>
 
-            <!-- PATIENT EDITOR (Prescription Maker) -->
+            <!-- PATIENT EDITOR -->
             <div id="view-editor" class="hidden">
                 <div class="flex justify-between items-center mb-4">
                     <button onclick="window.switchTab('patients')" class="text-slate-600 font-bold hover:text-slate-800"><i class="ph-bold ph-arrow-left"></i> Back</button>
@@ -97,7 +94,6 @@
                 </div>
 
                 <div class="grid lg:grid-cols-2 gap-6">
-                    <!-- Clinical Notes -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                         <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Clinical Details</h3>
                         <div class="grid grid-cols-3 gap-3 mb-4">
@@ -115,17 +111,12 @@
                         </div>
                     </div>
 
-                    <!-- Exercise Assignment -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-slate-800">Assign Exercises</h3>
                             <span id="selected-count" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">0 Selected</span>
                         </div>
-                        
-                        <div id="assigned-exercises-container" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 border-b pb-4">
-                            <p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>
-                        </div>
-
+                        <div id="assigned-exercises-container" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 border-b pb-4"><p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p></div>
                         <div>
                             <input type="text" id="ex-search" placeholder="Search database to add..." oninput="window.filterAssignedList()" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-2">
                             <div id="ex-picker-list" class="h-[150px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1"></div>
@@ -136,7 +127,7 @@
         </main>
     </div>
 
-    <!-- Modal for Adding/Editing Exercises (WITH RICH TEXT EDITOR) -->
+    <!-- Modal for Adding Exercises (Rich Text) -->
     <div id="exercise-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 no-print overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl my-auto">
             <div class="flex justify-between items-center p-4 border-b border-slate-100">
@@ -145,35 +136,55 @@
             </div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="ex-id">
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-4">
-                        <div><label class="text-xs font-bold text-slate-500 block mb-1">Exercise Title</label><input type="text" id="ex-name" class="w-full border border-slate-200 p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white"></div>
-                        
+                        <div><label class="text-xs font-bold text-slate-500 block mb-1">Exercise Title</label><input type="text" id="ex-name" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white"></div>
                         <div class="bg-slate-50 p-3 rounded border border-slate-200">
                             <label class="text-xs font-bold text-slate-500 block mb-2">Main Display Image</label>
-                            <input type="file" accept="image/*" onchange="window.uploadImage(this)" class="w-full text-xs mb-2">
-                            <input type="text" id="ex-img" placeholder="Image URL" class="w-full border border-slate-200 p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
+                            <input type="file" accept="image/*" onchange="window.uploadImage(this, 'ex-img', 'ex-preview')" class="w-full text-xs mb-2">
+                            <input type="text" id="ex-img" placeholder="Image URL" class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
                             <img id="ex-preview" class="h-20 object-contain mt-2 hidden border bg-white rounded mx-auto">
                         </div>
-                        
                         <div class="bg-slate-50 p-3 rounded border border-slate-200">
                             <label class="text-xs font-bold text-slate-500 block mb-2">Instructional Video URL</label>
-                            <input type="url" id="ex-vid" placeholder="YouTube or MP4 link..." class="w-full border border-slate-200 p-2 rounded outline-none focus:border-blue-500 text-sm bg-white">
+                            <input type="url" id="ex-vid" placeholder="YouTube or MP4 link..." class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-white">
                         </div>
-                        
-                        <div><label class="text-xs font-bold text-slate-500 block mb-1">Search Keywords / Tags</label><input type="text" id="ex-tags" placeholder="e.g. knee, back, core" class="w-full border border-slate-200 p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white"></div>
                     </div>
-                    
                     <div class="flex flex-col h-full">
-                        <label class="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style) <span class="text-blue-500 ml-2 font-normal text-[10px]">Click 🖼️ icon to insert images in text</span></label>
-                        <!-- Quill Editor Container -->
+                        <label class="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style) <span class="text-blue-500 ml-2 font-normal text-[10px]">Click 🖼️ icon to insert images</span></label>
                         <div id="ex-editor-container" style="height: 350px;"></div>
                     </div>
                 </div>
-
                 <div class="border-t border-slate-100 pt-4 mt-4">
                     <button onclick="window.saveExerciseDB()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow hover:bg-blue-700 transition">Publish to Library</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Groups -->
+    <div id="group-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md my-auto">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800" id="grp-modal-title">Add Program</h3>
+                <button onclick="document.getElementById('group-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="grp-id">
+                <div><label class="text-xs font-bold text-slate-500 block mb-1">Program Title (e.g. Core Strengthening)</label><input type="text" id="grp-name" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></div>
+                <div><label class="text-xs font-bold text-slate-500 block mb-1">Description</label><textarea id="grp-desc" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></textarea></div>
+                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 block mb-2">Anatomy/Cover Image</label>
+                    <input type="file" accept="image/*" onchange="window.uploadImage(this, 'grp-img', 'grp-preview')" class="w-full text-xs mb-2">
+                    <input type="text" id="grp-img" placeholder="Image URL" class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
+                    <img id="grp-preview" class="h-20 object-contain mt-2 hidden border bg-white rounded mx-auto">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 block mb-1">Select Exercises for this Program</label>
+                    <div id="grp-picker-list" class="h-[150px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1"></div>
+                </div>
+                <div class="border-t border-slate-100 pt-4 mt-4">
+                    <button onclick="window.saveGroupDB()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg shadow hover:bg-indigo-700 transition">Save Program</button>
                 </div>
             </div>
         </div>
@@ -190,23 +201,12 @@
                 <p style="font-weight:bold; margin-top:10px;">Date: <span id="print-date" style="border-b:1px solid #000; padding:0 10px;"></span></p>
             </div>
         </div>
-
-        <div class="print-row" style="border-bottom: 1px solid #1e3a8a; padding-bottom:10px; margin-bottom:20px; font-weight:bold;">
-            <div>Patient: <span id="print-name" style="font-weight:normal;"></span></div>
-            <div>Age: <span id="print-age" style="font-weight:normal;"></span></div>
-            <div>Gender: <span id="print-gender" style="font-weight:normal;"></span></div>
-            <div>UPID: <span id="print-upid" style="font-weight:normal;"></span></div>
-        </div>
-
+        <div class="print-row"><div>Patient: <span id="print-name" style="font-weight:normal;"></span></div><div>Age: <span id="print-age" style="font-weight:normal;"></span></div><div>Gender: <span id="print-gender" style="font-weight:normal;"></span></div><div>UPID: <span id="print-upid" style="font-weight:normal;"></span></div></div>
         <div class="print-section"><div class="print-title">Chief Complaint</div><div id="print-cc" style="white-space:pre-wrap; padding-left:10px;"></div></div>
         <div class="print-section"><div class="print-title">History</div><div id="print-hx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
         <div class="print-section"><div class="print-title">Assessment</div><div id="print-ax" style="white-space:pre-wrap; padding-left:10px;"></div></div>
         <div class="print-section"><div class="print-title">Treatment Plan</div><div id="print-tx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-
-        <div class="print-section" id="print-exercises-section">
-            <div class="print-title">Prescribed Exercises</div>
-            <div class="ex-grid" id="print-exercises-list"></div>
-        </div>
+        <div class="print-section" id="print-exercises-section"><div class="print-title">Prescribed Exercises</div><div class="ex-grid" id="print-exercises-list"></div></div>
     </div>
 
     <!-- Firebase Scripts -->
@@ -219,22 +219,14 @@
         const firebaseConfig = { apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", authDomain: "patient-records-arpan.firebaseapp.com", projectId: "patient-records-arpan", storageBucket: "patient-records-arpan.firebasestorage.app", messagingSenderId: "599041105903", appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const rtdb = getDatabase(app);
 
-        // State
-        window.state = { user: null, patients: [], exercises: [], currentPatient: null };
+        window.state = { user: null, patients: [], exercises: [], groups: [], currentPatient: null, activeGroupExIds: [] };
 
         // Initialize Rich Text Editor
         const quillEditor = new Quill('#ex-editor-container', { 
             theme: 'snow', 
-            placeholder: 'Write exercise article here...', 
-            modules: { 
-                toolbar: { 
-                    container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], 
-                    handlers: { image: selectArticleImage } 
-                } 
-            } 
+            modules: { toolbar: { container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], handlers: { image: selectArticleImage } } } 
         });
 
-        // Cloudinary Uploader for Rich Text Images
         function selectArticleImage() {
             const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
             input.onchange = async () => {
@@ -244,343 +236,181 @@
                     try {
                         const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
                         const data = await res.json();
-                        if(data.secure_url) {
-                            const range = quillEditor.getSelection() || { index: quillEditor.getLength() };
-                            quillEditor.insertEmbed(range.index, 'image', data.secure_url);
-                        }
+                        if(data.secure_url) { const range = quillEditor.getSelection() || { index: quillEditor.getLength() }; quillEditor.insertEmbed(range.index, 'image', data.secure_url); }
                     } catch(e) { alert("Upload error"); }
                 }
             };
         }
 
-        // Auth
         onAuthStateChanged(auth, user => {
             window.state.user = user;
-            if (user) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard-screen').classList.remove('hidden');
-                loadData();
-            } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('dashboard-screen').classList.add('hidden');
-            }
+            if (user) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('dashboard-screen').classList.remove('hidden'); loadData(); } 
+            else { document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('dashboard-screen').classList.add('hidden'); }
         });
 
         window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
         window.logout = () => signOut(auth);
 
-        // Load Data
         function loadData() {
             onSnapshot(collection(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'), (snap) => {
-                window.state.patients = [];
-                snap.forEach(d => window.state.patients.push({id: d.id, ...d.data()}));
-                renderPatients();
+                window.state.patients = []; snap.forEach(d => window.state.patients.push({id: d.id, ...d.data()})); renderPatients();
             });
-
             onValue(rtdbRef(rtdb, 'exercises'), (snap) => {
                 window.state.exercises = [];
-                if(snap.exists()) {
-                    const data = snap.val();
-                    Object.keys(data).forEach(k => window.state.exercises.push({id: k, ...data[k]}));
-                    window.state.exercises.reverse();
-                }
-                renderExercisesDB();
-                if(window.state.currentPatient) renderAssignedExercises();
+                if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => window.state.exercises.push({id: k, ...data[k]})); window.state.exercises.reverse(); }
+                renderExercisesDB(); if(window.state.currentPatient) renderAssignedExercises();
+            });
+            onValue(rtdbRef(rtdb, 'exerciseGroups'), (snap) => {
+                window.state.groups = [];
+                if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => window.state.groups.push({id: k, ...data[k]})); }
+                renderGroupsDB();
             });
         }
 
-        // Tabs & Navigation
         window.switchTab = (tab) => {
-            document.getElementById('view-patients').classList.add('hidden');
-            document.getElementById('view-exercises').classList.add('hidden');
-            document.getElementById('view-editor').classList.add('hidden');
-            document.getElementById('tab-patients').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
-            document.getElementById('tab-exercises').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
-            
-            if(tab === 'patients') {
-                document.getElementById('view-patients').classList.remove('hidden');
-                document.getElementById('tab-patients').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition";
-            } else if (tab === 'exercises') {
-                document.getElementById('view-exercises').classList.remove('hidden');
-                document.getElementById('tab-exercises').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition";
-            }
+            document.getElementById('view-patients').classList.add('hidden'); document.getElementById('view-exercises').classList.add('hidden'); document.getElementById('view-editor').classList.add('hidden');
+            document.getElementById('tab-patients').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition"; document.getElementById('tab-exercises').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
+            if(tab === 'patients') { document.getElementById('view-patients').classList.remove('hidden'); document.getElementById('tab-patients').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition"; } 
+            else if (tab === 'exercises') { document.getElementById('view-exercises').classList.remove('hidden'); document.getElementById('tab-exercises').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition"; }
         };
 
-        // --- PATIENTS VIEW ---
         function renderPatients() {
             const list = document.getElementById('patients-list');
             if(window.state.patients.length === 0) return list.innerHTML = '<p class="text-slate-500">No records found.</p>';
-            
-            list.innerHTML = window.state.patients.map(p => `
-                <div onclick="window.openPatient('${p.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="font-bold text-slate-800 text-lg truncate">${p.name || 'Unnamed'}</h3>
-                        <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">#${p.ipId}</span>
-                    </div>
-                    <p class="text-sm text-slate-500 mb-2 truncate">${p.assessmentNote || 'No notes yet.'}</p>
-                    <div class="text-xs font-bold text-blue-600">${(p.exerciseIds || []).length} Exercises Prescribed</div>
-                </div>
-            `).join('');
+            list.innerHTML = window.state.patients.map(p => `<div onclick="window.openPatient('${p.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><h3 class="font-bold text-slate-800 text-lg truncate">${p.name || 'Unnamed'}</h3><span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">#${p.ipId}</span></div><p class="text-sm text-slate-500 mb-2 truncate">${p.assessmentNote || 'No notes yet.'}</p><div class="text-xs font-bold text-blue-600">${(p.exerciseIds || []).length} Exercises Prescribed</div></div>`).join('');
         }
 
-        window.createNewPatient = () => {
-            const newId = crypto.randomUUID();
-            const upid = Math.floor(1000 + Math.random() * 9000).toString();
-            window.state.currentPatient = { id: newId, ipId: upid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', treatmentNote: '', exerciseIds: [], exerciseParams: {} };
-            openEditor();
-        };
-
-        window.openPatient = (id) => {
-            window.state.currentPatient = JSON.parse(JSON.stringify(window.state.patients.find(p => p.id === id)));
-            if(!window.state.currentPatient.exerciseIds) window.state.currentPatient.exerciseIds = [];
-            if(!window.state.currentPatient.exerciseParams) window.state.currentPatient.exerciseParams = {};
-            openEditor();
-        };
-
+        window.createNewPatient = () => { const newId = crypto.randomUUID(); const upid = Math.floor(1000 + Math.random() * 9000).toString(); window.state.currentPatient = { id: newId, ipId: upid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', treatmentNote: '', exerciseIds: [], exerciseParams: {} }; openEditor(); };
+        window.openPatient = (id) => { window.state.currentPatient = JSON.parse(JSON.stringify(window.state.patients.find(p => p.id === id))); if(!window.state.currentPatient.exerciseIds) window.state.currentPatient.exerciseIds = []; if(!window.state.currentPatient.exerciseParams) window.state.currentPatient.exerciseParams = {}; openEditor(); };
+        
         function openEditor() {
-            document.getElementById('view-patients').classList.add('hidden');
-            document.getElementById('view-exercises').classList.add('hidden');
-            document.getElementById('view-editor').classList.remove('hidden');
-
+            document.getElementById('view-patients').classList.add('hidden'); document.getElementById('view-exercises').classList.add('hidden'); document.getElementById('view-editor').classList.remove('hidden');
             const p = window.state.currentPatient;
-            document.getElementById('pat-name').value = p.name || '';
-            document.getElementById('pat-upid').value = p.ipId || '';
-            document.getElementById('pat-age').value = p.age || '';
-            document.getElementById('pat-gender').value = p.gender || '';
-            document.getElementById('pat-date').value = p.date || '';
-            document.getElementById('pat-cc').value = p.chiefComplaints || '';
-            document.getElementById('pat-hx').value = p.history || '';
-            document.getElementById('pat-ax').value = p.assessmentNote || '';
-            document.getElementById('pat-tx').value = p.treatmentNote || '';
-            
+            ['name','upid','age','gender','date','cc','hx','ax','tx'].forEach(k => { const e=document.getElementById('pat-'+k); if(e) e.value = p[k==='cc'?'chiefComplaints':k==='hx'?'history':k==='ax'?'assessmentNote':k==='tx'?'treatmentNote':k==='upid'?'ipId':k] || ''; });
             renderAssignedExercises();
         }
 
         window.savePatient = async () => {
             const p = window.state.currentPatient;
-            p.name = document.getElementById('pat-name').value;
-            p.age = document.getElementById('pat-age').value;
-            p.gender = document.getElementById('pat-gender').value;
-            p.date = document.getElementById('pat-date').value;
-            p.chiefComplaints = document.getElementById('pat-cc').value;
-            p.history = document.getElementById('pat-hx').value;
-            p.assessmentNote = document.getElementById('pat-ax').value;
-            p.treatmentNote = document.getElementById('pat-tx').value;
-
-            // Grab exercise params from DOM
-            p.exerciseIds.forEach(id => {
-                p.exerciseParams[id] = {
-                    reps: document.getElementById(`rep-${id}`)?.value || '',
-                    sets: document.getElementById(`set-${id}`)?.value || '',
-                    freq: document.getElementById(`freq-${id}`)?.value || '',
-                    note: document.getElementById(`note-${id}`)?.value || ''
-                };
-            });
-
-            await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p);
-            alert("Record Saved!");
+            ['name','age','gender','date'].forEach(k => p[k] = document.getElementById('pat-'+k).value);
+            p.chiefComplaints = document.getElementById('pat-cc').value; p.history = document.getElementById('pat-hx').value; p.assessmentNote = document.getElementById('pat-ax').value; p.treatmentNote = document.getElementById('pat-tx').value;
+            p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
+            await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p); alert("Record Saved!");
         };
 
-        // --- EXERCISE PRESCRIPTION LOGIC ---
         window.toggleExercise = (id) => {
             const p = window.state.currentPatient;
-            if(p.exerciseIds.includes(id)) {
-                p.exerciseIds = p.exerciseIds.filter(e => e !== id);
-                delete p.exerciseParams[id];
-            } else {
-                p.exerciseIds.push(id);
-                p.exerciseParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
-            }
+            if(p.exerciseIds.includes(id)) { p.exerciseIds = p.exerciseIds.filter(e => e !== id); delete p.exerciseParams[id]; } 
+            else { p.exerciseIds.push(id); p.exerciseParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
             renderAssignedExercises();
         };
 
         function renderAssignedExercises() {
-            const p = window.state.currentPatient;
-            document.getElementById('selected-count').textContent = `${p.exerciseIds.length} Selected`;
-
-            // Render Assigned List
-            const assignedContainer = document.getElementById('assigned-exercises-container');
-            if(p.exerciseIds.length === 0) {
-                assignedContainer.innerHTML = '<p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>';
-            } else {
-                assignedContainer.innerHTML = p.exerciseIds.map(id => {
-                    const ex = window.state.exercises.find(e => e.id === id);
-                    if(!ex) return '';
+            const p = window.state.currentPatient; document.getElementById('selected-count').textContent = `${p.exerciseIds.length} Selected`;
+            const container = document.getElementById('assigned-exercises-container');
+            if(p.exerciseIds.length === 0) { container.innerHTML = '<p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>'; } 
+            else {
+                container.innerHTML = p.exerciseIds.map(id => {
+                    const ex = window.state.exercises.find(e => e.id === id); if(!ex) return '';
                     const params = p.exerciseParams[id] || {};
-                    return `
-                    <div class="border border-slate-200 rounded p-3 bg-slate-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-sm text-slate-800">${ex.name}</h4>
-                            <button onclick="window.toggleExercise('${id}')" class="text-xs text-red-500 font-bold">Remove</button>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mb-2">
-                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id="rep-${id}" value="${params.reps||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
-                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id="set-${id}" value="${params.sets||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
-                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id="freq-${id}" value="${params.freq||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
-                        </div>
-                        <input type="text" id="note-${id}" value="${params.note||''}" placeholder="Instructions..." class="w-full text-xs p-1.5 border rounded outline-none">
-                    </div>`;
+                    return `<div class="border border-slate-200 rounded p-3 bg-slate-50"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-sm text-slate-800">${ex.name}</h4><button onclick="window.toggleExercise('${id}')" class="text-xs text-red-500 font-bold">Remove</button></div><div class="grid grid-cols-3 gap-2 mb-2"><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id="rep-${id}" value="${params.reps||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id="set-${id}" value="${params.sets||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id="freq-${id}" value="${params.freq||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div></div><input type="text" id="note-${id}" value="${params.note||''}" placeholder="Instructions..." class="w-full text-xs p-1.5 border rounded outline-none"></div>`;
                 }).join('');
             }
-
-            window.filterAssignedList(); // Update the picker list
+            window.filterAssignedList(); 
         }
 
         window.filterAssignedList = () => {
             const query = (document.getElementById('ex-search').value || '').toLowerCase();
             const list = document.getElementById('ex-picker-list');
             const p = window.state.currentPatient;
-            
-            const filtered = window.state.exercises.filter(ex => ex.name.toLowerCase().includes(query));
-            list.innerHTML = filtered.map(ex => {
+            list.innerHTML = window.state.exercises.filter(ex => ex.name.toLowerCase().includes(query)).map(ex => {
                 const isSelected = p.exerciseIds.includes(ex.id);
-                return `
-                <label class="flex items-center text-xs p-2 rounded cursor-pointer border ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:bg-slate-100'}">
-                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.toggleExercise('${ex.id}')" class="mr-3">
-                    <span class="font-bold text-slate-700">${ex.name}</span>
-                </label>`;
+                return `<label class="flex items-center text-xs p-2 rounded cursor-pointer border ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:bg-slate-100'}"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.toggleExercise('${ex.id}')" class="mr-3"><span class="font-bold text-slate-700">${ex.name}</span></label>`;
             }).join('');
         };
 
-        // --- EXERCISE DB MANAGEMENT ---
         function renderExercisesDB() {
             const list = document.getElementById('exercises-list');
-            if(window.state.exercises.length === 0) return list.innerHTML = '<p class="text-slate-500">No exercises in DB.</p>';
-            
-            list.innerHTML = window.state.exercises.map(ex => `
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <img src="${ex.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100">
-                    <div class="p-3">
-                        <h4 class="font-bold text-sm text-slate-800 truncate">${ex.name}</h4>
-                        <div class="flex justify-between mt-2">
-                            <button onclick="window.editExDB('${ex.id}')" class="text-xs font-bold text-blue-600">Edit</button>
-                            <button onclick="window.deleteExDB('${ex.id}')" class="text-xs font-bold text-red-500">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            if(window.state.exercises.length === 0) return list.innerHTML = '<p class="text-slate-500">No exercises.</p>';
+            list.innerHTML = window.state.exercises.map(ex => `<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="${ex.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100"><div class="p-3"><h4 class="font-bold text-sm text-slate-800 truncate">${ex.name}</h4><div class="flex justify-between mt-2"><button onclick="window.editExDB('${ex.id}')" class="text-xs font-bold text-blue-600">Edit</button><button onclick="window.deleteExDB('${ex.id}')" class="text-xs font-bold text-red-500">Delete</button></div></div></div>`).join('');
+        }
+        function renderGroupsDB() {
+            const list = document.getElementById('groups-list');
+            if(window.state.groups.length === 0) return list.innerHTML = '<p class="text-slate-500">No programs.</p>';
+            list.innerHTML = window.state.groups.map(g => `<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="${g.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100"><div class="p-3"><h4 class="font-bold text-sm text-slate-800 truncate">${g.name}</h4><p class="text-[10px] text-slate-500">${(g.exerciseIds||[]).length} Exercises</p><div class="flex justify-between mt-2"><button onclick="window.editGroupDB('${g.id}')" class="text-xs font-bold text-indigo-600">Edit</button><button onclick="window.deleteGroupDB('${g.id}')" class="text-xs font-bold text-red-500">Delete</button></div></div></div>`).join('');
         }
 
         window.openExerciseForm = () => {
-            document.getElementById('ex-id').value = '';
-            document.getElementById('ex-name').value = '';
-            quillEditor.root.innerHTML = '';
-            document.getElementById('ex-tags').value = '';
-            document.getElementById('ex-img').value = '';
-            document.getElementById('ex-vid').value = '';
-            document.getElementById('ex-preview').classList.add('hidden');
-            document.getElementById('ex-modal-title').innerText = 'Add Exercise';
-            document.getElementById('exercise-modal').classList.remove('hidden');
+            document.getElementById('ex-id').value = ''; document.getElementById('ex-name').value = ''; quillEditor.root.innerHTML = ''; document.getElementById('ex-img').value = ''; document.getElementById('ex-vid').value = ''; document.getElementById('ex-preview').classList.add('hidden'); document.getElementById('ex-modal-title').innerText = 'Add Exercise'; document.getElementById('exercise-modal').classList.remove('hidden');
         };
-
         window.editExDB = (id) => {
             const ex = window.state.exercises.find(e => e.id === id);
-            document.getElementById('ex-id').value = ex.id;
-            document.getElementById('ex-name').value = ex.name;
-            quillEditor.root.innerHTML = ex.description || '';
-            document.getElementById('ex-tags').value = (ex.tags||[]).join(', ');
-            document.getElementById('ex-img').value = ex.imageUrl || '';
-            document.getElementById('ex-vid').value = ex.videoUrl || '';
-            if(ex.imageUrl) { document.getElementById('ex-preview').src = ex.imageUrl; document.getElementById('ex-preview').classList.remove('hidden'); }
-            document.getElementById('ex-modal-title').innerText = 'Edit Exercise';
-            document.getElementById('exercise-modal').classList.remove('hidden');
+            document.getElementById('ex-id').value = ex.id; document.getElementById('ex-name').value = ex.name; quillEditor.root.innerHTML = ex.description || ''; document.getElementById('ex-img').value = ex.imageUrl || ''; document.getElementById('ex-vid').value = ex.videoUrl || ''; if(ex.imageUrl) { document.getElementById('ex-preview').src = ex.imageUrl; document.getElementById('ex-preview').classList.remove('hidden'); } document.getElementById('ex-modal-title').innerText = 'Edit Exercise'; document.getElementById('exercise-modal').classList.remove('hidden');
         };
-
         window.saveExerciseDB = async () => {
             const id = document.getElementById('ex-id').value;
-            const data = {
-                name: document.getElementById('ex-name').value,
-                description: quillEditor.root.innerHTML, // Get Rich Text Data
-                tags: document.getElementById('ex-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t),
-                imageUrl: document.getElementById('ex-img').value,
-                videoUrl: document.getElementById('ex-vid').value
-            };
-            
-            if(id) { await rtdbSet(rtdbRef(rtdb, 'exercises/' + id), data); } 
-            else { await rtdbSet(push(rtdbRef(rtdb, 'exercises')), data); }
+            const data = { name: document.getElementById('ex-name').value, description: quillEditor.root.innerHTML, imageUrl: document.getElementById('ex-img').value, videoUrl: document.getElementById('ex-vid').value };
+            if(id) { await rtdbSet(rtdbRef(rtdb, 'exercises/' + id), data); } else { await rtdbSet(push(rtdbRef(rtdb, 'exercises')), data); }
             document.getElementById('exercise-modal').classList.add('hidden');
         };
+        window.deleteExDB = async (id) => { if(confirm('Delete exercise?')) await rtdbRemove(rtdbRef(rtdb, 'exercises/' + id)); };
 
-        window.deleteExDB = async (id) => {
-            if(confirm('Delete exercise permanently?')) await rtdbRemove(rtdbRef(rtdb, 'exercises/' + id));
+        window.openGroupForm = () => {
+            window.state.activeGroupExIds = []; document.getElementById('grp-id').value = ''; document.getElementById('grp-name').value = ''; document.getElementById('grp-desc').value = ''; document.getElementById('grp-img').value = ''; document.getElementById('grp-preview').classList.add('hidden'); document.getElementById('grp-modal-title').innerText = 'Add Program'; renderGroupExPicker(); document.getElementById('group-modal').classList.remove('hidden');
         };
+        window.editGroupDB = (id) => {
+            const g = window.state.groups.find(x => x.id === id); window.state.activeGroupExIds = [...(g.exerciseIds||[])];
+            document.getElementById('grp-id').value = g.id; document.getElementById('grp-name').value = g.name; document.getElementById('grp-desc').value = g.description || ''; document.getElementById('grp-img').value = g.imageUrl || ''; if(g.imageUrl) { document.getElementById('grp-preview').src = g.imageUrl; document.getElementById('grp-preview').classList.remove('hidden'); } document.getElementById('grp-modal-title').innerText = 'Edit Program'; renderGroupExPicker(); document.getElementById('group-modal').classList.remove('hidden');
+        };
+        window.toggleGroupEx = (id) => { if(window.state.activeGroupExIds.includes(id)) window.state.activeGroupExIds = window.state.activeGroupExIds.filter(x=>x!==id); else window.state.activeGroupExIds.push(id); renderGroupExPicker(); };
+        function renderGroupExPicker() {
+            document.getElementById('grp-picker-list').innerHTML = window.state.exercises.map(ex => {
+                const isSelected = window.state.activeGroupExIds.includes(ex.id);
+                return `<label class="flex items-center text-xs p-1 hover:bg-slate-200 rounded cursor-pointer"><input type="checkbox" ${isSelected?'checked':''} onchange="window.toggleGroupEx('${ex.id}')" class="mr-2"> ${ex.name}</label>`;
+            }).join('');
+        }
+        window.saveGroupDB = async () => {
+            const id = document.getElementById('grp-id').value;
+            const data = { name: document.getElementById('grp-name').value, description: document.getElementById('grp-desc').value, imageUrl: document.getElementById('grp-img').value, exerciseIds: window.state.activeGroupExIds };
+            if(id) { await rtdbSet(rtdbRef(rtdb, 'exerciseGroups/' + id), data); } else { await rtdbSet(push(rtdbRef(rtdb, 'exerciseGroups')), data); }
+            document.getElementById('group-modal').classList.add('hidden');
+        };
+        window.deleteGroupDB = async (id) => { if(confirm('Delete program?')) await rtdbRemove(rtdbRef(rtdb, 'exerciseGroups/' + id)); };
 
-        window.uploadImage = async (input) => {
+        window.uploadImage = async (input, urlId, previewId) => {
             const file = input.files[0]; if(!file) return;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
             try {
                 input.disabled = true;
                 const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
                 const data = await res.json();
-                if(data.secure_url) {
-                    document.getElementById('ex-img').value = data.secure_url;
-                    document.getElementById('ex-preview').src = data.secure_url;
-                    document.getElementById('ex-preview').classList.remove('hidden');
-                }
+                if(data.secure_url) { document.getElementById(urlId).value = data.secure_url; document.getElementById(previewId).src = data.secure_url; document.getElementById(previewId).classList.remove('hidden'); }
             } catch(e) { alert("Upload failed"); } finally { input.disabled = false; }
         };
 
-        // --- PRINT LOGIC ---
         window.triggerPrint = () => {
-            // Save params first
             const p = window.state.currentPatient;
-            p.name = document.getElementById('pat-name').value;
-            p.age = document.getElementById('pat-age').value;
-            p.gender = document.getElementById('pat-gender').value;
-            p.date = document.getElementById('pat-date').value;
-            p.chiefComplaints = document.getElementById('pat-cc').value;
-            p.history = document.getElementById('pat-hx').value;
-            p.assessmentNote = document.getElementById('pat-ax').value;
-            p.treatmentNote = document.getElementById('pat-tx').value;
-            
-            p.exerciseIds.forEach(id => {
-                p.exerciseParams[id] = {
-                    reps: document.getElementById(`rep-${id}`)?.value || '',
-                    sets: document.getElementById(`set-${id}`)?.value || '',
-                    freq: document.getElementById(`freq-${id}`)?.value || '',
-                    note: document.getElementById(`note-${id}`)?.value || ''
-                };
-            });
+            ['name','age','gender','date','cc','hx','ax','tx'].forEach(k => p[k==='cc'?'chiefComplaints':k==='hx'?'history':k==='ax'?'assessmentNote':k==='tx'?'treatmentNote':k] = document.getElementById('pat-'+k).value);
+            p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
 
-            // Populate Print Div
             document.getElementById('print-date').innerText = p.date ? new Date(p.date).toLocaleDateString('en-GB') : '';
-            document.getElementById('print-name').innerText = p.name;
-            document.getElementById('print-age').innerText = p.age;
-            document.getElementById('print-gender').innerText = p.gender;
+            ['name','age','gender'].forEach(k => document.getElementById('print-'+k).innerText = p[k]);
             document.getElementById('print-upid').innerText = p.ipId;
 
-            const setField = (id, val) => { const el = document.getElementById(id); el.innerText = val; el.parentElement.style.display = val ? 'block' : 'none'; };
-            setField('print-cc', p.chiefComplaints);
-            setField('print-hx', p.history);
-            setField('print-ax', p.assessmentNote);
-            setField('print-tx', p.treatmentNote);
+            const setF = (id, val) => { const el = document.getElementById(id); el.innerText = val; el.parentElement.style.display = val ? 'block' : 'none'; };
+            setF('print-cc', p.chiefComplaints); setF('print-hx', p.history); setF('print-ax', p.assessmentNote); setF('print-tx', p.treatmentNote);
 
             const exContainer = document.getElementById('print-exercises-list');
             if(p.exerciseIds.length > 0) {
                 document.getElementById('print-exercises-section').style.display = 'block';
                 exContainer.innerHTML = p.exerciseIds.map(id => {
-                    const ex = window.state.exercises.find(e => e.id === id);
-                    if(!ex) return '';
-                    const params = p.exerciseParams[id];
-                    return `
-                    <div class="ex-card">
-                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}
-                        <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div>
-                        <div style="font-size:11px; color:#1e3a8a; font-weight:bold;">
-                            ${params.reps ? `Reps: <span style="color:#000">${params.reps}</span> &nbsp;` : ''}
-                            ${params.sets ? `Sets: <span style="color:#000">${params.sets}</span> &nbsp;` : ''}
-                            ${params.freq ? `Freq: <span style="color:#000">${params.freq}</span>` : ''}
-                        </div>
-                        ${params.note ? `<div style="font-size:11px; margin-top:4px;">${params.note}</div>` : ''}
-                    </div>`;
+                    const ex = window.state.exercises.find(e => e.id === id); if(!ex) return '';
+                    const prm = p.exerciseParams[id];
+                    return `<div class="ex-card">${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}<div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div><div style="font-size:11px; color:#1e3a8a; font-weight:bold;">${prm.reps ? `Reps: <span style="color:#000">${prm.reps}</span> &nbsp;` : ''}${prm.sets ? `Sets: <span style="color:#000">${prm.sets}</span> &nbsp;` : ''}${prm.freq ? `Freq: <span style="color:#000">${prm.freq}</span>` : ''}</div>${prm.note ? `<div style="font-size:11px; margin-top:4px;">${prm.note}</div>` : ''}</div>`;
                 }).join('');
-            } else {
-                document.getElementById('print-exercises-section').style.display = 'none';
-            }
-
+            } else { document.getElementById('print-exercises-section').style.display = 'none'; }
             window.print();
         };
-
     </script>
 </body>
 </html>
