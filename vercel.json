@@ -2,16 +2,17 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/doctor-panel", "destination": "/doctor-panel.html" },
-    { "source": "/exercises", "destination": "/exercises.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/services", "destination": "/services.html" },
     { "source": "/doctors", "destination": "/doctors.html" },
     { "source": "/products", "destination": "/products.html" },
     { "source": "/articles", "destination": "/articles.html" },
-    { "source": "/doctor/:slug", "destination": "/details.html" },
-    { "source": "/service/:slug", "destination": "/details.html" },
-    { "source": "/product/:slug", "destination": "/details.html" },
+    { "source": "/exercises", "destination": "/exercises.html" },
+    { "source": "/prescription", "destination": "/prescription.html" },
+    { "source": "/doctor-panel", "destination": "/doctor-panel.html" },
+    { "source": "/doctor/:path*", "destination": "/details.html" },
+    { "source": "/service/:path*", "destination": "/details.html" },
+    { "source": "/product/:path*", "destination": "/details.html" },
     { "source": "/:slug([^/.]+)", "destination": "/details.html" }
   ]
 }
