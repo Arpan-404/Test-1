@@ -3,516 +3,613 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard - Physio Hub</title>
+    <title>Admin Panel - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <style>
-        /* PREMIUM NAVY THEME */
-        :root {
-            --app-bg: #f4f7fb;        
-            --surface: #ffffff;       
-            --primary: #1d4ed8;       
-            --primary-dark: #1e3a8a;  
-            --primary-light: #dbeafe; 
-            --text-dark: #0f172a;     
-            --text-muted: #64748b;    
-            --border: #e2e8f0;
-            --radius-md: 12px;
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { navy: '#0f172a', primary: '#2563eb', surface: '#ffffff', appbg: '#f8fafc', border: '#e2e8f0' },
+            boxShadow: { 'soft': '0 4px 15px rgba(15, 23, 42, 0.04)', 'float': '0 -4px 15px rgba(0,0,0,0.05)' }
+          }
         }
+      }
+    </script>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; }
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #334155; overflow-x: hidden;}
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .h-scroll { scrollbar-width: none; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loader { width: 24px; height: 24px; border: 3px solid #e2e8f0; border-top: 3px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }
         
-        /* HEADER STYLES */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 1px 4px rgba(0,0,0,0.05); height: 60px; }
-        .logo { display: flex; align-items: center; text-decoration: none; font-weight: bold; color: var(--primary-dark); }
-        
-        /* Admin Styles */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow-y: auto; padding: 1rem; }
-        .modal-content { background-color: white; margin: 20px auto; padding: 2rem; border-radius: var(--radius-md); width: 100%; max-width: 500px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; right: 1.5rem; top: 1rem; }
-        
-        #toastNotification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; transition: opacity 0.3s; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        #toastNotification.show { visibility: visible; opacity: 1; }
-        #toastNotification.error { background-color: #dc3545; }
-        
-        .form-group, .form-row { margin-bottom: 1.2rem; }
-        .form-group label { margin-bottom: 0.5rem; font-weight: 600; color: var(--text-dark); display: block; font-size: 0.95rem;}
-        .form-group input[type="text"], .form-group input[type="tel"], .form-group input[type="email"], .form-group input[type="password"], .form-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: #f8fafc; transition: 0.2s;}
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); outline: none; background: white; }
-        .form-row.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        
-        .image-preview { max-width: 100%; height: 120px; border-radius: 8px; margin-top: 0.5rem; display: none; object-fit: contain; background: #f1f5f9; border: 1px solid var(--border); }
-        
-        .btn { display: inline-block; padding: 0.8rem 1.5rem; background: var(--primary); color: white; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: 0.2s; text-align: center; width: 100%; }
-        .btn:active { transform: scale(0.98); background: var(--primary-dark); }
-        .btn-secondary { background: var(--primary-light); color: var(--primary-dark); }
-        .btn-danger { background: #fee2e2; color: #dc2626; }
-        .btn-small { width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; }
-        
-        .btn-google { background-color: #fff; color: #3c4043; border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer; margin-top: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        
-        #authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; background: var(--app-bg); }
-        .login-box { background: white; padding: 2.5rem; border-radius: var(--radius-md); width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        
-        .admin-dashboard { display: none; min-height: 100vh; padding-bottom: 2rem; padding-top: 70px; }
-        .admin-dashboard.active { display: block; }
-        .admin-header { background: white; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-radius: 8px; margin: 0 1rem 1rem;}
-        
-        .admin-tabs { display: flex; overflow-x: auto; background: white; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; scrollbar-width: none; }
-        .admin-tabs::-webkit-scrollbar { display: none; }
-        .admin-tab { padding: 1rem 1.5rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent; white-space: nowrap; font-weight: 600;}
-        .admin-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        
-        .admin-content { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        .stat-number { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.2rem; }
-        
-        .form-section { background: white; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        
-        .item-list { background: white; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        .item { padding: 1.2rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px;}
-        .item:last-child { border-bottom: none; }
-        .item-info h4 { margin-bottom: 0.2rem; color: var(--text-dark); font-weight: 700;}
-        .item-info p { font-size: 0.85rem; color: var(--text-muted); }
-        .item-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;}
-        
-        #editor-container { height: 400px; background: white; border-radius: 0 0 8px 8px; font-family: inherit; font-size: 1.05rem; }
-        .ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; border-color: var(--border) !important;}
-        .ql-container { border-color: var(--border) !important; }
-        
-        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);}
-        .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500;}
-        
-        /* Note to user about images */
-        .editor-note { font-size: 0.85rem; color: var(--primary); background: var(--primary-light); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; display: inline-block; font-weight: 600;}
-
+        /* Sidebar transition for mobile */
+        .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="logo">Admin Console</div>
-    </header>
-
-    <div id="toastNotification"></div>
-
-    <!-- Login Screen -->
-    <div id="authScreen">
-        <div class="login-box">
-            <h2 style="color: var(--text-dark); margin-bottom: 1.5rem; text-align:center; font-weight: 800;">Physio Admin</h2>
-            <form id="adminLoginForm">
-                <div class="form-group"><label>Email</label><input type="email" id="adminEmailInput" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="adminPassword" required></div>
-                <button type="submit" class="btn" style="margin-top:0.5rem;">Login Securely</button>
-            </form>
-            <div style="display: flex; align-items: center; margin: 1.5rem 0; color: #94a3b8;">
-                <hr style="flex-grow: 1; border: none; border-top: 1px solid var(--border);"><span style="padding: 0 10px; font-size: 0.85rem; font-weight: 600;">OR</span><hr style="flex-grow: 1; border: none; border-top: 1px solid var(--border);">
-            </div>
-            <button type="button" class="btn-google" onclick="window.loginWithGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:20px;"> Sign in with Google
-            </button>
+    <div id="root">
+        <div class="h-screen flex flex-col justify-center items-center">
+            <div class="loader mb-4 w-10 h-10 border-4"></div>
+            <div class="font-bold text-navy">Loading Admin Panel...</div>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <div class="admin-dashboard" id="adminDashboard">
-        <div class="admin-header">
-            <h2 style="color:var(--text-dark); font-weight:800; font-size: 1.2rem;">Dashboard</h2>
-            <button class="btn btn-danger btn-small" onclick="window.logout()">Logout</button>
-        </div>
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useRef } = React;
 
-        <nav class="admin-tabs">
-            <button class="admin-tab active" data-tab="clinic">Website Details</button>
-            <button class="admin-tab" data-tab="doctors">Specialists</button>
-            <button class="admin-tab" data-tab="services">Services</button>
-            <button class="admin-tab" data-tab="products">Store Products</button>
-            <button class="admin-tab" data-tab="articles">Health Articles</button>
-        </nav>
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        <div class="admin-content">
-            <!-- CLINIC INFO -->
-            <div class="tab-panel active" id="clinic-panel">
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number" id="totalDoctors">0</div><div style="color:var(--text-muted); font-size:0.9rem; font-weight:600;">Doctors</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalServices">0</div><div style="color:var(--text-muted); font-size:0.9rem; font-weight:600;">Services</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalProducts">0</div><div style="color:var(--text-muted); font-size:0.9rem; font-weight:600;">Products</div></div>
-                </div>
+        // App 1: Clinic Site Data
+        const siteConfig = {
+            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
+            authDomain: "clinic-bdf92.firebaseapp.com",
+            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
+            projectId: "clinic-bdf92"
+        };
 
-                <div class="form-section">
-                    <h3 style="margin-bottom:1.5rem; color:var(--text-dark); font-weight:800;">Header & Contact Info</h3>
-                    <div class="form-row two-col"><div class="form-group"><label>Clinic Name</label><input type="text" id="adminClinicName"></div><div class="form-group"><label>Phone (Calls)</label><input type="tel" id="adminPhone"></div></div>
-                    <div class="form-row two-col"><div class="form-group"><label>WhatsApp Number</label><input type="tel" id="adminWhatsApp"></div><div class="form-group"><label>Contact Email</label><input type="text" id="adminEmail"></div></div>
-                    
-                    <h3 style="margin:2rem 0 1.5rem; color:var(--text-dark); font-weight:800; border-top:1px solid var(--border); padding-top:1.5rem;">Hero Section (Main Page)</h3>
-                    <div class="form-row two-col"><div class="form-group"><label>Main Hero Title</label><input type="text" id="adminHeroTitle"></div><div class="form-group"><label>Hero Tagline</label><input type="text" id="adminTagline"></div></div>
-                    
-                    <div class="form-group"><label>Top Left Logo Upload</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'adminLogoUrl', 'logoPreview')"><input type="hidden" id="adminLogoUrl"><img id="logoPreview" class="image-preview"></div>
-                    <div class="form-group"><label>Hero Slider Images (Select Multiple Files)</label><input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'adminSliderImages')"><textarea id="adminSliderImages" style="width:100%; border-radius:8px; padding:8px; background:#f1f5f9; border:1px solid var(--border); margin-top:8px; font-size:0.8rem;" rows="3" readonly></textarea><button type="button" class="btn btn-secondary btn-small" style="margin-top:8px;" onclick="document.getElementById('adminSliderImages').value=''">Clear Slider</button></div>
-                    
-                    <button class="btn" onclick="window.updateClinicInfo()" style="margin-top:1.5rem;">Save Website Details</button>
-                </div>
-            </div>
+        // App 2: Exercises Database
+        const recordsConfig = {
+            apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
+            authDomain: "patient-records-arpan.firebaseapp.com",
+            projectId: "patient-records-arpan",
+            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com"
+        };
 
-            <!-- DOCTORS -->
-            <div class="tab-panel" id="doctors-panel">
-                <button class="btn" style="margin-bottom:1.5rem; width:auto;" onclick="window.addNewDoctor()">+ Add Specialist</button>
-                <div class="item-list" id="doctorsAdminList"></div>
-            </div>
+        const appSite = initializeApp(siteConfig, "AppSite");
+        const auth = getAuth(appSite);
+        const dbSite = getDatabase(appSite);
+        
+        const appRecords = initializeApp(recordsConfig, "AppRecords");
+        const dbRecords = getDatabase(appRecords);
+
+        const googleProvider = new GoogleAuthProvider();
+
+        const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+        // --- REUSABLE IMAGE UPLOADER COMPONENT ---
+        function ImageUploader({ url, onUploadComplete, label, isIcon = false }) {
+            const [isUploading, setIsUploading] = useState(false);
             
-            <!-- SERVICES -->
-            <div class="tab-panel" id="services-panel">
-                <button class="btn" style="margin-bottom:1.5rem; width:auto;" onclick="window.addNewService()">+ Add Service</button>
-                <div class="item-list" id="servicesAdminList"></div>
-            </div>
-            
-            <!-- PRODUCTS -->
-            <div class="tab-panel" id="products-panel">
-                <button class="btn" style="margin-bottom:1.5rem; width:auto;" onclick="window.addNewProduct()">+ Add Product to Store</button>
-                <div class="item-list" id="productsAdminList"></div>
-            </div>
-
-            <!-- ARTICLES -->
-            <div class="tab-panel" id="articles-panel">
-                <div class="form-section">
-                    <h3 style="color:var(--text-dark); margin-bottom:1.5rem; font-weight:800;">Write Medical Article</h3>
-                    <div class="form-group">
-                        <label>Article Title</label>
-                        <input type="text" id="artTitle" oninput="document.getElementById('artSlug').value = window.slugify(this.value);">
-                    </div>
-                    <div class="form-group"><label>URL Link Name (Auto-generated)</label><input type="text" id="artSlug" readonly style="background:#e2e8f0; color:#64748b;"></div>
-                    
-                    <div class="form-group">
-                        <label>Main Cover Image (Optional)</label>
-                        <input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'artImageUrl', 'artImagePreview')">
-                        <input type="hidden" id="artImageUrl">
-                        <img id="artImagePreview" class="image-preview" style="width: 150px; height: 100px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label style="display:flex; justify-content:space-between; align-items:center;">
-                            Article Content
-                            <span class="editor-note">💡 Tip: Click the picture icon below (🖼️) to insert images right next to your text!</span>
-                        </label>
-                        <div id="editor-container"></div>
-                    </div>
-
-                    <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                        <h4 style="color:var(--text-dark); margin-bottom: 1rem; font-weight:700;">Link Related Items (Appears at bottom of article)</h4>
-                        <label style="font-weight:600; font-size:0.9rem; color:var(--text-muted); margin-bottom:0.5rem; display:block;">Related Services:</label>
-                        <div class="checkbox-grid" id="linkServicesList"></div>
-                        <label style="font-weight:600; font-size:0.9rem; color:var(--text-muted); margin-bottom:0.5rem; display:block;">Related Products:</label>
-                        <div class="checkbox-grid" id="linkProductsList"></div>
-                    </div>
-                    <button class="btn" id="publishArticleBtn" style="margin-top: 1.5rem;" onclick="window.saveArticle()">Publish Article</button>
-                </div>
+            const handleUpload = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                setIsUploading(true);
+                const formData = new FormData(); 
+                formData.append('file', file); 
+                formData.append('upload_preset', 'Physio_uploads');
                 
-                <h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Published Articles</h3>
-                <div class="item-list" id="articlesAdminList"></div>
-            </div>
-        </div>
-    </div>
+                try {
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.secure_url) onUploadComplete(data.secure_url);
+                } catch (err) { alert("Upload failed."); }
+                setIsUploading(false);
+            };
 
-    <!-- MODALS -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
-            <h3 id="editModalTitle" style="margin-bottom:1.5rem; color:var(--text-dark); font-weight:800;"></h3>
-            <div id="editModalContent"></div>
-        </div>
-    </div>
-
-    <div id="subServicesModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('subServicesModal').style.display='none'">&times;</span>
-            <h3 id="subServicesTitle" style="color:var(--text-dark); margin-bottom:1.5rem; font-weight:800;">Manage Sub-Services</h3>
-            <div id="subServicesList" style="max-height: 300px; overflow-y:auto; margin-bottom: 1.5rem;"></div>
-            <div style="border-top: 1px solid var(--border); padding-top:1.5rem; background:#f8fafc; padding:1rem; border-radius:8px;">
-                <h4 style="margin-bottom:1rem; font-size:0.95rem;">Add New</h4>
-                <div class="form-row two-col">
-                    <input type="text" id="newSubServiceName" placeholder="Test Name (e.g. TENS)" style="padding:0.8rem; border:1px solid var(--border); border-radius:8px; width:100%;">
-                    <input type="text" id="newSubServicePrice" placeholder="Price (e.g. 150)" style="padding:0.8rem; border:1px solid var(--border); border-radius:8px; width:100%;">
+            return (
+                <div className="w-full">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{label}</label>
+                    <div className={`relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-24 h-24' : 'w-full h-40'}`}>
+                        {isUploading ? (
+                            <div className="flex flex-col items-center"><div className="loader"></div><span className="text-[10px] mt-2 font-bold text-slate-500">Uploading...</span></div>
+                        ) : url ? (
+                            <>
+                                <img src={url} alt="Preview" className="w-full h-full object-contain p-1" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold bg-black/50 px-2 py-1 rounded">Change</span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center text-slate-400">
+                                <i className="ph-bold ph-image text-2xl mb-1"></i>
+                                <span className="text-[10px] font-bold">Click to Upload</span>
+                            </div>
+                        )}
+                        <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                    </div>
                 </div>
-                <button class="btn" onclick="window.addSubService()" style="margin-top:1rem;">Add Sub-Service</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="editSubServiceModal" class="modal" style="z-index: 3100;">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3 style="color:var(--text-dark); margin-bottom:1.5rem; font-weight:800;">Edit Sub-Service</h3>
-            <div class="form-group"><label>Name</label><input type="text" id="editSubName"></div>
-            <div class="form-group"><label>Price (Numbers only)</label><input type="text" id="editSubPrice"></div>
-            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
-                <button id="saveSubServiceBtn" class="btn" style="flex:1;">Save Changes</button>
-                <button onclick="document.getElementById('editSubServiceModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="customConfirmModal" class="modal" style="z-index: 4000;">
-        <div class="modal-content" style="text-align: center; max-width: 400px;">
-            <h3 id="confirmMsg" style="margin-bottom: 1.5rem; color: var(--text-dark); font-weight:800;"></h3>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <button id="confirmYesBtn" class="btn btn-danger" style="flex:1;">Yes, delete</button>
-                <button onclick="document.getElementById('customConfirmModal').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getDatabase, ref, set, update, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
-        import { getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-
-        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", authDomain: "clinic-bdf92.firebaseapp.com", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
-        const database = getDatabase(app); const auth = getAuth(app); const googleProvider = new GoogleAuthProvider();
-        window.siteData = { doctors: [], services: [], products: [], articles: [] }; window.currentServiceId = null; let activeSubServiceIndex = null; let activeArticleIndex = null;
-
-        window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-
-        // Initialize Rich Text Editor
-        const quill = new Quill('#editor-container', { 
-            theme: 'snow', 
-            placeholder: 'Start writing your article...', 
-            modules: { 
-                toolbar: { 
-                    container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], 
-                    handlers: { image: selectLocalImage } 
-                } 
-            } 
-        });
-
-        // Cloudinary Image Uploader for Quill Editor
-        function selectLocalImage() { 
-            const input = document.createElement('input'); 
-            input.setAttribute('type', 'file'); 
-            input.setAttribute('accept', 'image/*'); 
-            input.click(); 
-            input.onchange = async () => { 
-                const file = input.files[0]; 
-                if (/^image\//.test(file.type)) { 
-                    window.showToast('Uploading image securely...', 'success'); 
-                    try { 
-                        const url = await window.uploadToCloudinary(file); 
-                        const range = quill.getSelection() || { index: quill.getLength() }; 
-                        quill.insertEmbed(range.index, 'image', url); 
-                        // Force max-width so images don't break layout on mobile
-                        quill.formatText(range.index, 1, 'width', '100%');
-                        window.showToast('Image Inserted!'); 
-                    } catch (e) { 
-                        window.showToast("Upload Error: " + e.message, 'error'); 
-                    } 
-                } 
-            }; 
+            );
         }
 
-        // Auth Logic
-        setPersistence(auth, browserLocalPersistence).then(() => { onAuthStateChanged(auth, user => { if(user) { document.getElementById('authScreen').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); } else { document.getElementById('authScreen').style.display = 'flex'; document.getElementById('adminDashboard').classList.remove('active'); } }); });
-        document.getElementById('adminLoginForm').onsubmit = async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('adminEmailInput').value, document.getElementById('adminPassword').value); window.showToast('Logged in!'); } catch(err) { window.showToast('Invalid credentials', 'error'); } };
-        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); window.showToast('Logged in!'); } catch(err) { window.showToast('Error signing in', 'error'); } };
-        window.logout = () => signOut(auth);
-
-        // Tabs Logic
-        document.querySelectorAll('.admin-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.tab + '-panel').classList.add('active'); }); });
-
-        // Load Data
-        onValue(ref(database, 'site'), (snapshot) => { if(snapshot.exists()) { window.siteData = snapshot.val(); if(!window.siteData.articles) window.siteData.articles = []; updateFormAndLists(); } });
-
-        function updateFormAndLists() {
-            document.getElementById('totalDoctors').textContent = window.siteData.doctors?.length || 0; 
-            document.getElementById('totalServices').textContent = window.siteData.services?.length || 0; 
-            document.getElementById('totalProducts').textContent = window.siteData.products?.length || 0;
+        // --- MAIN ADMIN APP ---
+        function AdminApp() {
+            const [user, setUser] = useState(null);
+            const [isConnecting, setIsConnecting] = useState(true);
+            const [activeTab, setActiveTab] = useState('overview');
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             
-            if(window.siteData.hero) { 
-                document.getElementById('adminClinicName').value = window.siteData.hero.clinicName || ''; 
-                document.getElementById('adminPhone').value = window.siteData.hero.phone || ''; 
-                document.getElementById('adminWhatsApp').value = window.siteData.hero.whatsappNumber || ''; 
-                document.getElementById('adminEmail').value = window.siteData.hero.email || ''; 
-                document.getElementById('adminHeroTitle').value = window.siteData.hero.title || ''; 
-                document.getElementById('adminTagline').value = window.siteData.hero.tagline || ''; 
+            // Databases
+            const [siteData, setSiteData] = useState({ hero: {}, doctors: [], services: [], products: [], articles: [] });
+            const [exercises, setExercises] = useState([]);
+
+            // Form States
+            const [editingItem, setEditingItem] = useState(null); // The item being edited
+            const [formType, setFormType] = useState(null); // 'doctor', 'service', 'product', 'article', 'exercise'
+            const [searchQuery, setSearchQuery] = useState("");
+
+            // Toast
+            const [toast, setToast] = useState({ show: false, msg: '' });
+            const showToast = (msg) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: '' }), 3000); };
+
+            useEffect(() => {
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    setUser(currentUser);
+                    setIsConnecting(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            useEffect(() => {
+                if (!user) return;
                 
-                document.getElementById('adminLogoUrl').value = window.siteData.hero.logoUrl || ''; 
-                if(window.siteData.hero.logoUrl) { document.getElementById('logoPreview').src = window.siteData.hero.logoUrl; document.getElementById('logoPreview').style.display = 'block'; } 
-                
-                document.getElementById('adminSliderImages').value = (window.siteData.hero.sliderImages || []).join(', '); 
-            }
-            
-            document.getElementById('doctorsAdminList').innerHTML = (window.siteData.doctors || []).map(d => `<div class="item"><div class="item-info"><h4>${d.name}</h4><p>${d.qualification}</p></div><div class="item-actions"><a href="/doctor/${window.slugify(d.name)}" target="_blank" class="btn btn-secondary btn-small">View</a><button class="btn btn-secondary btn-small" onclick="window.editDoctor(${d.id})">Edit</button><button class="btn btn-danger btn-small" onclick="window.deleteDoctor(${d.id})">Del</button></div></div>`).join('');
-            
-            document.getElementById('servicesAdminList').innerHTML = (window.siteData.services || []).map(s => `<div class="item"><div class="item-info"><h4>${s.title}</h4><p>${(s.tests||[]).length} Sub-services</p></div><div class="item-actions"><a href="/service/${window.slugify(s.title)}" target="_blank" class="btn btn-secondary btn-small">View</a><button class="btn btn-small" style="background:var(--primary); color:white;" onclick="window.manageSubServices(${s.id})">Sub-Services</button><button class="btn btn-secondary btn-small" onclick="window.editService(${s.id})">Edit</button><button class="btn btn-danger btn-small" onclick="window.deleteService(${s.id})">Del</button></div></div>`).join('');
-            
-            document.getElementById('productsAdminList').innerHTML = (window.siteData.products || []).map(p => `<div class="item"><div class="item-info"><h4>${p.name}</h4><p>${p.price}</p></div><div class="item-actions"><a href="/product/${window.slugify(p.name)}" target="_blank" class="btn btn-secondary btn-small">View</a><button class="btn btn-secondary btn-small" onclick="window.editProduct(${p.id})">Edit</button><button class="btn btn-danger btn-small" onclick="window.deleteProduct(${p.id})">Del</button></div></div>`).join('');
-            
-            document.getElementById('articlesAdminList').innerHTML = (window.siteData.articles || []).map((a, i) => `<div class="item"><div class="item-info"><h4>${a.title}</h4><p>/${a.slug}</p></div><div class="item-actions"><button class="btn btn-secondary btn-small" onclick="window.editArticle(${i})">Edit</button> <button class="btn btn-danger btn-small" onclick="window.deleteArticle(${i})">Delete</button></div></div>`).join('') || '<p style="padding:1rem; color:var(--text-muted);">No articles published yet.</p>';
-            
-            document.getElementById('linkServicesList').innerHTML = (window.siteData.services || []).map(s => `<label class="checkbox-item"><input type="checkbox" name="relService" value="${s.id}"> ${s.title}</label>`).join('');
-            document.getElementById('linkProductsList').innerHTML = (window.siteData.products || []).map(p => `<label class="checkbox-item"><input type="checkbox" name="relProduct" value="${p.id}"> ${p.name}</label>`).join('');
-        }
+                // Fetch Site Data
+                const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        setSiteData({
+                            hero: data.hero || {},
+                            doctors: data.doctors || [],
+                            services: data.services || [],
+                            products: data.products || [],
+                            articles: data.articles || []
+                        });
+                    }
+                });
 
-        window.updateClinicInfo = async () => { 
-            const h = { 
-                clinicName: document.getElementById('adminClinicName').value, 
-                title: document.getElementById('adminHeroTitle').value, 
-                tagline: document.getElementById('adminTagline').value, 
-                phone: document.getElementById('adminPhone').value, 
-                whatsappNumber: document.getElementById('adminWhatsApp').value, 
-                email: document.getElementById('adminEmail').value, 
-                logoUrl: document.getElementById('adminLogoUrl').value, 
-                sliderImages: document.getElementById('adminSliderImages').value.split(',').map(s=>s.trim()).filter(Boolean) 
-            }; 
-            await update(ref(database, 'site/hero'), h); 
-            window.showToast('Website details saved successfully!'); 
-        };
+                // Fetch Exercises Data
+                const unsubEx = onValue(ref(dbRecords, 'exercises'), (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        const exArray = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
+                        setExercises(exArray);
+                    } else {
+                        setExercises([]);
+                    }
+                });
 
-        // --- ARTICLES LOGIC ---
-        window.editArticle = (index) => { 
-            activeArticleIndex = index; const a = window.siteData.articles[index]; 
-            document.getElementById('artTitle').value = a.title; 
-            document.getElementById('artSlug').value = a.slug; 
-            document.getElementById('artImageUrl').value = a.imageUrl || ''; 
-            if (a.imageUrl) { document.getElementById('artImagePreview').src = a.imageUrl; document.getElementById('artImagePreview').style.display = 'block'; } 
-            else { document.getElementById('artImagePreview').style.display = 'none'; } 
-            
-            quill.root.innerHTML = a.content || ''; 
-            
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false); 
-            if(a.linkedServices) a.linkedServices.forEach(id => { const cb = document.querySelector(`input[name="relService"][value="${id}"]`); if(cb) cb.checked = true; }); 
-            if(a.linkedProducts) a.linkedProducts.forEach(id => { const cb = document.querySelector(`input[name="relProduct"][value="${id}"]`); if(cb) cb.checked = true; }); 
-            
-            document.getElementById('publishArticleBtn').textContent = "Update Article"; 
-            document.getElementById('articles-panel').scrollIntoView({behavior: 'smooth'}); 
-        };
+                return () => { unsubSite(); unsubEx(); };
+            }, [user]);
 
-        window.saveArticle = async () => { 
-            const title = document.getElementById('artTitle').value, slug = document.getElementById('artSlug').value, imageUrl = document.getElementById('artImageUrl').value, contentHTML = quill.root.innerHTML; 
-            const linkedServices = Array.from(document.querySelectorAll('input[name="relService"]:checked')).map(cb => Number(cb.value)); 
-            const linkedProducts = Array.from(document.querySelectorAll('input[name="relProduct"]:checked')).map(cb => Number(cb.value)); 
-            
-            if(!title || !slug) return window.showToast('Title is required', 'error'); 
-            
-            if(activeArticleIndex !== null) { 
-                window.siteData.articles[activeArticleIndex] = { ...window.siteData.articles[activeArticleIndex], title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts }; 
-                activeArticleIndex = null; 
-                document.getElementById('publishArticleBtn').textContent = "Publish Article"; 
-                window.showToast('Article Updated!'); 
-            } else { 
-                window.siteData.articles.push({ title, slug, imageUrl, content: contentHTML, linkedServices, linkedProducts, date: new Date().toISOString() }); 
-                window.showToast('Article Published!'); 
-            } 
-            
-            await set(ref(database, 'site/articles'), window.siteData.articles); 
-            
-            document.getElementById('artTitle').value=''; document.getElementById('artSlug').value=''; document.getElementById('artImageUrl').value=''; document.getElementById('artImagePreview').style.display='none'; quill.root.innerHTML=''; document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false); 
-        };
+            const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
+            const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
 
-        window.deleteArticle = (index) => { window.showConfirm("Are you sure you want to delete this article?", async () => { window.siteData.articles.splice(index, 1); await set(ref(database, 'site/articles'), window.siteData.articles); window.showToast('Deleted!'); }); }
+            // Data Mutators
+            const saveSiteData = async (node, data) => {
+                try { await set(ref(dbSite, `site/${node}`), data); showToast('Saved Successfully!'); setEditingItem(null); } 
+                catch (e) { alert("Error saving data"); }
+            };
 
-        // --- DYNAMIC MODAL (Doctors, Services, Products) ---
-        window.showEditModal = function(type, item) { 
-            const m = document.getElementById('editModal'); 
-            document.getElementById('editModalTitle').textContent = item ? `Edit ${type}` : `Add New ${type}`; 
-            const c = document.getElementById('editModalContent'); 
-            
-            if (type === 'doctor') { 
-                c.innerHTML = `<div class="form-group"><label>Name</label><input type="text" id="eName" value="${item?.name||''}"></div><div class="form-row two-col"><div class="form-group"><label>Qualifications</label><input type="text" id="eQual" value="${item?.qualification||''}"></div><div class="form-group"><label>Fees</label><input type="text" id="eFees" value="${item?.fees||''}"></div></div><div class="form-group"><label>Profile Photo</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhoto', 'ePhotoPreview')"><input type="hidden" id="ePhoto" value="${item?.photoUrl||''}"><img id="ePhotoPreview" class="image-preview" src="${item?.photoUrl||''}" style="display:${item?.photoUrl?'block':'none'}"></div><div class="form-group"><label>Biography / Details</label><textarea id="eDetails" rows="4">${item?.details||''}</textarea></div><button class="btn" onclick="window.saveDoctor(${item?.id||'null'})">Save Doctor</button>`; 
-            } 
-            else if (type === 'service') { 
-                c.innerHTML = `<div class="form-group"><label>Service Title</label><input type="text" id="eTitle" value="${item?.title||''}"></div><div class="form-group"><label>Small Icon (Emoji or Text)</label><input type="text" id="eIcon" value="${item?.icon||''}" placeholder="e.g. ⚕️"></div><div class="form-group"><label>Description</label><textarea id="eDesc" rows="3">${item?.description||''}</textarea></div><div class="form-group"><label>Banner Image</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'eBanner', 'eBannerPreview')"><input type="hidden" id="eBanner" value="${item?.bannerImageUrl||''}"><img id="eBannerPreview" class="image-preview" src="${item?.bannerImageUrl||''}" style="display:${item?.bannerImageUrl?'block':'none'}"></div><button class="btn" onclick="window.saveService(${item?.id||'null'})">Save Service</button>`; 
-            } 
-            else if (type === 'product') { 
-                // NEW: Added Video URL and Gallery Upload for Products
-                const galleryVal = (item?.galleryImages||[]).join(', ');
-                c.innerHTML = `
-                <div class="form-group"><label>Product Name</label><input type="text" id="ePName" value="${item?.name||''}"></div>
-                <div class="form-row two-col">
-                    <div class="form-group"><label>Price (e.g. 500)</label><input type="text" id="ePrice" value="${item?.price||''}"></div>
-                    <div class="form-group"><label>Video URL (YouTube or link)</label><input type="text" id="eVideoUrl" value="${item?.videoUrl||''}" placeholder="https://youtu.be/..."></div>
-                </div>
-                <div class="form-group"><label>Product Description</label><textarea id="ePDesc" rows="4">${item?.description||''}</textarea></div>
-                
-                <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:1.5rem;">
-                    <div class="form-group"><label>Main Display Photo</label><input type="file" accept="image/*" onchange="window.handleImageUpload(this, 'ePhotoM', 'ePhotoMPreview')"><input type="hidden" id="ePhotoM" value="${item?.profilePhoto||''}"><img id="ePhotoMPreview" class="image-preview" src="${item?.profilePhoto||''}" style="display:${item?.profilePhoto?'block':'none'}"></div>
-                    
-                    <div class="form-group" style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;">
-                        <label style="color:var(--primary-dark);">Additional Gallery Images (Select Multiple Files)</label>
-                        <input type="file" accept="image/*" multiple onchange="window.handleGalleryUpload(this, 'eGallery')">
-                        <textarea id="eGallery" readonly style="width:100%; border-radius:6px; padding:8px; background:white; border:1px solid var(--border); margin-top:8px; font-size:0.8rem; color:var(--text-muted);" rows="3">${galleryVal}</textarea>
-                        <button type="button" class="btn btn-secondary btn-small" style="margin-top:8px;" onclick="document.getElementById('eGallery').value=''">Clear Gallery</button>
-                    </div>
-                </div>
-                <button class="btn" onclick="window.saveProduct(${item?.id||'null'})">Save Product</button>`; 
-            } 
-            m.style.display = 'block'; 
-        }
-        
-        window.addNewDoctor = () => window.showEditModal('doctor', null); window.editDoctor = (id) => window.showEditModal('doctor', window.siteData.doctors.find(d=>d.id===id)); window.deleteDoctor = (id) => window.showConfirm('Delete doctor permanently?', async () => { await set(ref(database, 'site/doctors'), window.siteData.doctors.filter(d=>d.id!==id)); }); 
-        window.addNewService = () => window.showEditModal('service', null); window.editService = (id) => window.showEditModal('service', window.siteData.services.find(s=>s.id===id)); window.deleteService = (id) => window.showConfirm('Delete service permanently?', async () => { await set(ref(database, 'site/services'), window.siteData.services.filter(s=>s.id!==id)); }); 
-        window.addNewProduct = () => window.showEditModal('product', null); window.editProduct = (id) => window.showEditModal('product', window.siteData.products.find(p=>p.id===id)); window.deleteProduct = (id) => window.showConfirm('Delete product permanently?', async () => { await set(ref(database, 'site/products'), window.siteData.products.filter(p=>p.id!==id)); });
-        
-        window.saveDoctor = async (id) => { const d = { id: id||Date.now(), name: document.getElementById('eName').value, qualification: document.getElementById('eQual').value, fees: document.getElementById('eFees').value, photoUrl: document.getElementById('ePhoto').value, details: document.getElementById('eDetails').value }; const arr = window.siteData.doctors||[]; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/doctors'), arr); document.getElementById('editModal').style.display='none'; window.showToast('Saved'); }; 
-        window.saveService = async (id) => { const arr = window.siteData.services||[]; const old = id ? (arr.find(s=>s.id===id)?.tests||[]) : []; const d = { id: id||Date.now(), title: document.getElementById('eTitle').value, icon: document.getElementById('eIcon').value, description: document.getElementById('eDesc').value, bannerImageUrl: document.getElementById('eBanner').value, tests: old }; const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=d; else arr.push(d); await set(ref(database, 'site/services'), arr); document.getElementById('editModal').style.display='none'; window.showToast('Saved'); }; 
-        
-        // NEW: Saving Product with Video and Gallery
-        window.saveProduct = async (id) => { 
-            const galleryVal = document.getElementById('eGallery').value;
-            const galleryArray = galleryVal ? galleryVal.split(',').map(s=>s.trim()).filter(Boolean) : [];
-
-            const d = { 
-                id: id||Date.now(), 
-                name: document.getElementById('ePName').value, 
-                price: document.getElementById('ePrice').value, 
-                description: document.getElementById('ePDesc').value, 
-                profilePhoto: document.getElementById('ePhotoM').value,
-                videoUrl: document.getElementById('eVideoUrl').value,
-                galleryImages: galleryArray
-            }; 
-            const arr = window.siteData.products||[]; 
-            const i = arr.findIndex(x=>x.id===id); 
-            if(i>-1) arr[i]=d; else arr.push(d); 
-            await set(ref(database, 'site/products'), arr); 
-            document.getElementById('editModal').style.display='none'; 
-            window.showToast('Product Saved!'); 
-        };
-
-        // --- SUB-SERVICES ---
-        window.manageSubServices = function(id) { window.currentServiceId = id; const s = window.siteData.services.find(s=>s.id===id); document.getElementById('subServicesTitle').textContent = `Sub-Services for: ${s.title}`; renderSub(s.tests||[]); document.getElementById('subServicesModal').style.display = 'block'; }
-        function renderSub(tests) { document.getElementById('subServicesList').innerHTML = tests.length ? tests.map((t,i)=>`<div class="item" style="background:white; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);"><div class="item-info"><h4 style="font-size:1rem;">${t.name}</h4><p style="color:var(--primary); font-weight:bold;">₹${t.price.replace(/[^0-9]/g, '')}</p></div><div class="item-actions"><button class="btn btn-secondary btn-small" onclick="window.openEditSub(${i})">Edit</button><button class="btn btn-danger btn-small" onclick="window.deleteSub(${i})">Del</button></div></div>`).join('') : '<p style="color:var(--text-muted); text-align:center;">No sub-services yet.</p>'; }
-        
-        window.addSubService = async () => { const name = document.getElementById('newSubServiceName').value, price = document.getElementById('newSubServicePrice').value; if(!name) return window.showToast('Name is required', 'error'); const s = window.siteData.services.find(s=>s.id===window.currentServiceId); if(!s.tests) s.tests=[]; s.tests.push({id:Date.now(), name, price}); await set(ref(database, 'site/services'), window.siteData.services); document.getElementById('newSubServiceName').value=''; document.getElementById('newSubServicePrice').value=''; renderSub(s.tests); window.showToast('Added');}
-        window.openEditSub = (i) => { activeSubServiceIndex = i; const t = window.siteData.services.find(s=>s.id===window.currentServiceId).tests[i]; document.getElementById('editSubName').value = t.name; document.getElementById('editSubPrice').value = t.price.replace(/[^0-9]/g, ''); document.getElementById('editSubServiceModal').style.display='block'; }
-        document.getElementById('saveSubServiceBtn').onclick = async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests[activeSubServiceIndex].name = document.getElementById('editSubName').value; s.tests[activeSubServiceIndex].price = document.getElementById('editSubPrice').value; await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); document.getElementById('editSubServiceModal').style.display='none'; window.showToast('Updated');}
-        window.deleteSub = (i) => window.showConfirm("Delete sub-service?", async () => { const s = window.siteData.services.find(s=>s.id===window.currentServiceId); s.tests.splice(i,1); await set(ref(database, 'site/services'), window.siteData.services); renderSub(s.tests); window.showToast('Deleted');});
-        
-        // --- UTILS ---
-        window.showToast = (msg, type='success') => { const t = document.getElementById('toastNotification'); t.textContent=msg; t.className=type==='error'?'error show':'show'; setTimeout(()=>t.classList.remove('show','error'), 3500); }
-        window.showConfirm = (msg, cb) => { document.getElementById('confirmMsg').textContent=msg; document.getElementById('customConfirmModal').style.display='block'; document.getElementById('confirmYesBtn').onclick=()=>{ document.getElementById('customConfirmModal').style.display='none'; cb(); } }
-        
-        // Cloudinary APIs
-        window.uploadToCloudinary = async (file) => { const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads'); const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, {method:'POST', body:fd}); const data = await res.json(); if(!res.ok) throw new Error(data.error?.message || "Upload blocked."); return data.secure_url; };
-        
-        window.handleImageUpload = async (input, fieldId, previewId) => { if(!input.files.length) return; window.showToast('Uploading securely...', 'success'); try { const url = await window.uploadToCloudinary(input.files[0]); document.getElementById(fieldId).value=url; if(previewId){ document.getElementById(previewId).src=url; document.getElementById(previewId).style.display='block'; } window.showToast('Upload complete!', 'success'); } catch(e) { window.showToast("Error: " + e.message, 'error'); } };
-        
-        window.handleGalleryUpload = async (input, fieldId) => { 
-            if(!input.files.length) return; 
-            window.showToast('Uploading images to gallery...', 'success'); 
-            try { 
-                const urls=[]; 
-                for(let i=0; i<input.files.length; i++) {
-                    urls.push(await window.uploadToCloudinary(input.files[i])); 
+            const deleteSiteItem = async (node, arr, id) => {
+                if(confirm("Are you sure you want to delete this?")) {
+                    const newArr = arr.filter(item => item.id !== id);
+                    saveSiteData(node, newArr);
                 }
-                const ex = document.getElementById(fieldId).value; 
-                document.getElementById(fieldId).value = ex ? ex+', '+urls.join(', ') : urls.join(', '); 
-                window.showToast('Gallery updated successfully!', 'success'); 
-            } catch(e) { 
-                window.showToast("Upload Error: " + e.message, 'error'); 
-            } 
-        };
+            };
+
+            const saveExercise = async (data) => {
+                try {
+                    if (data.id) { await set(ref(dbRecords, `exercises/${data.id}`), data); } 
+                    else { await set(push(ref(dbRecords, 'exercises')), data); }
+                    showToast('Exercise Saved!');
+                    setEditingItem(null);
+                } catch (e) { alert("Error saving exercise"); }
+            };
+
+            const deleteExercise = async (id) => {
+                if(confirm("Delete this exercise permanently?")) {
+                    try { await remove(ref(dbRecords, `exercises/${id}`)); showToast('Deleted!'); } 
+                    catch(e) { alert("Error deleting."); }
+                }
+            };
+
+            if (isConnecting) return null;
+
+            if (!user) {
+                return (
+                    <div className="min-h-screen bg-appbg flex flex-col items-center justify-center p-4">
+                        <div className="max-w-sm w-full bg-surface rounded-xl shadow-soft border border-slate-200 p-8 text-center">
+                            <i className="ph-bold ph-shield-check text-5xl text-primary mb-3"></i>
+                            <h1 className="text-2xl font-bold text-navy mb-6">Admin Panel</h1>
+                            <button onClick={handleLogin} className="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                                Admin Login
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- TABS & NAVIGATION ---
+            const navItems = [
+                { id: 'overview', icon: 'ph-squares-four', label: 'Overview' },
+                { id: 'clinic', icon: 'ph-buildings', label: 'Website Details' },
+                { id: 'doctors', icon: 'ph-stethoscope', label: 'Clinical Team' },
+                { id: 'services', icon: 'ph-first-aid', label: 'Services' },
+                { id: 'products', icon: 'ph-shopping-bag', label: 'Products' },
+                { id: 'articles', icon: 'ph-article', label: 'Articles' },
+                { id: 'exercises', icon: 'ph-person-simple-walk', label: 'Exercise DB' },
+            ];
+
+            const changeTab = (tab) => {
+                setActiveTab(tab);
+                setEditingItem(null); // Reset form when switching tabs
+                setSearchQuery("");
+                setIsSidebarOpen(false);
+            };
+
+            const renderSidebar = () => (
+                <>
+                    {/* Mobile Overlay */}
+                    <div className={`fixed inset-0 bg-navy/50 z-40 lg:hidden transition-opacity ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} onClick={() => setIsSidebarOpen(false)}></div>
+                    
+                    {/* Sidebar */}
+                    <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-navy text-slate-300 flex flex-col z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                            <h2 className="text-white font-bold text-xl flex items-center gap-2"><i className="ph-fill ph-shield-check text-primary"></i> Admin</h2>
+                            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setIsSidebarOpen(false)}><i className="ph-bold ph-x text-xl"></i></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto py-4">
+                            <nav className="space-y-1 px-3">
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => changeTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition ${activeTab === item.id ? 'bg-primary text-white' : 'hover:bg-slate-800 hover:text-white'}`}>
+                                        <i className={`ph-bold ${item.icon} text-lg`}></i> {item.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                        <div className="p-4 border-t border-slate-800">
+                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition"><i className="ph-bold ph-sign-out"></i> Logout</button>
+                        </div>
+                    </aside>
+                </>
+            );
+
+            // --- LIST VIEWS ---
+            const renderList = (title, data, renderCard, onAdd) => {
+                const filteredData = data.filter(item => (item.name || item.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
+                return (
+                    <div className="animate-in fade-in">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <h2 className="text-2xl font-bold text-navy">{title}</h2>
+                            <button onClick={onAdd} className="bg-primary text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center gap-2"><i className="ph-bold ph-plus"></i> Add New</button>
+                        </div>
+                        
+                        <div className="bg-surface rounded-2xl shadow-soft border border-slate-200 p-4 mb-6">
+                            <div className="relative">
+                                <i className="ph-bold ph-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                                <input type="text" placeholder={`Search ${title.toLowerCase()}...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition text-sm" />
+                            </div>
+                        </div>
+
+                        {filteredData.length === 0 ? (
+                            <div className="text-center py-12 text-slate-500 bg-surface rounded-2xl border border-dashed border-slate-300">No items found. Click "Add New" to start.</div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {filteredData.map(item => renderCard(item))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderDoctorCard = (d) => (
+                <div key={d.id} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
+                    <img src={d.photoUrl || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-full object-cover bg-slate-100" />
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-navy truncate">{d.name}</h4>
+                        <p className="text-xs text-slate-500 truncate">{d.qualification}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
+                        <button onClick={() => {setEditingItem(d); setFormType('doctor');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
+                        <button onClick={() => deleteSiteItem('doctors', siteData.doctors, d.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            );
+
+            const renderProductCard = (p) => (
+                <div key={p.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-3">
+                    <img src={p.profilePhoto || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-lg object-contain bg-slate-50 p-1" />
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-navy truncate text-sm">{p.name}</h4>
+                        <p className="text-xs font-bold text-primary">{p.price}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
+                        <button onClick={() => {setEditingItem(p); setFormType('product');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
+                        <button onClick={() => deleteSiteItem('products', siteData.products, p.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            );
+
+            const renderExerciseCard = (ex) => (
+                <div key={ex.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-3">
+                    <img src={ex.imageUrl || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-lg object-contain bg-slate-50 p-1" />
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-navy truncate text-sm">{ex.name}</h4>
+                        <p className="text-[10px] text-slate-400 truncate">{ex.tags ? ex.tags.join(', ') : 'No tags'}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
+                        <button onClick={() => {setEditingItem(ex); setFormType('exercise');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
+                        <button onClick={() => deleteExercise(ex.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            );
+
+            const renderServiceCard = (s) => (
+                <div key={s.id} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
+                    {s.bannerImageUrl ? <img src={s.bannerImageUrl} className="w-16 h-16 rounded-lg object-cover" /> : <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-2xl">{s.icon || '⚕️'}</div>}
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-navy truncate">{s.title}</h4>
+                        <p className="text-xs text-slate-500 truncate">{(s.tests || []).length} Sub-services</p>
+                    </div>
+                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
+                        <button onClick={() => {setEditingItem(s); setFormType('service');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
+                        <button onClick={() => deleteSiteItem('services', siteData.services, s.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            );
+
+            const renderArticleCard = (a) => (
+                <div key={a.id || a.slug} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
+                    {a.imageUrl ? <img src={a.imageUrl} className="w-16 h-16 rounded-lg object-cover" /> : <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-2xl">📄</div>}
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-navy truncate">{a.title}</h4>
+                        <p className="text-xs text-slate-500 truncate">/{a.slug}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
+                        <button onClick={() => {setEditingItem(a); setFormType('article');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
+                        <button onClick={() => deleteSiteItem('articles', siteData.articles, a.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            );
+
+            // --- FORM WRAPPER (Sticky Save Button) ---
+            const FormWrapper = ({ title, onSave, onCancel, children }) => (
+                <div className="bg-surface rounded-2xl shadow-soft border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
+                    <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white z-10">
+                        <h2 className="text-xl font-bold text-navy flex items-center gap-2"><button onClick={onCancel} className="text-slate-400 hover:text-navy"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                        <div className="max-w-3xl mx-auto space-y-6">
+                            {children}
+                        </div>
+                    </div>
+                    <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3 sticky bottom-0 z-20 shadow-float">
+                        <button onClick={onCancel} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
+                        <button onClick={onSave} className="px-8 py-2.5 rounded-xl font-bold text-white bg-primary hover:bg-blue-700 shadow-sm transition flex items-center gap-2"><i className="ph-bold ph-floppy-disk"></i> Save Changes</button>
+                    </div>
+                </div>
+            );
+
+
+            // --- SPECIFIC FORMS ---
+            const renderEditForm = () => {
+                if (!editingItem) return null;
+                const d = editingItem;
+
+                const updateField = (field, val) => setEditingItem({ ...d, [field]: val });
+
+                if (formType === 'doctor') {
+                    return (
+                        <FormWrapper title={d.id ? "Edit Specialist" : "Add Specialist"} onCancel={() => setEditingItem(null)} onSave={() => {
+                            const arr = [...siteData.doctors];
+                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
+                            saveSiteData('doctors', arr);
+                        }}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                                <ImageUploader label="Profile Photo" url={d.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Qualifications</label><input type="text" value={d.qualification||''} onChange={e=>updateField('qualification', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Biography / Details</label><textarea rows="3" value={d.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                </div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+
+                if (formType === 'exercise') {
+                    return (
+                        <FormWrapper title={d.id ? "Edit Exercise" : "Add Exercise"} onCancel={() => setEditingItem(null)} onSave={() => {
+                            const tagsArray = typeof d.tags === 'string' ? d.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (d.tags||[]);
+                            saveExercise({ ...d, tags: tagsArray });
+                        }}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                <ImageUploader label="Exercise Illustration" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
+                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Exercise Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Description / Instructions</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(d.tags)?d.tags.join(', '):(d.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, back, stretching" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Video URL (Optional)</label><input type="url" value={d.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube Link" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+
+                if (formType === 'product') {
+                    return (
+                        <FormWrapper title={d.id ? "Edit Product" : "Add Product"} onCancel={() => setEditingItem(null)} onSave={() => {
+                            const arr = [...siteData.products];
+                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
+                            saveSiteData('products', arr);
+                        }}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                <ImageUploader label="Main Product Photo" url={d.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Product Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Price</label><input type="text" value={d.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Description</label><textarea rows="4" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                </div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+
+                if (formType === 'service') {
+                    return (
+                        <FormWrapper title={d.id ? "Edit Service" : "Add Service"} onCancel={() => setEditingItem(null)} onSave={() => {
+                            const arr = [...siteData.services];
+                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
+                            saveSiteData('services', arr);
+                        }}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                <ImageUploader label="Banner Image (Optional)" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Service Title</label><input type="text" value={d.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Small Icon (Emoji)</label><input type="text" value={d.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                </div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+
+                if (formType === 'article') {
+                    return (
+                        <FormWrapper title={d.id ? "Edit Article" : "Write Article"} onCancel={() => setEditingItem(null)} onSave={() => {
+                            if(!d.title) return alert("Title required");
+                            const arr = [...siteData.articles];
+                            if(!d.id) { d.id = Date.now(); d.date = new Date().toISOString(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
+                            saveSiteData('articles', arr);
+                        }}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                <ImageUploader label="Cover Image" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Article Title</label>
+                                    <input type="text" value={d.title||''} onChange={e=> { updateField('title', e.target.value); if(!d.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary font-bold text-lg" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">URL Slug (Auto)</label>
+                                    <input type="text" readOnly value={d.slug||''} className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-sm" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Article Content</label>
+                                    <textarea rows="12" value={d.content||''} onChange={e=>updateField('content', e.target.value)} placeholder="Write your article here..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary font-serif" />
+                                </div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+
+                if (formType === 'clinicInfo') {
+                    return (
+                        <FormWrapper title="Website Details" onCancel={() => setEditingItem(null)} onSave={() => saveSiteData('hero', d)}>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                                <div>
+                                    <h3 className="font-bold text-navy mb-4 border-b pb-2">Branding</h3>
+                                    <ImageUploader label="Clinic Logo" url={d.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
+                                    <div className="mt-4"><ImageUploader label="Main Hero Banner" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} /></div>
+                                </div>
+                                
+                                <div>
+                                    <h3 className="font-bold text-navy mb-4 border-b pb-2">Contact & Texts</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Clinic Name</label><input type="text" value={d.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                        <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">WhatsApp Number</label><input type="text" value={d.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </FormWrapper>
+                    );
+                }
+            };
+
+            // --- MAIN RENDER ---
+            return (
+                <div className="flex h-screen overflow-hidden relative">
+                    
+                    {/* Toast */}
+                    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+                        <div className="bg-emerald-500 text-white px-6 py-3 rounded-full shadow-lg font-bold flex items-center gap-2">
+                            <i className="ph-bold ph-check-circle"></i> {toast.msg}
+                        </div>
+                    </div>
+
+                    {renderSidebar()}
+
+                    <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
+                        {/* Top Header Mobile */}
+                        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:hidden shrink-0 z-30 relative">
+                            <h1 className="font-bold text-navy flex items-center gap-2"><i className="ph-fill ph-shield-check text-primary"></i> Admin</h1>
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600"><i className="ph-bold ph-list text-2xl"></i></button>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                            {editingItem ? renderEditForm() : (
+                                <>
+                                    {activeTab === 'overview' && (
+                                        <div className="animate-in fade-in space-y-6">
+                                            <h2 className="text-2xl font-bold text-navy">Dashboard Overview</h2>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('exercises')}>
+                                                    <i className="ph-fill ph-person-simple-walk text-4xl text-blue-500 mb-2"></i>
+                                                    <span className="text-3xl font-black text-navy">{exercises.length}</span>
+                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Exercises</span>
+                                                </div>
+                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('doctors')}>
+                                                    <i className="ph-fill ph-stethoscope text-4xl text-emerald-500 mb-2"></i>
+                                                    <span className="text-3xl font-black text-navy">{siteData.doctors.length}</span>
+                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Doctors</span>
+                                                </div>
+                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('products')}>
+                                                    <i className="ph-fill ph-shopping-bag text-4xl text-purple-500 mb-2"></i>
+                                                    <span className="text-3xl font-black text-navy">{siteData.products.length}</span>
+                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Products</span>
+                                                </div>
+                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('articles')}>
+                                                    <i className="ph-fill ph-article text-4xl text-orange-500 mb-2"></i>
+                                                    <span className="text-3xl font-black text-navy">{siteData.articles.length}</span>
+                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Articles</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 mt-6">
+                                                <h3 className="font-bold text-navy mb-4 border-b pb-2">Quick Actions</h3>
+                                                <div className="flex flex-wrap gap-3">
+                                                    <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="px-4 py-2 bg-slate-100 text-navy font-bold rounded-lg hover:bg-slate-200 flex items-center gap-2"><i className="ph-bold ph-pencil-simple"></i> Edit Website Info</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'clinic' && (
+                                        <div className="animate-in fade-in">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h2 className="text-2xl font-bold text-navy">Website Details</h2>
+                                                <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="bg-primary text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center gap-2"><i className="ph-bold ph-pencil-simple"></i> Edit Info</button>
+                                            </div>
+                                            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 space-y-4">
+                                                <div className="flex items-center gap-4 border-b pb-4"><img src={siteData.hero.logoUrl || '/favicon.png'} className="w-16 h-16 rounded bg-slate-50 object-contain p-1" /> <div><p className="text-xs font-bold text-slate-500 uppercase">Clinic Name</p><p className="font-bold text-lg text-navy">{siteData.hero.clinicName || 'Not Set'}</p></div></div>
+                                                <div><p className="text-xs font-bold text-slate-500 uppercase">WhatsApp Number</p><p className="font-medium text-slate-800">{siteData.hero.whatsappNumber || 'Not Set'}</p></div>
+                                                <div><p className="text-xs font-bold text-slate-500 uppercase">Main Banner</p><img src={siteData.hero.bannerImageUrl} className="w-full max-w-sm rounded-lg mt-1 border" /></div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'doctors' && renderList("Clinical Team", siteData.doctors, renderDoctorCard, () => {setEditingItem({name:''}); setFormType('doctor');})}
+                                    {activeTab === 'services' && renderList("Services", siteData.services, renderServiceCard, () => {setEditingItem({title:''}); setFormType('service');})}
+                                    {activeTab === 'products' && renderList("Wellness Products", siteData.products, renderProductCard, () => {setEditingItem({name:'', price:''}); setFormType('product');})}
+                                    {activeTab === 'articles' && renderList("Health Articles", siteData.articles, renderArticleCard, () => {setEditingItem({title:'', content:''}); setFormType('article');})}
+                                    {activeTab === 'exercises' && renderList("Rehabilitation Exercises", exercises, renderExerciseCard, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
+                                </>
+                            )}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdminApp />);
     </script>
 </body>
 </html>
