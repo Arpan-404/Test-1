@@ -298,7 +298,7 @@
                 setDraftPatient(null);
             } catch(e) { console.error(e); }
             setTimeout(() => setIsSavingPatient(false), 500); 
-          };
+          };8
 
           // --- Ex Tab Handlers ---
           const togglePrescriptionExercise = (id) => {
@@ -845,7 +845,7 @@
 
               {/* --- PRINT VIEW MAIN RX --- */}
               <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
-                  <div className="flex justify-between items-start pb-2">
+                  <div className="flex justify-between items-start pb-2 text-left">
                       <div>
                           <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
                           <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
@@ -968,181 +968,6 @@
               </div>
             </div>
           );
-        }
-
-        // ==========================================
-        // EXERCISE PRINT COMPONENT
-        // ==========================================
-        function ExPrintView({ prescriptionData, exercises, onBack, handleSmartPrint }) {
-            const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
-            const today = new Date().toLocaleDateString('en-GB');
-
-            return (
-                <div className="bg-slate-200 min-h-screen pt-4 md:pt-8 pb-20 print:bg-white print:p-0 absolute inset-0 z-50 overflow-y-auto">
-                    <div className="max-w-4xl mx-auto mb-4 flex justify-between items-center print:hidden px-3 md:px-4">
-                        <button onClick={onBack} className="flex items-center text-slate-600 font-semibold bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><i className="ph-bold ph-arrow-left mr-1"></i> Edit</button>
-                        <button onClick={() => handleSmartPrint('Exercise_Chart', prescriptionData.patientName)} className="flex items-center text-white bg-azure font-bold px-4 py-1.5 md:px-6 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><i className="ph-bold ph-printer mr-2"></i> Print Chart</button>
-                    </div>
-                    
-                    <div className="bg-white max-w-[21cm] min-h-[29.7cm] mx-auto print:shadow-none p-6 sm:p-10 text-slate-900 flex flex-col font-sans border border-slate-300 print:border-none print-full-width">
-                        <div className="flex justify-between items-start mb-4 text-left">
-                            <div>
-                                <h1 className="text-3xl font-bold text-[#1e3a8a] italic tracking-tight" style={{fontFamily: 'Georgia, serif'}}>Dr. Arpan Das (PT)</h1>
-                                <p className="text-[#1e3a8a] font-bold text-[11px] mt-1">BPT (KPC Medical College and Hospital)</p>
-                                <p className="text-[#1e3a8a] font-bold text-[11px]">Consultant Physiotherapist</p>
-                                <p className="text-[9px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                            </div>
-                            
-                            {prescriptionData.upid && (
-                            <div className="flex flex-col items-center justify-center pt-2 px-6">
-                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${prescriptionData.upid}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                                <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
-                            </div>
-                            )}
-
-                            <div className="text-right">
-                                <p className="font-bold text-[#1e3a8a] flex items-center justify-end text-sm"><i className="ph-fill ph-phone-call mr-1"></i> +91 9641568109</p>
-                                <div className="flex items-center justify-end mt-4 text-[11px] font-bold text-[#1e3a8a]">
-                                    <span className="mr-2">Date:</span> 
-                                    <span className="border-b border-[#1e3a8a] pb-0.5 px-2 text-black">{today}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex justify-between items-end border-t border-b border-[#1e3a8a] py-2 mb-6 text-[11px] font-bold text-left">
-                            <div className="flex-1 flex items-end">
-                                <span className="text-[#1e3a8a] mr-2">Patient's name:</span>
-                                <span className="text-black">{prescriptionData.patientName}</span>
-                            </div>
-                            <div className="w-24 flex items-end">
-                                <span className="text-[#1e3a8a] mr-2">Age:</span>
-                                <span className="text-black">{prescriptionData.age}</span>
-                            </div>
-                            <div className="w-32 flex items-end">
-                                <span className="text-[#1e3a8a] mr-2">Gender:</span>
-                                <span className="text-black">{prescriptionData.gender === 'M' ? 'Male' : (prescriptionData.gender === 'F' ? 'Female' : '')}</span>
-                            </div>
-                            <div className="w-24 flex items-end justify-end">
-                                <span className="text-[#1e3a8a] mr-2">UPID:</span>
-                                <span className="text-black">{prescriptionData.upid || ''}</span>
-                            </div>
-                        </div>
-                        
-                        {prescriptionData.notes && (
-                            <div className="mb-6 px-1">
-                                <p className="text-slate-800 text-xs font-medium whitespace-pre-line text-left">{prescriptionData.notes}</p>
-                            </div>
-                        )}
-
-                        <div className="flex-1 w-full">
-                            <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
-                                {prescribedExercises.map((ex) => {
-                                    const params = prescriptionData.exerciseParams[ex.id] || {};
-                                    const customNote = params.note;
-                                    return (
-                                        <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
-                                            <div className="h-32 w-full flex items-center justify-center mb-2">
-                                                {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                                    <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
-                                                ) : (
-                                                    <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                )}
-                                            </div>
-                                            <div className="w-full text-left">
-                                                <h4 className="font-bold text-slate-800 text-[11px] mb-1 text-left">{ex.name}</h4>
-                                                <div className="flex justify-start items-center space-x-2 text-[8px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
-                                                    {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                    {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                    {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                </div>
-                                                {customNote && (
-                                                    <p className="text-[8px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // ==========================================
-        // EXERCISE DB MANAGE COMPONENT
-        // ==========================================
-        function ExDBManage({ exercises, editingExId, setEditingExId, newExercise, setNewExercise, handleAddOrUpdateExercise, handleDeleteEx, handleImageUpload, isUploadingImage, onBack }) {
-            const [dbSearchQuery, setDbSearchQuery] = useState("");
-            const filteredEx = exercises.filter(e => e.name.toLowerCase().includes(dbSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(dbSearchQuery.toLowerCase()))));
-            
-            return (
-                <div className="max-w-5xl mx-auto pb-20 animate-in fade-in">
-                    <div className="flex items-center mb-4 md:mb-6">
-                        <button onClick={onBack} className="p-2 mr-2 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 rounded-full text-slate-700 transition"><i className="ph-bold ph-arrow-left text-lg"></i></button>
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-800">Exercise Database</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                        <div className={`bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border ${editingExId ? 'border-azure ring-1 ring-azure' : 'border-slate-200'} h-fit`}>
-                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-3">{editingExId ? 'Edit Exercise' : 'Upload New Exercise'}</h3>
-                            <form onSubmit={handleAddOrUpdateExercise} className="space-y-3">
-                                <div><label className="text-xs font-bold text-slate-500 mb-1 block">Exercise Name</label><input required type="text" placeholder="e.g. Knee Extension" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50" /></div>
-                                <div><label className="text-xs font-bold text-slate-500 mb-1 block">Description</label><textarea required placeholder="Instructions for patient..." value={newExercise.description} onChange={e => setNewExercise({...newExercise, description: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50" rows="2" /></div>
-                                <div><label className="text-xs font-bold text-slate-500 mb-1 block">Tags (Search Keywords)</label><input type="text" placeholder="comma separated e.g. knee, back" value={newExercise.tags} onChange={e => setNewExercise({...newExercise, tags: e.target.value})} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50" /></div>
-                                
-                                <div className="p-3 bg-appbg border border-slate-200 rounded-lg space-y-3">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Upload Image</label>
-                                        <div className="flex items-center space-x-2 text-xs text-slate-600"><input type="file" accept="image/*" onChange={handleImageUpload} className="file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-blue-100 file:text-blue-700 text-[10px]" />{isUploadingImage && <span className="text-[10px] text-azure font-bold animate-pulse">Uploading...</span>}</div>
-                                        <input type="url" placeholder="Or Paste Image URL directly" value={newExercise.imageUrl} onChange={e => setNewExercise({...newExercise, imageUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 outline-none focus:border-azure mt-2 bg-white" />
-                                        {newExercise.imageUrl && <img src={newExercise.imageUrl} alt="preview" className="h-10 w-10 object-contain mix-blend-multiply rounded mt-1 bg-white border border-slate-200" />}
-                                    </div>
-                                    <hr className="border-slate-200" />
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Video URL (Optional)</label>
-                                        <input type="url" placeholder="Paste YouTube / Video URL" value={newExercise.videoUrl} onChange={e => setNewExercise({...newExercise, videoUrl: e.target.value})} className="w-full text-xs border border-slate-200 rounded p-1.5 outline-none focus:border-azure bg-white" />
-                                    </div>
-                                </div>
-                                <div className="flex space-x-2 mt-2">
-                                    <button type="submit" disabled={isUploadingImage} className="flex-1 bg-navy text-white rounded-md py-2.5 text-sm font-bold flex items-center justify-center hover:bg-slate-800 transition disabled:opacity-50 shadow-sm">{editingExId ? "Update in DB" : "Save to Cloud DB"}</button>
-                                    {editingExId && <button type="button" onClick={() => {setEditingExId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });}} className="px-4 bg-slate-200 text-slate-700 rounded-md py-2.5 text-sm font-bold hover:bg-slate-300 transition">Cancel</button>}
-                                </div>
-                            </form>
-                        </div>
-
-                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col h-[500px] lg:h-auto">
-                            <div className="flex justify-between items-center mb-3">
-                                <h3 className="text-base md:text-lg font-bold text-slate-800">Cloud Library</h3>
-                                <span className="bg-blue-100 text-blue-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full">{exercises.length} Total</span>
-                            </div>
-                            <div className="relative mb-3">
-                                <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
-                                <input type="text" placeholder="Search database..." value={dbSearchQuery} onChange={(e) => setDbSearchQuery(e.target.value)} className="w-full text-xs md:text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 outline-none focus:border-azure bg-slate-50" />
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-2 pr-1 h-scroll">
-                                {filteredEx.map(ex => (
-                                    <div key={ex.id} className="flex items-center justify-between border border-slate-100 rounded-lg p-2 bg-white shadow-sm">
-                                        <div className="flex items-center flex-1 min-w-0 mr-2 text-left">
-                                            <div className="w-10 h-10 shrink-0 bg-slate-50 flex items-center justify-center rounded border border-slate-100 mr-3">
-                                                <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply" alt="" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-[13px] md:text-sm text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-0.5 shrink-0">
-                                            <button onClick={() => {setEditingExId(ex.id); setNewExercise({ name: ex.name, description: ex.description, imageUrl: ex.imageUrl, videoUrl: ex.videoUrl || '', tags: ex.tags ? ex.tags.join(', ') : '' });}} className="p-1.5 text-slate-400 hover:text-azure rounded bg-slate-50"><i className="ph-bold ph-pencil-simple"></i></button>
-                                            <button onClick={() => handleDeleteEx(ex.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded bg-slate-50"><i className="ph-bold ph-trash"></i></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
