@@ -2,197 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Workspace - Physio Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doctor Panel - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
+    <script>
+      tailwind.config = { theme: { extend: { colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f4f7fb', surface: '#ffffff' }, boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)' } } } }
+    </script>
+
     <style>
         body { background-color: #f4f7fb; color: #0f172a; font-family: sans-serif; }
+        .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
+        .editable-cell:not([contenteditable="false"]):empty:before { content: attr(data-placeholder); color: #cbd5e1; pointer-events: none; display: block; }
+        .editable-cell:not([contenteditable="false"]):focus { background-color: rgba(219, 234, 254, 0.5); }
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .h-scroll { scrollbar-width: none; }
+        
         .ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; border-color: #e2e8f0 !important; }
         .ql-container { border-radius: 0 0 8px 8px; border-color: #e2e8f0 !important; font-family: sans-serif; font-size: 14px; background: white;}
-        
-        /* Print Styles */
+
+        @page { size: A4; margin: 10mm; }
         @media print {
-            body { background: white; margin: 0; padding: 0; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
+            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+            .print-break-after-auto { page-break-after: auto; }
+            thead.print-table-header { display: table-header-group; }
+            table.main-print-table { page-break-inside: auto; width: 100%; }
+            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
+            tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
+            .editable-cell:empty:before { content: none !important; display: none !important; }
             .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            @page { size: A4; margin: 15mm; }
-            .print-container { width: 100%; }
-            .print-header { border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
-            .print-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px; font-weight: bold; color: #1e3a8a;}
-            .print-section { margin-bottom: 20px; }
-            .print-title { font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
-            .ex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-            .ex-card { border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; page-break-inside: avoid; }
-            .ex-img { width: 100%; height: 120px; object-contain: contain; margin-bottom: 8px; }
         }
     </style>
 </head>
 <body>
-    <div id="login-screen" class="min-h-screen flex items-center justify-center no-print">
-        <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
-            <i class="ph-fill ph-stethoscope text-5xl text-blue-600 mb-4"></i>
-            <h1 class="text-2xl font-bold text-slate-800 mb-6">Doctor Workspace</h1>
-            <button onclick="window.login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Sign in with Google</button>
-            <a href="/" class="block mt-4 text-sm text-slate-500 font-bold hover:underline">← Back to Site</a>
-        </div>
-    </div>
-
-    <div id="dashboard-screen" class="hidden min-h-screen no-print">
-        <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
-            <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div class="flex items-center gap-2 font-bold text-blue-800 text-lg"><i class="ph-fill ph-activity text-2xl"></i> Clinical Workspace</div>
-                <div class="flex gap-4">
-                    <button onclick="window.switchTab('patients')" id="tab-patients" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition">Prescriptions</button>
-                    <button onclick="window.switchTab('exercises')" id="tab-exercises" class="font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition">Exercise DB</button>
-                </div>
-                <button onclick="window.logout()" class="text-slate-500 hover:text-red-600 font-bold"><i class="ph-bold ph-sign-out text-xl"></i></button>
-            </div>
-        </header>
-
-        <main class="max-w-6xl mx-auto p-4 mt-4">
-            
-            <!-- PATIENTS TAB -->
-            <div id="view-patients">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-slate-800">Patient Records</h2>
-                    <button onclick="window.createNewPatient()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ New Patient</button>
-                </div>
-                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><p class="text-slate-500">Loading patients...</p></div>
-            </div>
-
-            <!-- EXERCISES DB TAB -->
-            <div id="view-exercises" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-slate-800">Exercise Database</h2>
-                    <div class="flex gap-2">
-                        <button onclick="window.openGroupForm()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-indigo-700">+ Add Program</button>
-                        <button onclick="window.openExerciseForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ Add Exercise</button>
-                    </div>
-                </div>
-                
-                <h3 class="font-bold text-slate-600 mb-2 mt-6 border-b pb-1">Programs (Groups)</h3>
-                <div id="groups-list" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-
-                <h3 class="font-bold text-slate-600 mb-2 border-b pb-1">Individual Exercises</h3>
-                <div id="exercises-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-            </div>
-
-            <!-- PATIENT EDITOR -->
-            <div id="view-editor" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <button onclick="window.switchTab('patients')" class="text-slate-600 font-bold hover:text-slate-800"><i class="ph-bold ph-arrow-left"></i> Back</button>
-                    <div class="flex gap-2">
-                        <button onclick="window.triggerPrint()" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-slate-50"><i class="ph-bold ph-printer"></i> Print PDF</button>
-                        <button onclick="window.savePatient()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700"><i class="ph-bold ph-floppy-disk"></i> Save Record</button>
-                    </div>
-                </div>
-
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Clinical Details</h3>
-                        <div class="grid grid-cols-3 gap-3 mb-4">
-                            <input type="text" id="pat-name" placeholder="Name" class="col-span-2 border p-2 rounded outline-none focus:border-blue-500">
-                            <input type="text" id="pat-upid" placeholder="UPID" class="border p-2 rounded outline-none bg-slate-50 font-bold text-blue-700" readonly>
-                            <input type="number" id="pat-age" placeholder="Age" class="border p-2 rounded outline-none focus:border-blue-500">
-                            <select id="pat-gender" class="border p-2 rounded outline-none focus:border-blue-500"><option value="">Gender</option><option value="M">Male</option><option value="F">Female</option></select>
-                            <input type="date" id="pat-date" class="border p-2 rounded outline-none focus:border-blue-500">
-                        </div>
-                        <div class="space-y-3">
-                            <textarea id="pat-cc" placeholder="Chief Complaints" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
-                            <textarea id="pat-hx" placeholder="History" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
-                            <textarea id="pat-ax" placeholder="Assessment" rows="3" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
-                            <textarea id="pat-tx" placeholder="Treatment Plan" rows="3" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2">
-                            <h3 class="font-bold text-slate-800">Assign Exercises</h3>
-                            <span id="selected-count" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">0 Selected</span>
-                        </div>
-                        <div id="assigned-exercises-container" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 border-b pb-4"><p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p></div>
-                        <div>
-                            <input type="text" id="ex-search" placeholder="Search database to add..." oninput="window.filterAssignedList()" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-2">
-                            <div id="ex-picker-list" class="h-[150px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal for Adding Exercises (Rich Text) -->
-    <div id="exercise-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 no-print overflow-y-auto">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl my-auto">
-            <div class="flex justify-between items-center p-4 border-b border-slate-100">
-                <h3 class="font-bold text-lg text-slate-800" id="ex-modal-title">Add Exercise</h3>
-                <button onclick="document.getElementById('exercise-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <input type="hidden" id="ex-id">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-4">
-                        <div><label class="text-xs font-bold text-slate-500 block mb-1">Exercise Title</label><input type="text" id="ex-name" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white"></div>
-                        <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                            <label class="text-xs font-bold text-slate-500 block mb-2">Main Display Image</label>
-                            <input type="file" accept="image/*" onchange="window.uploadImage(this, 'ex-img', 'ex-preview')" class="w-full text-xs mb-2">
-                            <input type="text" id="ex-img" placeholder="Image URL" class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
-                            <img id="ex-preview" class="h-20 object-contain mt-2 hidden border bg-white rounded mx-auto">
-                        </div>
-                        <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                            <label class="text-xs font-bold text-slate-500 block mb-2">Instructional Video URL</label>
-                            <input type="url" id="ex-vid" placeholder="YouTube or MP4 link..." class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-white">
-                        </div>
-                    </div>
-                    <div class="flex flex-col h-full">
-                        <label class="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style) <span class="text-blue-500 ml-2 font-normal text-[10px]">Click 🖼️ icon to insert images</span></label>
-                        <div id="ex-editor-container" style="height: 350px;"></div>
-                    </div>
-                </div>
-                <div class="border-t border-slate-100 pt-4 mt-4">
-                    <button onclick="window.saveExerciseDB()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow hover:bg-blue-700 transition">Publish to Library</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Adding Groups -->
-    <div id="group-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 no-print overflow-y-auto">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md my-auto">
-            <div class="flex justify-between items-center p-4 border-b border-slate-100">
-                <h3 class="font-bold text-lg text-slate-800" id="grp-modal-title">Add Program</h3>
-                <button onclick="document.getElementById('group-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <input type="hidden" id="grp-id">
-                <div><label class="text-xs font-bold text-slate-500 block mb-1">Program Title (e.g. Core Strengthening)</label><input type="text" id="grp-name" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></div>
-                <div><label class="text-xs font-bold text-slate-500 block mb-1">Description</label><textarea id="grp-desc" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></textarea></div>
-                <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                    <label class="text-xs font-bold text-slate-500 block mb-2">Anatomy/Cover Image</label>
-                    <input type="file" accept="image/*" onchange="window.uploadImage(this, 'grp-img', 'grp-preview')" class="w-full text-xs mb-2">
-                    <input type="text" id="grp-img" placeholder="Image URL" class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
-                    <img id="grp-preview" class="h-20 object-contain mt-2 hidden border bg-white rounded mx-auto">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 block mb-1">Select Exercises for this Program</label>
-                    <div id="grp-picker-list" class="h-[150px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1"></div>
-                </div>
-                <div class="border-t border-slate-100 pt-4 mt-4">
-                    <button onclick="window.saveGroupDB()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg shadow hover:bg-indigo-700 transition">Save Program</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HIDDEN PRINT LAYOUT -->
+    
+    <!-- HIDDEN PRINT LAYOUT (Preserved Exactly) -->
     <div id="print-layout" class="hidden print-only print-container font-sans text-slate-900">
-        <div class="print-header">
+        <div class="print-header" style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
             <h1 style="font-size:28px; font-family: Georgia, serif; color:#1e3a8a; font-style:italic;">Dr. Arpan Das (PT)</h1>
             <p style="font-weight:bold; color:#1e3a8a; margin-top:4px;">BPT (KPC Medical College and Hospital)</p>
             <p style="font-weight:bold; color:#1e3a8a;">Consultant Physiotherapist</p>
@@ -201,216 +61,617 @@
                 <p style="font-weight:bold; margin-top:10px;">Date: <span id="print-date" style="border-b:1px solid #000; padding:0 10px;"></span></p>
             </div>
         </div>
-        <div class="print-row"><div>Patient: <span id="print-name" style="font-weight:normal;"></span></div><div>Age: <span id="print-age" style="font-weight:normal;"></span></div><div>Gender: <span id="print-gender" style="font-weight:normal;"></span></div><div>UPID: <span id="print-upid" style="font-weight:normal;"></span></div></div>
-        <div class="print-section"><div class="print-title">Chief Complaint</div><div id="print-cc" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div class="print-section"><div class="print-title">History</div><div id="print-hx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div class="print-section"><div class="print-title">Assessment</div><div id="print-ax" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div class="print-section"><div class="print-title">Treatment Plan</div><div id="print-tx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
-        <div class="print-section" id="print-exercises-section"><div class="print-title">Prescribed Exercises</div><div class="ex-grid" id="print-exercises-list"></div></div>
+
+        <div class="print-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px; font-weight: bold; color: #1e3a8a;">
+            <div>Patient: <span id="print-name" style="font-weight:normal; color:#0f172a;"></span></div>
+            <div>Age: <span id="print-age" style="font-weight:normal; color:#0f172a;"></span></div>
+            <div>Gender: <span id="print-gender" style="font-weight:normal; color:#0f172a;"></span></div>
+            <div>UPID: <span id="print-upid" style="font-weight:normal; color:#0f172a;"></span></div>
+        </div>
+
+        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Chief Complaint</div><div id="print-cc" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">History</div><div id="print-hx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Assessment</div><div id="print-ax" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div style="margin-bottom: 20px;"><div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Treatment Plan</div><div id="print-tx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+
+        <div id="print-exercises-section" style="margin-bottom: 20px;">
+            <div style="font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Prescribed Exercises</div>
+            <div id="print-exercises-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+        </div>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script type="module">
+    <div id="root" class="no-print"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useRef } = React;
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref as rtdbRef, onValue, push, set as rtdbSet, remove as rtdbRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getDatabase, ref as dbRef, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", authDomain: "patient-records-arpan.firebaseapp.com", projectId: "patient-records-arpan", storageBucket: "patient-records-arpan.firebasestorage.app", messagingSenderId: "599041105903", appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" };
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const rtdb = getDatabase(app);
+        const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
 
-        window.state = { user: null, patients: [], exercises: [], groups: [], currentPatient: null, activeGroupExIds: [] };
+        const fbConfig = { apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", authDomain: "patient-records-arpan.firebaseapp.com", projectId: "patient-records-arpan", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" };
+        const app = initializeApp(fbConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
 
-        // Initialize Rich Text Editor
-        const quillEditor = new Quill('#ex-editor-container', { 
-            theme: 'snow', 
-            modules: { toolbar: { container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ], handlers: { image: selectArticleImage } } } 
-        });
+        // ==========================================
+        // COMPONENTS
+        // ==========================================
 
-        function selectArticleImage() {
-            const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
-            input.onchange = async () => {
-                const file = input.files[0];
-                if (/^image\//.test(file.type)) {
-                    const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
-                    try {
-                        const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
-                        const data = await res.json();
-                        if(data.secure_url) { const range = quillEditor.getSelection() || { index: quillEditor.getLength() }; quillEditor.insertEmbed(range.index, 'image', data.secure_url); }
-                    } catch(e) { alert("Upload error"); }
+        function RichTextEditor({ value, onChange }) {
+            const editorRef = useRef(null);
+            const quillRef = useRef(null);
+
+            useEffect(() => {
+                if (editorRef.current && !quillRef.current) {
+                    quillRef.current = new window.Quill(editorRef.current, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: {
+                                container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image'], ['clean'] ],
+                                handlers: {
+                                    image: () => {
+                                        const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
+                                        input.onchange = async () => {
+                                            const file = input.files[0];
+                                            if (/^image\//.test(file.type)) {
+                                                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
+                                                try {
+                                                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
+                                                    const data = await res.json();
+                                                    if(data.secure_url) {
+                                                        const range = quillRef.current.getSelection() || { index: quillRef.current.getLength() };
+                                                        quillRef.current.insertEmbed(range.index, 'image', data.secure_url);
+                                                    }
+                                                } catch(e) { alert("Upload error"); }
+                                            }
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    quillRef.current.on('text-change', () => { onChange(quillRef.current.root.innerHTML); });
+                    quillRef.current.root.innerHTML = value || '';
                 }
+            }, []);
+
+            useEffect(() => {
+                if (quillRef.current) {
+                    const currentHTML = quillRef.current.root.innerHTML;
+                    if (value !== currentHTML) {
+                        if(value === '' || value === undefined) quillRef.current.root.innerHTML = '';
+                        else if (value && value !== '<p><br></p>') quillRef.current.root.innerHTML = value;
+                    }
+                }
+            }, [value]);
+
+            return <div ref={editorRef} style={{ height: '350px' }} />;
+        }
+
+        const JOINTS_DATA = {
+          'Cervical': [ { name: 'Flexion', type: 'single', normal: '45°' }, { name: 'Extension', type: 'single', normal: '45°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '45°' }, { name: 'Rotation', type: 'bilateral', normal: '60°' } ],
+          'Spine': [ { name: 'Flexion', type: 'single', normal: '80°' }, { name: 'Extension', type: 'single', normal: '25°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '35°' }, { name: 'Rotation', type: 'bilateral', normal: '45°' } ],
+          'Shoulder': [ { name: 'Flexion', type: 'bilateral', normal: '180°' }, { name: 'Extension', type: 'bilateral', normal: '60°' }, { name: 'Abduction', type: 'bilateral', normal: '180°' }, { name: 'Adduction', type: 'bilateral', normal: '50°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '70°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '90°' } ],
+          'Elbow': [ { name: 'Flexion', type: 'bilateral', normal: '150°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
+          'Forearm': [ { name: 'Pronation', type: 'bilateral', normal: '80°' }, { name: 'Supination', type: 'bilateral', normal: '80°' } ],
+          'Wrist': [ { name: 'Flexion', type: 'bilateral', normal: '80°' }, { name: 'Extension', type: 'bilateral', normal: '70°' }, { name: 'Radial Dev.', type: 'bilateral', normal: '20°' }, { name: 'Ulnar Dev.', type: 'bilateral', normal: '30°' } ],
+          'Hip': [ { name: 'Flexion', type: 'bilateral', normal: '120°' }, { name: 'Extension', type: 'bilateral', normal: '30°' }, { name: 'Abduction', type: 'bilateral', normal: '45°' }, { name: 'Adduction', type: 'bilateral', normal: '30°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '45°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '45°' } ],
+          'Knee': [ { name: 'Flexion', type: 'bilateral', normal: '135°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
+          'Ankle': [ { name: 'Dorsiflexion', type: 'bilateral', normal: '20°' }, { name: 'Plantarflexion', type: 'bilateral', normal: '50°' }, { name: 'Inversion', type: 'bilateral', normal: '35°' }, { name: 'Eversion', type: 'bilateral', normal: '15°' } ]
+        };
+
+        function AutoTextArea({ value, ...props }) {
+            const ref = useRef(null);
+            useEffect(() => { if (ref.current) { ref.current.style.height = 'auto'; ref.current.style.height = ref.current.scrollHeight + 'px'; } }, [value]);
+            return <textarea ref={ref} value={value} {...props} style={{ overflow: 'hidden', resize: 'none' }} />;
+        }
+
+        function CustomTableEditor({ table, updateTable, removeTable, readOnly = false }) {
+            const addRow = () => updateTable({ ...table, rows: [...table.rows, Array(table.headers.length).fill('')] });
+            const addCol = () => updateTable({ ...table, headers: [...table.headers, 'New Col'], rows: table.rows.map(r => [...r, '']) });
+            const removeRow = (idx) => updateTable({ ...table, rows: table.rows.filter((_, i) => i !== idx) });
+            const removeCol = (idx) => updateTable({ ...table, headers: table.headers.filter((_, i) => i !== idx), rows: table.rows.map(r => r.filter((_, i) => i !== idx)) });
+            const updateHeader = (idx, val) => updateTable({ ...table, headers: table.headers.map((h, i) => i === idx ? val : h) });
+            const updateCell = (rIdx, cIdx, val) => updateTable({ ...table, rows: table.rows.map((row, i) => i === rIdx ? row.map((cell, j) => j === cIdx ? val : cell) : row) });
+            const updateTitle = (val) => updateTable({ ...table, title: val });
+
+            return (
+                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto print:overflow-visible print:border-none print:shadow-none print-break-inside-avoid">
+                    <div className={`bg-ice/30 px-2 py-1.5 flex items-center justify-between border-b border-slate-200 print:bg-transparent print:px-0 ${table.title ? 'print:border-b print:border-[#1e40af]' : 'print:border-none print:p-0'}`}>
+                        <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateTitle(e.currentTarget.innerText)} className={`font-bold text-[13px] text-navy outline-none editable-cell w-auto print:text-[#1e40af] print:text-[18px] ${!table.title && readOnly ? 'hidden' : ''}`} data-placeholder={readOnly ? '' : "Table Title"}>{table.title}</div>
+                        {!readOnly && (
+                            <div className="flex gap-1 print:hidden ml-3">
+                                <button onClick={addCol} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Col</button>
+                                <button onClick={addRow} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Row</button>
+                                <button onClick={removeTable} className="text-[10px] text-red-500 px-1.5 py-0.5"><i className="ph-bold ph-trash"></i></button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-1.5 print:p-0 print:mt-2">
+                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
+                            <thead>
+                                <tr>
+                                    {table.headers.map((h, i) => (
+                                        <th key={i} className="relative group border border-slate-200 p-0 bg-slate-50 print:border print:border-[#1e40af] print:bg-blue-50/30 print-break-inside-avoid">
+                                            <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateHeader(i, e.currentTarget.innerText)} className={`editable-cell font-bold text-navy text-[11px] p-1.5 print:text-[#1e40af] print:font-bold print:text-[16px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="Header">{h}</div>
+                                            {!readOnly && table.headers.length > 1 && ( <button onClick={() => removeCol(i)} className="absolute -top-1.5 -right-1.5 bg-red-100 text-red-600 rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity print:hidden text-[8px] z-10"><i className="ph-bold ph-x"></i></button> )}
+                                        </th>
+                                    ))}
+                                    {!readOnly && <th className="w-6 border-none print:hidden"></th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {table.rows.map((row, rIdx) => (
+                                    <tr key={rIdx} className="group print-break-inside-avoid">
+                                        {row.map((cell, cIdx) => (
+                                            <td key={cIdx} className="border border-slate-200 p-0 align-top print:border print:border-[#1e40af]">
+                                                <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateCell(rIdx, cIdx, e.currentTarget.innerText)} className={`editable-cell text-slate-700 text-[11px] p-1.5 min-h-[28px] print:text-slate-900 print:min-h-0 print:py-1.5 print:px-2.5 print:text-[16px] ${readOnly ? 'min-h-[auto] cursor-default' : ''}`}>{cell}</div>
+                                            </td>
+                                        ))}
+                                        {!readOnly && (
+                                            <td className="w-6 text-center border-none p-0 align-middle print:hidden">
+                                                {table.rows.length > 1 && ( <button onClick={() => removeRow(rIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"><i className="ph-bold ph-trash text-[10px]"></i></button> )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // EXERCISE DB COMPONENT
+        // ==========================================
+        function ExerciseDBView({ exercises, groups, dbRef, rtdb }) {
+            const [tab, setTab] = useState('exercises');
+            const [search, setSearch] = useState('');
+            const [editingEx, setEditingEx] = useState(null);
+            const [editingGrp, setEditingGrp] = useState(null);
+            
+            const handleUpload = async (e, setter) => {
+                const file = e.target.files[0]; if(!file) return;
+                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
+                try {
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if(data.secure_url) setter(data.secure_url);
+                } catch(e) { alert('Upload failed'); }
             };
+
+            const saveEx = async () => {
+                const tags = typeof editingEx.tags === 'string' ? editingEx.tags.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t) : editingEx.tags;
+                const data = { name: editingEx.name, description: editingEx.description, imageUrl: editingEx.imageUrl, videoUrl: editingEx.videoUrl, tags };
+                if(editingEx.id) await set(dbRef(rtdb, 'exercises/' + editingEx.id), data);
+                else await set(push(dbRef(rtdb, 'exercises')), data);
+                setEditingEx(null);
+            };
+
+            const saveGrp = async () => {
+                const data = { name: editingGrp.name, description: editingGrp.description, imageUrl: editingGrp.imageUrl, exerciseIds: editingGrp.exerciseIds || [] };
+                if(editingGrp.id) await set(dbRef(rtdb, 'exerciseGroups/' + editingGrp.id), data);
+                else await set(push(dbRef(rtdb, 'exerciseGroups')), data);
+                setEditingGrp(null);
+            };
+
+            const filtered = (tab === 'exercises' ? exercises : groups).filter(x => x.name.toLowerCase().includes(search.toLowerCase()));
+
+            return (
+                <div className="animate-in fade-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="flex gap-2 bg-slate-200 p-1 rounded-lg">
+                            <button onClick={()=>setTab('exercises')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition ${tab === 'exercises' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-600 hover:text-slate-800'}`}>Exercises</button>
+                            <button onClick={()=>setTab('groups')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition ${tab === 'groups' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-600 hover:text-slate-800'}`}>Programs</button>
+                        </div>
+                        <button onClick={()=>{ if(tab==='exercises') setEditingEx({name:'', description:'', imageUrl:'', videoUrl:'', tags:[]}); else setEditingGrp({name:'', description:'', imageUrl:'', exerciseIds:[]}); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-blue-700">+ Add {tab==='exercises'?'Exercise':'Program'}</button>
+                    </div>
+
+                    <input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search database..." className="w-full mb-4 p-2 border rounded-lg outline-none focus:border-blue-500 shadow-sm" />
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {filtered.map(item => (
+                            <div key={item.id} className="bg-white border rounded-xl overflow-hidden shadow-sm flex flex-col">
+                                <img src={item.imageUrl} className="w-full h-24 object-cover bg-slate-50" />
+                                <div className="p-3 flex-grow flex flex-col justify-between">
+                                    <h4 className="font-bold text-sm text-slate-800 mb-2 leading-tight line-clamp-2">{item.name}</h4>
+                                    <div className="flex justify-between mt-auto">
+                                        <button onClick={()=>tab==='exercises'?setEditingEx(item):setEditingGrp(item)} className="text-xs font-bold text-blue-600 hover:underline">Edit</button>
+                                        <button onClick={()=>tab==='exercises'?remove(dbRef(rtdb, 'exercises/' + item.id)):remove(dbRef(rtdb, 'exerciseGroups/' + item.id))} className="text-xs font-bold text-red-500 hover:underline">Del</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {filtered.length === 0 && <p className="col-span-full text-center text-slate-400 py-10">No items found.</p>}
+                    </div>
+
+                    {/* MODALS */}
+                    {editingEx && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-y-auto max-h-[90vh]">
+                                <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+                                    <h3 className="font-bold text-lg">{editingEx.id ? 'Edit' : 'Add'} Exercise</h3>
+                                    <button onClick={()=>setEditingEx(null)} className="text-slate-400 hover:text-red-500 text-xl font-bold">✕</button>
+                                </div>
+                                <div className="p-6 grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div><label className="text-xs font-bold text-slate-500 mb-1 block">Name</label><input type="text" value={editingEx.name} onChange={e=>setEditingEx({...editingEx, name: e.target.value})} className="w-full border p-2 rounded text-sm outline-none focus:border-blue-500 bg-slate-50" /></div>
+                                        <div><label className="text-xs font-bold text-slate-500 mb-1 block">Tags (comma separated)</label><input type="text" value={typeof editingEx.tags==='string'?editingEx.tags:(editingEx.tags||[]).join(', ')} onChange={e=>setEditingEx({...editingEx, tags: e.target.value})} className="w-full border p-2 rounded text-sm outline-none focus:border-blue-500 bg-slate-50" /></div>
+                                        <div className="bg-slate-50 p-3 rounded border">
+                                            <label className="text-xs font-bold text-slate-500 block mb-2">Display Image</label>
+                                            <input type="file" accept="image/*" onChange={e=>handleUpload(e,url=>setEditingEx({...editingEx, imageUrl: url}))} className="w-full text-xs mb-2"/>
+                                            <input type="text" value={editingEx.imageUrl||''} readOnly className="w-full border p-1.5 rounded text-xs bg-white" />
+                                            {editingEx.imageUrl && <img src={editingEx.imageUrl} className="h-16 mt-2 object-contain bg-white border rounded p-1"/>}
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded border">
+                                            <label className="text-xs font-bold text-slate-500 block mb-2">Video URL</label>
+                                            <input type="text" value={editingEx.videoUrl||''} onChange={e=>setEditingEx({...editingEx, videoUrl: e.target.value})} placeholder="YouTube link..." className="w-full border p-1.5 rounded text-xs bg-white" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col h-[400px]">
+                                        <label className="text-xs font-bold text-slate-500 block mb-1">Article Content (Wiki Style) <span className="text-blue-500 ml-2 font-normal text-[10px]">Click 🖼️ icon to insert images</span></label>
+                                        <RichTextEditor value={editingEx.description} onChange={v => setEditingEx({...editingEx, description: v})} />
+                                    </div>
+                                </div>
+                                <div className="p-4 border-t sticky bottom-0 bg-white"><button onClick={saveEx} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow hover:bg-blue-700">Save Exercise</button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {editingGrp && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
+                                <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10"><h3 className="font-bold text-lg">{editingGrp.id ? 'Edit' : 'Add'} Program</h3><button onClick={()=>setEditingGrp(null)} className="text-slate-400 hover:text-red-500 text-xl font-bold">✕</button></div>
+                                <div className="p-6 space-y-4">
+                                    <div><label className="text-xs font-bold text-slate-500 mb-1 block">Title</label><input type="text" value={editingGrp.name} onChange={e=>setEditingGrp({...editingGrp, name: e.target.value})} className="w-full border p-2 rounded text-sm outline-none focus:border-blue-500 bg-slate-50" /></div>
+                                    <div><label className="text-xs font-bold text-slate-500 mb-1 block">Description</label><textarea value={editingGrp.description} onChange={e=>setEditingGrp({...editingGrp, description: e.target.value})} rows="3" className="w-full border p-2 rounded text-sm outline-none focus:border-blue-500 bg-slate-50" /></div>
+                                    <div className="bg-slate-50 p-3 rounded border">
+                                        <label className="text-xs font-bold text-slate-500 block mb-2">Cover Image</label>
+                                        <input type="file" accept="image/*" onChange={e=>handleUpload(e,url=>setEditingGrp({...editingGrp, imageUrl: url}))} className="w-full text-xs mb-2"/>
+                                        {editingGrp.imageUrl && <img src={editingGrp.imageUrl} className="h-16 mt-2 object-contain bg-white border rounded p-1"/>}
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1 block">Select Exercises</label>
+                                        <div className="h-48 overflow-y-auto border rounded p-2 bg-slate-50 space-y-1">
+                                            {exercises.map(ex => (
+                                                <label key={ex.id} className="flex items-center text-xs p-1.5 hover:bg-slate-200 cursor-pointer rounded">
+                                                    <input type="checkbox" checked={(editingGrp.exerciseIds||[]).includes(ex.id)} onChange={()=>{ const ids = editingGrp.exerciseIds||[]; setEditingGrp({...editingGrp, exerciseIds: ids.includes(ex.id)?ids.filter(x=>x!==ex.id):[...ids, ex.id]}) }} className="mr-2"/> {ex.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button onClick={saveGrp} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow hover:bg-blue-700 mt-4">Save Program</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         }
 
-        onAuthStateChanged(auth, user => {
-            window.state.user = user;
-            if (user) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('dashboard-screen').classList.remove('hidden'); loadData(); } 
-            else { document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('dashboard-screen').classList.add('hidden'); }
-        });
+        // ==========================================
+        // MAIN APP COMPONENT
+        // ==========================================
+        function App() {
+            const [user, setUser] = useState(null);
+            const [isChecking, setIsChecking] = useState(true);
+            
+            // Global Toggles exactly like your screenshot
+            const [globalTab, setGlobalTab] = useState('main-rx'); // 'main-rx' or 'exercise-db'
+            const [rxView, setRxView] = useState('home'); // 'home' or 'patient'
+            
+            const [patients, setPatients] = useState([]);
+            const [exercises, setExercises] = useState([]);
+            const [groups, setGroups] = useState([]);
+            
+            const [activePatient, setActivePatient] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [isSaving, setIsSaving] = useState(false);
 
-        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
-        window.logout = () => signOut(auth);
+            useEffect(() => {
+                const unsubscribe = onAuthStateChanged(auth, u => { setUser(u); setIsChecking(false); });
+                return () => unsubscribe();
+            }, []);
 
-        function loadData() {
-            onSnapshot(collection(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'), (snap) => {
-                window.state.patients = []; snap.forEach(d => window.state.patients.push({id: d.id, ...d.data()})); renderPatients();
-            });
-            onValue(rtdbRef(rtdb, 'exercises'), (snap) => {
-                window.state.exercises = [];
-                if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => window.state.exercises.push({id: k, ...data[k]})); window.state.exercises.reverse(); }
-                renderExercisesDB(); if(window.state.currentPatient) renderAssignedExercises();
-            });
-            onValue(rtdbRef(rtdb, 'exerciseGroups'), (snap) => {
-                window.state.groups = [];
-                if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => window.state.groups.push({id: k, ...data[k]})); }
-                renderGroupsDB();
-            });
+            useEffect(() => {
+                if(!user) return;
+                onSnapshot(collection(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'), (snap) => {
+                    const data = [];
+                    snap.forEach(doc => {
+                        const p = doc.data();
+                        if (p.customTables) { p.customTables = p.customTables.map(t => { let rows = [['','']]; try { rows = typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows; } catch(e){} return {...t, rows}; }); }
+                        data.push({ id: doc.id, ...p });
+                    });
+                    setPatients(data);
+                });
+                onValue(dbRef(rtdb, 'exercises'), (snap) => {
+                    const exData = [];
+                    if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => exData.push({id: k, ...data[k]})); exData.reverse(); }
+                    setExercises(exData);
+                });
+                onValue(dbRef(rtdb, 'exerciseGroups'), (snap) => {
+                    const grpData = [];
+                    if(snap.exists()) { const data = snap.val(); Object.keys(data).forEach(k => grpData.push({id: k, ...data[k]})); }
+                    setGroups(grpData);
+                });
+            }, [user]);
+
+            if (isChecking) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-800">Loading Workspace...</div>;
+
+            if (!user) return (
+                <div className="min-h-screen flex items-center justify-center bg-appbg p-4 no-print">
+                    <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
+                        <i className="ph-fill ph-stethoscope text-5xl text-blue-600 mb-4"></i>
+                        <h1 className="text-2xl font-bold text-slate-800 mb-6">Doctor Workspace</h1>
+                        <button onClick={() => signInWithPopup(auth, new GoogleAuthProvider())} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Sign in with Google</button>
+                        <a href="/" className="block mt-6 text-sm text-slate-500 font-bold hover:underline">← Back to Site</a>
+                    </div>
+                </div>
+            );
+
+            // --- PATIENT EDITOR LOGIC ---
+            const createPatient = () => {
+                let upid = Math.floor(1000 + Math.random() * 9000).toString();
+                const p = { id: generateId(), ipId: upid, doctorId: user.uid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }], exerciseIds: [], exerciseParams: {} };
+                setActivePatient(p); setRxView('patient');
+            };
+
+            const openPatient = (p) => {
+                let copy = JSON.parse(JSON.stringify(p));
+                if(!copy.customTables) copy.customTables = [];
+                if(!copy.reassessmentTables || copy.reassessmentTables.length === 0) copy.reassessmentTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
+                if(!copy.exerciseIds) copy.exerciseIds = [];
+                if(!copy.exerciseParams) copy.exerciseParams = {};
+                setActivePatient(copy); setRxView('patient');
+            };
+
+            const savePatient = async () => {
+                setIsSaving(true);
+                const p = {...activePatient};
+                if(p.customTables) p.customTables = p.customTables.map(t => ({...t, rows: JSON.stringify(t.rows)}));
+                
+                // Grab DOM exercise params directly (keeping your old architecture safe)
+                p.exerciseIds.forEach(id => {
+                    p.exerciseParams[id] = {
+                        reps: document.getElementById(`rep-${id}`)?.value || '',
+                        sets: document.getElementById(`set-${id}`)?.value || '',
+                        freq: document.getElementById(`freq-${id}`)?.value || '',
+                        note: document.getElementById(`note-${id}`)?.value || ''
+                    };
+                });
+
+                await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p);
+                setTimeout(() => setIsSaving(false), 500);
+            };
+
+            // Global trigger print (Matches your old structure perfectly)
+            window.triggerPrint = () => {
+                const p = activePatient;
+                p.name = document.getElementById('pat-name').value;
+                p.age = document.getElementById('pat-age').value;
+                p.gender = document.getElementById('pat-gender').value;
+                p.date = document.getElementById('pat-date').value;
+                p.chiefComplaints = document.getElementById('pat-cc').value;
+                p.history = document.getElementById('pat-hx').value;
+                p.assessmentNote = document.getElementById('pat-ax').value;
+                p.treatmentNote = document.getElementById('pat-tx').value;
+                
+                p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
+
+                document.getElementById('print-date').innerText = p.date ? new Date(p.date).toLocaleDateString('en-GB') : '';
+                document.getElementById('print-name').innerText = p.name; document.getElementById('print-age').innerText = p.age; document.getElementById('print-gender').innerText = p.gender; document.getElementById('print-upid').innerText = p.ipId;
+
+                const setField = (id, val) => { const el = document.getElementById(id); el.innerText = val; el.parentElement.style.display = val ? 'block' : 'none'; };
+                setField('print-cc', p.chiefComplaints); setField('print-hx', p.history); setField('print-ax', p.assessmentNote); setField('print-tx', p.treatmentNote);
+
+                const exContainer = document.getElementById('print-exercises-list');
+                if(p.exerciseIds.length > 0) {
+                    document.getElementById('print-exercises-section').style.display = 'block';
+                    exContainer.innerHTML = p.exerciseIds.map(id => {
+                        const ex = exercises.find(e => e.id === id); if(!ex) return '';
+                        const params = p.exerciseParams[id];
+                        return `<div class="ex-card">${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}<div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div><div style="font-size:11px; color:#1e3a8a; font-weight:bold;">${params.reps ? `Reps: <span style="color:#000">${params.reps}</span> &nbsp;` : ''}${params.sets ? `Sets: <span style="color:#000">${params.sets}</span> &nbsp;` : ''}${params.freq ? `Freq: <span style="color:#000">${params.freq}</span>` : ''}</div>${params.note ? `<div style="font-size:11px; margin-top:4px;">${params.note}</div>` : ''}</div>`;
+                    }).join('');
+                } else { document.getElementById('print-exercises-section').style.display = 'none'; }
+
+                window.print();
+            };
+
+            const updateP = (k, v) => setActivePatient(prev => ({...prev, [k]: v}));
+            const toggleEx = (id) => setActivePatient(prev => { const nIds = prev.exerciseIds.includes(id) ? prev.exerciseIds.filter(x=>x!==id) : [...prev.exerciseIds, id]; const nPrm = {...prev.exerciseParams}; if(!prev.exerciseIds.includes(id)) nPrm[id] = {reps:'10', sets:'3', freq:'2x/Day', note:''}; return {...prev, exerciseIds: nIds, exerciseParams: nPrm}; });
+            const updExPrm = (id, f, v) => setActivePatient(prev => ({...prev, exerciseParams: {...prev.exerciseParams, [id]: {...prev.exerciseParams[id], [f]: v}}}));
+
+            const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
+            const [activeRTableId, setActiveRTableId] = useState(null);
+
+            return (
+                <div className="min-h-screen pt-[60px] pb-20 print:p-0 print:m-0">
+                    {/* Header Toggle */}
+                    <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center no-print">
+                        <div className="flex bg-slate-200 p-1 rounded-lg shadow-inner">
+                            <button onClick={() => setGlobalTab('main-rx')} className={`px-5 py-2 text-sm font-bold rounded-md transition ${globalTab === 'main-rx' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}>Main Rx</button>
+                            <button onClick={() => setGlobalTab('exercise-db')} className={`px-5 py-2 text-sm font-bold rounded-md transition ${globalTab === 'exercise-db' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}>Exercise DB</button>
+                        </div>
+                        <button onClick={() => signOut(auth)} className="text-slate-400 hover:text-red-500 font-bold bg-white px-3 py-1.5 rounded-lg border shadow-sm"><i className="ph-bold ph-sign-out"></i> Logout</button>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto px-4">
+                        {globalTab === 'exercise-db' && <ExerciseDBView exercises={exercises} groups={groups} dbRef={dbRef} rtdb={rtdb} />}
+
+                        {globalTab === 'main-rx' && rxView === 'home' && (
+                            <div className="animate-in fade-in no-print">
+                                <div className="flex justify-between items-center mb-6 bg-white p-3 rounded-xl border shadow-sm">
+                                    <div className="relative w-full max-w-sm">
+                                        <i className="ph-bold ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                                        <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search patients..." className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 bg-slate-50" />
+                                    </div>
+                                    <button onClick={createPatient} className="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-blue-700 ml-4 whitespace-nowrap">+ New Patient</button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {patients.filter(p=>p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.ipId.includes(searchQuery)).map(p => (
+                                        <div key={p.id} onClick={()=>openPatient(p)} className="bg-white p-4 rounded-xl border shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition">
+                                            <div className="flex justify-between items-start mb-2"><h3 className="font-bold text-slate-800 text-lg truncate">{p.name || 'Unnamed'}</h3><span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">#{p.ipId}</span></div>
+                                            <p className="text-sm text-slate-500 mb-2 truncate">{p.assessmentNote || 'No notes'}</p>
+                                            <div className="text-xs font-bold text-blue-600">{(p.exerciseIds||[]).length} Exercises</div>
+                                        </div>
+                                    ))}
+                                    {patients.length === 0 && <p className="col-span-full text-center py-10 text-slate-400">No records found.</p>}
+                                </div>
+                            </div>
+                        )}
+
+                        {globalTab === 'main-rx' && rxView === 'patient' && (
+                            <div className="animate-in fade-in print:p-0">
+                                <div className="flex justify-between items-center mb-4 no-print border-b border-slate-200 pb-4">
+                                    <button onClick={() => setRxView('home')} className="text-slate-600 font-bold hover:text-slate-800 bg-white px-4 py-2 border rounded-full shadow-sm"><i className="ph-bold ph-arrow-left"></i> Back</button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => window.triggerPrint()} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-slate-50"><i className="ph-bold ph-printer"></i> Print PDF</button>
+                                        <button onClick={savePatient} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-blue-700"><i className="ph-bold ph-floppy-disk"></i> Save {isSaving&&"..."}</button>
+                                    </div>
+                                </div>
+
+                                <div className="grid lg:grid-cols-2 gap-6 no-print">
+                                    <div className="space-y-6">
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                                            <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">Clinical Details</h3>
+                                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                                <input type="text" id="pat-name" value={activePatient.name} onChange={e=>updateP('name',e.target.value)} placeholder="Name" className="col-span-2 border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
+                                                <input type="text" value={activePatient.ipId} readOnly className="border p-2 rounded bg-slate-50 font-bold text-blue-700 text-center" />
+                                                <input type="number" id="pat-age" value={activePatient.age} onChange={e=>updateP('age',e.target.value)} placeholder="Age" className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white" />
+                                                <select id="pat-gender" value={activePatient.gender} onChange={e=>updateP('gender',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 bg-slate-50 focus:bg-white"><option value="">Gen</option><option value="M">M</option><option value="F">F</option></select>
+                                                <input type="date" id="pat-date" value={activePatient.date} onChange={e=>updateP('date',e.target.value)} className="border p-2 rounded outline-none focus:border-blue-500 text-xs font-bold bg-slate-50 focus:bg-white" />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <AutoTextArea id="pat-cc" value={activePatient.chiefComplaints} onChange={e=>updateP('chiefComplaints',e.target.value)} placeholder="Chief Complaints" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
+                                                <AutoTextArea id="pat-hx" value={activePatient.history} onChange={e=>updateP('history',e.target.value)} placeholder="History" className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm bg-slate-50 focus:bg-white" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                                            <div className="flex justify-between mb-2"><h3 className="font-bold text-slate-800">Assessment</h3><button onClick={()=>setActivePatient(prev => ({...prev, customTables: [...prev.customTables, {id: generateId(), section: 'assessment', title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] }))} className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">+ Table</button></div>
+                                            <AutoTextArea id="pat-ax" value={activePatient.assessmentNote} onChange={e=>updateP('assessmentNote',e.target.value)} placeholder="Assessment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
+                                            <div className="flex flex-wrap gap-2">{(activePatient.customTables||[]).filter(t=>t.section==='assessment').map(t=><CustomTableEditor key={t.id} table={t} updateTable={(newT)=>setActivePatient(p=>({...p, customTables: p.customTables.map(x=>x.id===newT.id?newT:x)}))} removeTable={()=>setActivePatient(p=>({...p, customTables: p.customTables.filter(x=>x.id!==t.id)}))} />)}</div>
+                                        </div>
+
+                                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                                            <div className="flex justify-between mb-2"><h3 className="font-bold text-slate-800">Treatment Plan</h3><button onClick={()=>setActivePatient(prev => ({...prev, customTables: [...prev.customTables, {id: generateId(), section: 'treatment', title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] }))} className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">+ Table</button></div>
+                                            <AutoTextArea id="pat-tx" value={activePatient.treatmentNote} onChange={e=>updateP('treatmentNote',e.target.value)} placeholder="Treatment Notes..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-3 bg-slate-50 focus:bg-white" />
+                                            <div className="flex flex-wrap gap-2">{(activePatient.customTables||[]).filter(t=>t.section==='treatment').map(t=><CustomTableEditor key={t.id} table={t} updateTable={(newT)=>setActivePatient(p=>({...p, customTables: p.customTables.map(x=>x.id===newT.id?newT:x)}))} removeTable={()=>setActivePatient(p=>({...p, customTables: p.customTables.filter(x=>x.id!==t.id)}))} />)}</div>
+                                        </div>
+
+                                        <div className="space-y-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                                            <div className="flex justify-between items-center"><h3 className="font-bold text-slate-800">Progression Tracking</h3><button onClick={()=>setActivePatient(prev => ({...prev, customTables: [...prev.customTables, {id: generateId(), section: 'reassessment', title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] }))} className="text-[10px] font-bold bg-white border px-2 py-1 rounded shadow-sm">+ Simple Table</button></div>
+                                            <div className="flex flex-wrap gap-2">{(activePatient.customTables||[]).filter(t=>t.section==='reassessment').map(t=><CustomTableEditor key={t.id} table={t} updateTable={(newT)=>setActivePatient(p=>({...p, customTables: p.customTables.map(x=>x.id===newT.id?newT:x)}))} removeTable={()=>setActivePatient(p=>({...p, customTables: p.customTables.filter(x=>x.id!==t.id)}))} />)}</div>
+                                            
+                                            {activePatient.reassessmentTables.map(rt => (
+                                                <div key={rt.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-4">
+                                                    <div className="p-2 bg-slate-50 border-b flex justify-between">
+                                                        <input type="text" value={rt.title} onChange={e=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(x=>x.id===rt.id?{...x, title: e.target.value}:x)}))} className="font-bold text-sm text-blue-800 bg-transparent outline-none w-full" />
+                                                        <div className="flex gap-1 shrink-0">
+                                                            <button onClick={()=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.filter(x=>x.id!==rt.id)}))} className="text-red-500 hover:bg-red-50 px-2 rounded"><i className="ph-bold ph-trash"></i></button>
+                                                            <button onClick={()=>{setActiveRTableId(rt.id); setIsMetricModalOpen(true);}} className="bg-blue-800 text-white px-2 py-1 rounded text-[10px] font-bold">+ Col</button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="overflow-x-auto p-2 h-scroll">
+                                                        <table className="w-full text-xs border-collapse border border-slate-200">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th className="p-1 border border-slate-200 bg-slate-50 text-left w-20">Date</th>
+                                                                    {rt.trackedMetrics.map(m => (
+                                                                        <th key={m.id} className="border border-slate-200 p-0 bg-slate-50 align-top relative group min-w-[70px]">
+                                                                            <div className="p-1 text-left"><span className="block text-[9px] text-slate-400 uppercase">{m.type}</span><span className="font-bold text-blue-900">{m.title}</span></div>
+                                                                            <button onClick={()=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>{if(t.id!==rt.id)return t; return{...t, trackedMetrics: t.trackedMetrics.filter(x=>x.id!==m.id)}})}))} className="absolute top-1 right-1 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100"><i className="ph-bold ph-x"></i></button>
+                                                                            {m.isBilateral && <div className="flex border-t border-slate-200 bg-white"><div className="flex-1 text-center py-0.5 border-r border-slate-200">R</div><div className="flex-1 text-center py-0.5">L</div></div>}
+                                                                            {m.type==='Custom 2-Column' && <div className="flex border-t border-slate-200 bg-white"><div className="flex-1 text-center py-0.5 border-r border-slate-200">{m.col1}</div><div className="flex-1 text-center py-0.5">{m.col2}</div></div>}
+                                                                            {m.type==='ROM with VAS' && <div className="flex border-t border-slate-200 bg-white"><div className="flex-1 text-center py-0.5 border-r border-slate-200">VAS</div><div className="flex-1 text-center py-0.5">ROM</div></div>}
+                                                                        </th>
+                                                                    ))}
+                                                                    <th className="w-6 border-none bg-transparent"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {rt.records.map(r => (
+                                                                    <tr key={r.id}>
+                                                                        <td className="border border-slate-200 p-0"><input type="date" value={r.date} onChange={e=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>t.id===rt.id?{...t, records: t.records.map(x=>x.id===r.id?{...x, date: e.target.value}:x)}:t)}))} className="w-full text-[10px] outline-none bg-transparent px-1 font-bold" /></td>
+                                                                        {rt.trackedMetrics.map(m => {
+                                                                            const v = r.values[m.id] || {};
+                                                                            const updMulti = (sub, val) => setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>t.id===rt.id?{...t, records: t.records.map(x=>x.id===r.id?{...x, values:{...x.values, [m.id]:{...(x.values[m.id]||{}), [sub]:val}}}:x)}:t)}));
+                                                                            const updSing = (val) => setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>t.id===rt.id?{...t, records: t.records.map(x=>x.id===r.id?{...x, values:{...x.values, [m.id]:val}}:x)}:t)}));
+                                                                            if(m.isBilateral) return <td key={m.id} className="border border-slate-200 p-0"><div className="flex h-full min-h-[28px]"><input type="text" value={v.r||''} onChange={e=>updMulti('r', e.target.value)} className="flex-1 w-full text-center outline-none border-r border-slate-200"/><input type="text" value={v.l||''} onChange={e=>updMulti('l', e.target.value)} className="flex-1 w-full text-center outline-none"/></div></td>;
+                                                                            if(m.type==='Custom 2-Column') return <td key={m.id} className="border border-slate-200 p-0"><div className="flex h-full min-h-[28px]"><input type="text" value={v.c1||''} onChange={e=>updMulti('c1', e.target.value)} className="flex-1 w-full text-center outline-none border-r border-slate-200"/><input type="text" value={v.c2||''} onChange={e=>updMulti('c2', e.target.value)} className="flex-1 w-full text-center outline-none"/></div></td>;
+                                                                            if(m.type==='ROM with VAS') return <td key={m.id} className="border border-slate-200 p-0"><div className="flex h-full min-h-[28px]"><input type="text" value={v.vas||''} onChange={e=>updMulti('vas', e.target.value)} className="flex-1 w-full text-center outline-none border-r border-slate-200"/><input type="text" value={v.rom||''} onChange={e=>updMulti('rom', e.target.value)} className="flex-1 w-full text-center outline-none"/></div></td>;
+                                                                            return <td key={m.id} className="border border-slate-200 p-0"><input type="text" value={v||''} onChange={e=>updSing(e.target.value)} className="w-full min-h-[28px] text-center outline-none"/></td>;
+                                                                        })}
+                                                                        <td className="text-center p-0 border-none"><button onClick={()=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>t.id===rt.id?{...t, records: t.records.filter(x=>x.id!==r.id)}:t)}))} className="text-red-400 hover:text-red-600 px-1"><i className="ph-bold ph-trash text-[10px]"></i></button></td>
+                                                                    </tr>
+                                                                ))}
+                                                                <tr><td colSpan={rt.trackedMetrics.length + 2} className="p-0"><button onClick={()=>setActivePatient(prev=>({...prev, reassessmentTables: prev.reassessmentTables.map(t=>t.id===rt.id?{...t, records: [...t.records, {id: generateId(), date: new Date().toISOString().split('T')[0], values: {}}]}:t)}))} className="w-full py-1.5 text-[10px] text-blue-600 font-bold bg-slate-50 hover:bg-slate-100">+ Add Session Row</button></td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <button onClick={()=>setActivePatient(prev=>({...prev, reassessmentTables: [...prev.reassessmentTables, {id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: []}]}))} className="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50">+ New Tracking Group</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[900px]">
+                                        <div className="flex justify-between items-center mb-4 border-b pb-2"><h3 className="font-bold text-slate-800">Assign Exercises</h3><span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">{activePatient.exerciseIds.length} Selected</span></div>
+                                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 border-b pb-4">
+                                            {activePatient.exerciseIds.length === 0 ? <p className="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p> : activePatient.exerciseIds.map(id => {
+                                                const ex = exercises.find(e => e.id === id); if(!ex) return null;
+                                                const params = activePatient.exerciseParams[id] || {};
+                                                return (
+                                                    <div key={id} className="border border-slate-200 rounded p-3 bg-slate-50">
+                                                        <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-sm text-slate-800">{ex.name}</h4><button onClick={()=>toggleEx(id)} className="text-xs text-red-500 font-bold hover:underline">Remove</button></div>
+                                                        <div className="grid grid-cols-3 gap-2 mb-2">
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id={`rep-${id}`} value={params.reps||''} onChange={e=>updExPrm(id,'reps',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id={`set-${id}`} value={params.sets||''} onChange={e=>updExPrm(id,'sets',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                            <div><label className="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id={`freq-${id}`} value={params.freq||''} onChange={e=>updExPrm(id,'freq',e.target.value)} className="w-full text-xs p-1.5 border rounded outline-none"/></div>
+                                                        </div>
+                                                        <input type="text" id={`note-${id}`} value={params.note||''} onChange={e=>updExPrm(id,'note',e.target.value)} placeholder="Instructions..." className="w-full text-xs p-1.5 border rounded outline-none"/>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div>
+                                            <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search database to add..." className="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-2 bg-slate-50 focus:bg-white"/>
+                                            <div className="h-[250px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1">
+                                                {exercises.filter(ex=>ex.name.toLowerCase().includes(searchQuery.toLowerCase())).map(ex => (
+                                                    <label key={ex.id} className="flex items-center text-xs p-2 rounded cursor-pointer hover:bg-slate-200">
+                                                        <input type="checkbox" checked={activePatient.exerciseIds.includes(ex.id)} onChange={()=>toggleEx(ex.id)} className="mr-3 w-4 h-4" /> <span className="font-bold text-slate-700 text-[13px]">{ex.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {isMetricModalOpen && (
+                                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-3 print:hidden">
+                                        <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200">
+                                            <div className="flex justify-between items-center p-3 border-b bg-slate-50"><h3 className="font-bold text-sm text-blue-900">New Column</h3><button onClick={()=>{setIsMetricModalOpen(false);setActiveRTableId(null)}} className="p-1 text-slate-400 hover:bg-slate-200 rounded-full"><i className="ph-bold ph-x"></i></button></div>
+                                            <div className="p-4"><p className="text-sm text-slate-500 text-center italic mb-4">Click below to add a custom tracker to your table.</p>
+                                                <button onClick={()=>{setActivePatient(p=>({...p, reassessmentTables: p.reassessmentTables.map(t=>t.id===activeRTableId?{...t, trackedMetrics: [...t.trackedMetrics, {id:generateId(), type:'Custom', title:'New Metric', isBilateral:false}]}:t)})); setIsMetricModalOpen(false); setActiveRTableId(null);}} className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">Add Generic Column</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
         }
 
-        window.switchTab = (tab) => {
-            document.getElementById('view-patients').classList.add('hidden'); document.getElementById('view-exercises').classList.add('hidden'); document.getElementById('view-editor').classList.add('hidden');
-            document.getElementById('tab-patients').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition"; document.getElementById('tab-exercises').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
-            if(tab === 'patients') { document.getElementById('view-patients').classList.remove('hidden'); document.getElementById('tab-patients').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition"; } 
-            else if (tab === 'exercises') { document.getElementById('view-exercises').classList.remove('hidden'); document.getElementById('tab-exercises').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition"; }
-        };
-
-        function renderPatients() {
-            const list = document.getElementById('patients-list');
-            if(window.state.patients.length === 0) return list.innerHTML = '<p class="text-slate-500">No records found.</p>';
-            list.innerHTML = window.state.patients.map(p => `<div onclick="window.openPatient('${p.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><h3 class="font-bold text-slate-800 text-lg truncate">${p.name || 'Unnamed'}</h3><span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">#${p.ipId}</span></div><p class="text-sm text-slate-500 mb-2 truncate">${p.assessmentNote || 'No notes yet.'}</p><div class="text-xs font-bold text-blue-600">${(p.exerciseIds || []).length} Exercises Prescribed</div></div>`).join('');
-        }
-
-        window.createNewPatient = () => { const newId = crypto.randomUUID(); const upid = Math.floor(1000 + Math.random() * 9000).toString(); window.state.currentPatient = { id: newId, ipId: upid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', treatmentNote: '', exerciseIds: [], exerciseParams: {} }; openEditor(); };
-        window.openPatient = (id) => { window.state.currentPatient = JSON.parse(JSON.stringify(window.state.patients.find(p => p.id === id))); if(!window.state.currentPatient.exerciseIds) window.state.currentPatient.exerciseIds = []; if(!window.state.currentPatient.exerciseParams) window.state.currentPatient.exerciseParams = {}; openEditor(); };
-        
-        function openEditor() {
-            document.getElementById('view-patients').classList.add('hidden'); document.getElementById('view-exercises').classList.add('hidden'); document.getElementById('view-editor').classList.remove('hidden');
-            const p = window.state.currentPatient;
-            ['name','upid','age','gender','date','cc','hx','ax','tx'].forEach(k => { const e=document.getElementById('pat-'+k); if(e) e.value = p[k==='cc'?'chiefComplaints':k==='hx'?'history':k==='ax'?'assessmentNote':k==='tx'?'treatmentNote':k==='upid'?'ipId':k] || ''; });
-            renderAssignedExercises();
-        }
-
-        window.savePatient = async () => {
-            const p = window.state.currentPatient;
-            ['name','age','gender','date'].forEach(k => p[k] = document.getElementById('pat-'+k).value);
-            p.chiefComplaints = document.getElementById('pat-cc').value; p.history = document.getElementById('pat-hx').value; p.assessmentNote = document.getElementById('pat-ax').value; p.treatmentNote = document.getElementById('pat-tx').value;
-            p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
-            await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p); alert("Record Saved!");
-        };
-
-        window.toggleExercise = (id) => {
-            const p = window.state.currentPatient;
-            if(p.exerciseIds.includes(id)) { p.exerciseIds = p.exerciseIds.filter(e => e !== id); delete p.exerciseParams[id]; } 
-            else { p.exerciseIds.push(id); p.exerciseParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
-            renderAssignedExercises();
-        };
-
-        function renderAssignedExercises() {
-            const p = window.state.currentPatient; document.getElementById('selected-count').textContent = `${p.exerciseIds.length} Selected`;
-            const container = document.getElementById('assigned-exercises-container');
-            if(p.exerciseIds.length === 0) { container.innerHTML = '<p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>'; } 
-            else {
-                container.innerHTML = p.exerciseIds.map(id => {
-                    const ex = window.state.exercises.find(e => e.id === id); if(!ex) return '';
-                    const params = p.exerciseParams[id] || {};
-                    return `<div class="border border-slate-200 rounded p-3 bg-slate-50"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-sm text-slate-800">${ex.name}</h4><button onclick="window.toggleExercise('${id}')" class="text-xs text-red-500 font-bold">Remove</button></div><div class="grid grid-cols-3 gap-2 mb-2"><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id="rep-${id}" value="${params.reps||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id="set-${id}" value="${params.sets||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div><div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id="freq-${id}" value="${params.freq||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div></div><input type="text" id="note-${id}" value="${params.note||''}" placeholder="Instructions..." class="w-full text-xs p-1.5 border rounded outline-none"></div>`;
-                }).join('');
-            }
-            window.filterAssignedList(); 
-        }
-
-        window.filterAssignedList = () => {
-            const query = (document.getElementById('ex-search').value || '').toLowerCase();
-            const list = document.getElementById('ex-picker-list');
-            const p = window.state.currentPatient;
-            list.innerHTML = window.state.exercises.filter(ex => ex.name.toLowerCase().includes(query)).map(ex => {
-                const isSelected = p.exerciseIds.includes(ex.id);
-                return `<label class="flex items-center text-xs p-2 rounded cursor-pointer border ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:bg-slate-100'}"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.toggleExercise('${ex.id}')" class="mr-3"><span class="font-bold text-slate-700">${ex.name}</span></label>`;
-            }).join('');
-        };
-
-        function renderExercisesDB() {
-            const list = document.getElementById('exercises-list');
-            if(window.state.exercises.length === 0) return list.innerHTML = '<p class="text-slate-500">No exercises.</p>';
-            list.innerHTML = window.state.exercises.map(ex => `<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="${ex.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100"><div class="p-3"><h4 class="font-bold text-sm text-slate-800 truncate">${ex.name}</h4><div class="flex justify-between mt-2"><button onclick="window.editExDB('${ex.id}')" class="text-xs font-bold text-blue-600">Edit</button><button onclick="window.deleteExDB('${ex.id}')" class="text-xs font-bold text-red-500">Delete</button></div></div></div>`).join('');
-        }
-        function renderGroupsDB() {
-            const list = document.getElementById('groups-list');
-            if(window.state.groups.length === 0) return list.innerHTML = '<p class="text-slate-500">No programs.</p>';
-            list.innerHTML = window.state.groups.map(g => `<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="${g.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100"><div class="p-3"><h4 class="font-bold text-sm text-slate-800 truncate">${g.name}</h4><p class="text-[10px] text-slate-500">${(g.exerciseIds||[]).length} Exercises</p><div class="flex justify-between mt-2"><button onclick="window.editGroupDB('${g.id}')" class="text-xs font-bold text-indigo-600">Edit</button><button onclick="window.deleteGroupDB('${g.id}')" class="text-xs font-bold text-red-500">Delete</button></div></div></div>`).join('');
-        }
-
-        window.openExerciseForm = () => {
-            document.getElementById('ex-id').value = ''; document.getElementById('ex-name').value = ''; quillEditor.root.innerHTML = ''; document.getElementById('ex-img').value = ''; document.getElementById('ex-vid').value = ''; document.getElementById('ex-preview').classList.add('hidden'); document.getElementById('ex-modal-title').innerText = 'Add Exercise'; document.getElementById('exercise-modal').classList.remove('hidden');
-        };
-        window.editExDB = (id) => {
-            const ex = window.state.exercises.find(e => e.id === id);
-            document.getElementById('ex-id').value = ex.id; document.getElementById('ex-name').value = ex.name; quillEditor.root.innerHTML = ex.description || ''; document.getElementById('ex-img').value = ex.imageUrl || ''; document.getElementById('ex-vid').value = ex.videoUrl || ''; if(ex.imageUrl) { document.getElementById('ex-preview').src = ex.imageUrl; document.getElementById('ex-preview').classList.remove('hidden'); } document.getElementById('ex-modal-title').innerText = 'Edit Exercise'; document.getElementById('exercise-modal').classList.remove('hidden');
-        };
-        window.saveExerciseDB = async () => {
-            const id = document.getElementById('ex-id').value;
-            const data = { name: document.getElementById('ex-name').value, description: quillEditor.root.innerHTML, imageUrl: document.getElementById('ex-img').value, videoUrl: document.getElementById('ex-vid').value };
-            if(id) { await rtdbSet(rtdbRef(rtdb, 'exercises/' + id), data); } else { await rtdbSet(push(rtdbRef(rtdb, 'exercises')), data); }
-            document.getElementById('exercise-modal').classList.add('hidden');
-        };
-        window.deleteExDB = async (id) => { if(confirm('Delete exercise?')) await rtdbRemove(rtdbRef(rtdb, 'exercises/' + id)); };
-
-        window.openGroupForm = () => {
-            window.state.activeGroupExIds = []; document.getElementById('grp-id').value = ''; document.getElementById('grp-name').value = ''; document.getElementById('grp-desc').value = ''; document.getElementById('grp-img').value = ''; document.getElementById('grp-preview').classList.add('hidden'); document.getElementById('grp-modal-title').innerText = 'Add Program'; renderGroupExPicker(); document.getElementById('group-modal').classList.remove('hidden');
-        };
-        window.editGroupDB = (id) => {
-            const g = window.state.groups.find(x => x.id === id); window.state.activeGroupExIds = [...(g.exerciseIds||[])];
-            document.getElementById('grp-id').value = g.id; document.getElementById('grp-name').value = g.name; document.getElementById('grp-desc').value = g.description || ''; document.getElementById('grp-img').value = g.imageUrl || ''; if(g.imageUrl) { document.getElementById('grp-preview').src = g.imageUrl; document.getElementById('grp-preview').classList.remove('hidden'); } document.getElementById('grp-modal-title').innerText = 'Edit Program'; renderGroupExPicker(); document.getElementById('group-modal').classList.remove('hidden');
-        };
-        window.toggleGroupEx = (id) => { if(window.state.activeGroupExIds.includes(id)) window.state.activeGroupExIds = window.state.activeGroupExIds.filter(x=>x!==id); else window.state.activeGroupExIds.push(id); renderGroupExPicker(); };
-        function renderGroupExPicker() {
-            document.getElementById('grp-picker-list').innerHTML = window.state.exercises.map(ex => {
-                const isSelected = window.state.activeGroupExIds.includes(ex.id);
-                return `<label class="flex items-center text-xs p-1 hover:bg-slate-200 rounded cursor-pointer"><input type="checkbox" ${isSelected?'checked':''} onchange="window.toggleGroupEx('${ex.id}')" class="mr-2"> ${ex.name}</label>`;
-            }).join('');
-        }
-        window.saveGroupDB = async () => {
-            const id = document.getElementById('grp-id').value;
-            const data = { name: document.getElementById('grp-name').value, description: document.getElementById('grp-desc').value, imageUrl: document.getElementById('grp-img').value, exerciseIds: window.state.activeGroupExIds };
-            if(id) { await rtdbSet(rtdbRef(rtdb, 'exerciseGroups/' + id), data); } else { await rtdbSet(push(rtdbRef(rtdb, 'exerciseGroups')), data); }
-            document.getElementById('group-modal').classList.add('hidden');
-        };
-        window.deleteGroupDB = async (id) => { if(confirm('Delete program?')) await rtdbRemove(rtdbRef(rtdb, 'exerciseGroups/' + id)); };
-
-        window.uploadImage = async (input, urlId, previewId) => {
-            const file = input.files[0]; if(!file) return;
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
-            try {
-                input.disabled = true;
-                const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
-                const data = await res.json();
-                if(data.secure_url) { document.getElementById(urlId).value = data.secure_url; document.getElementById(previewId).src = data.secure_url; document.getElementById(previewId).classList.remove('hidden'); }
-            } catch(e) { alert("Upload failed"); } finally { input.disabled = false; }
-        };
-
-        window.triggerPrint = () => {
-            const p = window.state.currentPatient;
-            ['name','age','gender','date','cc','hx','ax','tx'].forEach(k => p[k==='cc'?'chiefComplaints':k==='hx'?'history':k==='ax'?'assessmentNote':k==='tx'?'treatmentNote':k] = document.getElementById('pat-'+k).value);
-            p.exerciseIds.forEach(id => { p.exerciseParams[id] = { reps: document.getElementById(`rep-${id}`)?.value || '', sets: document.getElementById(`set-${id}`)?.value || '', freq: document.getElementById(`freq-${id}`)?.value || '', note: document.getElementById(`note-${id}`)?.value || '' }; });
-
-            document.getElementById('print-date').innerText = p.date ? new Date(p.date).toLocaleDateString('en-GB') : '';
-            ['name','age','gender'].forEach(k => document.getElementById('print-'+k).innerText = p[k]);
-            document.getElementById('print-upid').innerText = p.ipId;
-
-            const setF = (id, val) => { const el = document.getElementById(id); el.innerText = val; el.parentElement.style.display = val ? 'block' : 'none'; };
-            setF('print-cc', p.chiefComplaints); setF('print-hx', p.history); setF('print-ax', p.assessmentNote); setF('print-tx', p.treatmentNote);
-
-            const exContainer = document.getElementById('print-exercises-list');
-            if(p.exerciseIds.length > 0) {
-                document.getElementById('print-exercises-section').style.display = 'block';
-                exContainer.innerHTML = p.exerciseIds.map(id => {
-                    const ex = window.state.exercises.find(e => e.id === id); if(!ex) return '';
-                    const prm = p.exerciseParams[id];
-                    return `<div class="ex-card">${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}<div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div><div style="font-size:11px; color:#1e3a8a; font-weight:bold;">${prm.reps ? `Reps: <span style="color:#000">${prm.reps}</span> &nbsp;` : ''}${prm.sets ? `Sets: <span style="color:#000">${prm.sets}</span> &nbsp;` : ''}${prm.freq ? `Freq: <span style="color:#000">${prm.freq}</span>` : ''}</div>${prm.note ? `<div style="font-size:11px; margin-top:4px;">${prm.note}</div>` : ''}</div>`;
-                }).join('');
-            } else { document.getElementById('print-exercises-section').style.display = 'none'; }
-            window.print();
-        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
