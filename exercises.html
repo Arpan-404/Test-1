@@ -7,172 +7,191 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Quill CSS to render the rich text correctly -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    
     <style>
-        :root {
-            --app-bg: #f4f7fb;        
-            --surface: #ffffff;       
-            --primary: #1d4ed8;       
-            --primary-light: #dbeafe; 
-            --text-dark: #0f172a;     
-            --text-muted: #64748b;    
-        }
-        body { background-color: var(--app-bg); color: var(--text-dark); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f4f7fb; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        /* Identical Header Styles */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-        .logo { display: flex; align-items: center; }
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
         .logo-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
-        .search-container { flex-grow: 1; display: flex; justify-content: center; }
-        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 4px; border: 1px solid #e0e0e0; background: #f0f5ff; font-size: 0.9rem; transition: 0.2s; color: var(--text-dark); }
-        .search-input:focus { background: var(--surface); border-color: var(--primary); outline: none; }
-        .header-actions { display: flex; align-items: center; gap: 8px; }
-        .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
-        .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; }
-
-        /* Mobile Menu */
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: var(--surface); z-index: 1001; transition: 0.3s ease; padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+        .search-input { width: 100%; max-width: 220px; padding: 8px 16px; border-radius: 4px; border: 1px solid #e0e0e0; background: #f0f5ff; font-size: 0.9rem; transition: 0.2s; color: #0f172a; }
+        .search-input:focus { background: white; border-color: #1d4ed8; outline: none; }
+        
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100vh; background: white; z-index: 1001; transition: 0.3s ease; padding: 4rem 1rem 2rem; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
         .mobile-menu.active { right: 0; }
-        .mobile-menu ul { list-style: none; padding: 0; margin: 0; }
-        .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; color: var(--text-dark); text-decoration: none; }
-        .close-menu { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-dark); }
+        .mobile-menu ul { list-style: none; padding: 0; }
+        .mobile-menu ul li a { display: block; padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 1.05rem; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
         .overlay.active { display: block; }
         
         /* Physiopedia Wiki Styles */
-        .wiki-article-container { max-width: 1000px; margin: 80px auto 0; background: #ffffff; padding: 2rem 3rem; font-family: sans-serif; color: #202122; border-left: 1px solid #eaecf0; border-right: 1px solid #eaecf0; min-height: calc(100vh - 80px); }
-        .wiki-article-title { font-family: "Linux Libertine", "Georgia", "Times", serif; font-size: 2.2rem; border-bottom: 1px solid #a2a9b1; margin-bottom: 1.5rem; padding-bottom: 0.5rem; line-height: 1.2; }
+        .wiki-container { max-width: 1000px; margin: 80px auto 0; background: #ffffff; padding: 2rem; font-family: sans-serif; color: #202122; border: 1px solid #a2a9b1; min-height: calc(100vh - 80px); }
+        .wiki-title { font-family: "Linux Libertine", "Georgia", "Times", serif; font-size: 2.2rem; border-bottom: 1px solid #a2a9b1; margin-bottom: 1.5rem; padding-bottom: 0.5rem; }
         .wiki-infobox { float: right; width: 350px; background: #f8f9fa; border: 1px solid #a2a9b1; padding: 12px; margin: 0 0 1rem 1.5rem; }
         .wiki-infobox-media { background: white; border: 1px solid #a2a9b1; padding: 8px; margin-bottom: 12px; display: flex; justify-content: center; }
         .wiki-infobox-media img { max-width: 100%; max-height: 250px; object-fit: contain; }
         .wiki-infobox-media iframe, .wiki-infobox-media video { width: 100%; aspect-ratio: 16/9; }
         
-        /* Overriding Quill Editor padding for Wiki layout */
         .ql-editor { padding: 0 !important; font-family: inherit !important; font-size: 1rem !important; line-height: 1.6 !important; }
         .ql-editor h2, .ql-editor h3 { font-family: "Linux Libertine", "Georgia", "Times", serif; font-weight: normal; border-bottom: 1px solid #a2a9b1; margin-top: 1.5rem; padding-bottom: 0.2rem; margin-bottom: 0.8rem; }
         .ql-editor img { max-width: 100%; height: auto; margin: 1rem 0; border: 1px solid #c8ccd1; padding: 3px; background: #f8f9fa; }
         
-        @media (max-width: 768px) {
-            .wiki-article-container { padding: 1.5rem 1rem; margin-top: 60px; border: none; }
-            .wiki-article-title { font-size: 1.8rem; }
-            .wiki-infobox { float: none; width: 100%; margin: 1rem 0; }
-            .grid-col-strict { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-        @media (min-width: 769px) and (max-width: 1024px) { .grid-col-strict { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (min-width: 1025px) { .grid-col-strict { grid-template-columns: repeat(4, 1fr) !important; } }
+        .grid-col-strict { display: grid; gap: 1rem; }
+        @media (max-width: 768px) { .wiki-container { padding: 1.5rem 1rem; margin-top: 60px; border: none; } .wiki-infobox { float: none; width: 100%; margin: 1rem 0; } .grid-col-strict { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 769px) and (max-width: 1024px) { .grid-col-strict { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1025px) { .grid-col-strict { grid-template-columns: repeat(4, 1fr); } }
     </style>
 </head>
 <body>
     <header class="header">
-        <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
-        <div class="search-container">
-            <input type="text" id="globalSearch" class="search-input" placeholder="Search exercises..." oninput="window.filterGrid()">
+        <a href="/" class="logo"><img src="/favicon.png" alt="PT" class="logo-img" id="clinicLogo"></a>
+        <div class="flex-grow flex justify-center mx-2">
+            <div class="relative w-full max-w-[220px]">
+                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="globalSearch" placeholder="Search exercises..." oninput="window.filterLibrary()" class="search-input pl-9">
+            </div>
         </div>
-        <div class="header-actions">
-            <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
-        </div>
+        <button onclick="window.toggleMenu()" class="flex flex-col justify-between w-[24px] h-[18px] cursor-pointer bg-transparent border-none p-0">
+            <span class="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+            <span class="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+            <span class="block w-full h-[2px] bg-[#0f172a] rounded-[2px]"></span>
+        </button>
     </header>
 
     <div class="mobile-menu" id="mobileMenu">
-        <button class="close-menu" onclick="window.toggleMenu()">✕</button>
+        <button class="close-menu absolute top-4 right-4 bg-slate-100 border-none w-9 h-9 rounded-full text-lg cursor-pointer font-bold" onclick="window.toggleMenu()">✕</button>
         <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/services">Services</a></li>
             <li><a href="/doctors">Doctors</a></li>
             <li><a href="/products">Store</a></li>
             <li><a href="/articles">Health Feed</a></li>
-            <li><a href="/exercises" style="color: var(--primary);">Exercise Library</a></li>
+            <li><a href="/exercises" style="color: #1d4ed8;">Exercise Library</a></li>
             <li><a href="/prescription">My Reports</a></li>
             <li><a href="/doctor-panel" class="block py-3 mt-4 text-center border border-blue-200 bg-blue-50 text-blue-700 rounded-lg font-bold text-[1.05rem]">Doctor Login</a></li>
         </ul>
     </div>
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
-    <!-- Dynamic Content Container -->
     <main id="app-content" class="pt-[80px] pb-20"></main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // Load Exercises DB
-        const appExercises = initializeApp({ apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com", projectId: "patient-records-arpan" }, "exercisesApp");
+        const appExercises = initializeApp({ apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com", projectId: "patient-records-arpan" }, "exApp");
         const dbEx = getDatabase(appExercises);
         
-        // Load Main Site DB (For Logo)
         const appMain = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" }, "mainApp");
         const dbMain = getDatabase(appMain);
 
         window.exercises = [];
+        window.groups = [];
         window.slugify = (text) => (text || '').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         window.toggleMenu = () => { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); };
 
-        // Fetch Logo
-        onValue(ref(dbMain, 'site/hero/logoUrl'), (snap) => {
-            if(snap.exists()) document.getElementById('clinicLogo').src = snap.val();
-        });
+        onValue(ref(dbMain, 'site/hero/logoUrl'), (snap) => { if(snap.exists()) document.getElementById('clinicLogo').src = snap.val(); });
 
-        // Safe URL Routing (Immune to Vercel 404s)
         const urlParams = new URLSearchParams(window.location.search);
         const viewEx = urlParams.get('ex');
+        const viewGrp = urlParams.get('group');
 
-        onValue(ref(dbEx, 'exercises'), (snap) => {
-            window.exercises = [];
-            if(snap.exists()) {
-                const data = snap.val();
-                Object.keys(data).forEach(k => window.exercises.push({id: k, ...data[k]}));
-                window.exercises.reverse();
+        Promise.all([ get(ref(dbEx, 'exercises')), get(ref(dbEx, 'exerciseGroups')) ]).then(([exSnap, grpSnap]) => {
+            if(exSnap.exists()) {
+                const data = exSnap.val();
+                window.exercises = Object.keys(data).map(k => ({id: k, ...data[k]})).reverse();
+            }
+            if(grpSnap.exists()) {
+                const data = grpSnap.val();
+                window.groups = Object.keys(data).map(k => ({id: k, ...data[k]}));
             }
             
             if(viewEx) renderPhysiopedia(viewEx);
+            else if(viewGrp) renderGroup(viewGrp);
             else renderGrid();
         });
 
+        window.filterLibrary = () => { if(!viewEx && !viewGrp) renderGrid(document.getElementById('globalSearch').value); };
+
         function renderGrid(query = '') {
             const container = document.getElementById('app-content');
-            const filtered = window.exercises.filter(ex => ex.name.toLowerCase().includes(query.toLowerCase()));
+            const filteredEx = window.exercises.filter(ex => ex.name.toLowerCase().includes(query.toLowerCase()));
             
-            if(filtered.length === 0) {
-                container.innerHTML = '<div class="text-center mt-20 text-slate-500">No exercises found.</div>';
-                return;
+            let html = '<div class="max-w-[1200px] mx-auto px-4">';
+            
+            // Render Groups
+            if(!query && window.groups.length > 0) {
+                html += `
+                <div class="mb-8">
+                    <h2 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">Exercise Programs</h2>
+                    <div class="flex overflow-x-auto gap-4 pb-4" style="scrollbar-width:none;">
+                        ${window.groups.map(g => `
+                            <a href="?group=${window.slugify(g.name)}" class="min-w-[150px] md:min-w-[180px] bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden block hover:-translate-y-1 transition shrink-0">
+                                <div class="w-full h-24 bg-slate-50"><img src="${g.imageUrl}" class="w-full h-full object-cover mix-blend-multiply"></div>
+                                <div class="p-3 text-center"><h3 class="font-bold text-sm leading-tight line-clamp-2">${g.name}</h3><p class="text-[10px] text-blue-600 font-bold mt-1">${(g.exerciseIds||[]).length} Exercises</p></div>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>`;
             }
 
-            container.innerHTML = `
-            <div class="max-w-6xl mx-auto px-4">
-                <h1 class="text-2xl font-bold text-slate-800 mb-6">Exercise Library</h1>
-                <div class="grid grid-col-strict gap-4">
-                    ${filtered.map(ex => `
-                        <a href="?ex=${window.slugify(ex.name)}" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:-translate-y-1 transition block">
-                            <div class="w-full aspect-square bg-slate-50 relative">
+            // Render Exercises
+            html += `<h2 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">${query ? 'Search Results' : 'All Exercises'}</h2>`;
+            if(filteredEx.length === 0) {
+                html += '<p class="text-slate-500 py-10 text-center">No exercises found.</p>';
+            } else {
+                html += `<div class="grid-col-strict">
+                    ${filteredEx.map(ex => `
+                        <a href="?ex=${window.slugify(ex.name)}" class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:-translate-y-1 transition block flex flex-col">
+                            <div class="w-full aspect-square bg-[#f4f7fb] relative">
                                 <img src="${ex.imageUrl}" class="w-full h-full object-cover mix-blend-multiply">
-                                ${ex.videoUrl ? '<div class="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full"><i class="ph-fill ph-play"></i></div>' : ''}
+                                ${ex.videoUrl ? '<div class="absolute top-2 right-2 bg-black/40 text-white p-1.5 rounded-full"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>' : ''}
                             </div>
-                            <div class="p-3 text-center"><h3 class="font-bold text-[14px] text-slate-800 line-clamp-2">${ex.name}</h3></div>
+                            <div class="p-3 flex-grow flex items-center justify-center text-center border-t border-slate-50"><h3 class="font-bold text-[14px] text-slate-800 line-clamp-2">${ex.name}</h3></div>
+                        </a>
+                    `).join('')}
+                </div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderGroup(slug) {
+            const grp = window.groups.find(g => window.slugify(g.name) === slug);
+            const container = document.getElementById('app-content');
+            if(!grp) return container.innerHTML = '<div class="text-center mt-20 text-red-500 font-bold">Group Not Found</div>';
+            
+            const groupExercises = window.exercises.filter(ex => (grp.exerciseIds || []).includes(ex.id));
+            
+            container.innerHTML = `
+            <div class="max-w-[1200px] mx-auto px-4">
+                <a href="/exercises" class="inline-flex items-center text-slate-600 font-bold mb-4 bg-white px-4 py-2 rounded-full shadow-sm hover:text-slate-800">← Back</a>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8 flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-[#f4f7fb] shrink-0"><img src="${grp.imageUrl}" class="w-full h-full object-contain max-h-[300px] p-4"></div>
+                    <div class="p-6 md:p-8 flex flex-col justify-center">
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">${grp.name}</h1>
+                        <p class="text-[15px] text-slate-600 whitespace-pre-line leading-relaxed">${grp.description}</p>
+                    </div>
+                </div>
+                <h2 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">Program Exercises</h2>
+                <div class="grid-col-strict">
+                    ${groupExercises.map(ex => `
+                        <a href="?ex=${window.slugify(ex.name)}" class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:-translate-y-1 transition block flex flex-col">
+                            <div class="w-full aspect-square bg-[#f4f7fb] relative">
+                                <img src="${ex.imageUrl}" class="w-full h-full object-cover mix-blend-multiply">
+                                ${ex.videoUrl ? '<div class="absolute top-2 right-2 bg-black/40 text-white p-1.5 rounded-full"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>' : ''}
+                            </div>
+                            <div class="p-3 flex-grow flex items-center justify-center text-center border-t border-slate-50"><h3 class="font-bold text-[14px] text-slate-800 line-clamp-2">${ex.name}</h3></div>
                         </a>
                     `).join('')}
                 </div>
             </div>`;
         }
 
-        window.filterGrid = () => {
-            if(!urlParams.get('ex')) renderGrid(document.getElementById('globalSearch').value);
-        };
-
         function renderPhysiopedia(slug) {
             const ex = window.exercises.find(e => window.slugify(e.name) === slug);
             const container = document.getElementById('app-content');
-            
-            if(!ex) {
-                container.innerHTML = '<div class="text-center mt-20"><h2 class="text-2xl font-bold text-red-500 mb-4">Exercise Not Found</h2><a href="/exercises" class="text-blue-600 font-bold underline">Back to Library</a></div>';
-                return;
-            }
+            if(!ex) return container.innerHTML = '<div class="text-center mt-20 text-red-500 font-bold">Exercise Not Found</div>';
 
             document.body.style.background = "#ffffff";
-            document.title = ex.name + " - Therapeutic Hub";
-
             let videoHtml = '';
             if (ex.videoUrl) {
                 if (ex.videoUrl.includes('youtube') || ex.videoUrl.includes('youtu.be')) {
@@ -181,21 +200,16 @@
                 } else { videoHtml = `<div class="wiki-infobox-media"><video src="${ex.videoUrl}" controls playsinline poster="${ex.imageUrl}"></video></div>`; }
             }
 
-            // Notice we completely removed the Tags/Keywords output and replaced the raw text description with the ql-editor class for Rich HTML formatting
             container.innerHTML = `
-            <div class="wiki-article-container">
+            <div class="wiki-container">
                 <div class="mb-4"><a href="/exercises" class="text-blue-600 font-bold hover:underline font-sans">← Back to Library</a></div>
-                <h1 class="wiki-article-title">${ex.name}</h1>
-                
+                <h1 class="wiki-title">${ex.name}</h1>
                 <div class="wiki-infobox font-sans">
                     <div class="text-center font-bold bg-[#eaecf0] p-2 mb-3 border border-[#a2a9b1]">${ex.name}</div>
                     ${ex.imageUrl ? `<div class="wiki-infobox-media"><img src="${ex.imageUrl}" alt="${ex.name}"></div>` : ''}
                     ${videoHtml}
                 </div>
-
-                <div class="wiki-content ql-editor">
-                    ${ex.description}
-                </div>
+                <div class="ql-editor">${ex.description}</div>
             </div>`;
         }
     </script>
