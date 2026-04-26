@@ -35,6 +35,9 @@
             tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
             tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
             .editable-cell:empty:before { content: none !important; display: none !important; }
+            
+            /* Maximize A4 width for exercise print */
+            .print-full-width { width: 100% !important; max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
         }
         
         .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
@@ -66,7 +69,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
@@ -79,7 +82,7 @@
             storageBucket: "patient-records-arpan.firebasestorage.app",
             messagingSenderId: "599041105903",
             appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a",
-            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" // Added RTDB URL
+            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -90,6 +93,16 @@
         setPersistence(auth, browserLocalPersistence).catch((error) => console.error("Persistence error:", error));
         const googleProvider = new GoogleAuthProvider();
         const appId = 'physiocare-tracker';
+
+        // --- Smart Print Function ---
+        const handleSmartPrint = (documentType, patientName) => {
+            const originalTitle = document.title;
+            const safeName = (patientName || 'Patient').replace(/\s+/g, '_');
+            const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+            document.title = `${safeName}_${documentType}_${dateStr}`;
+            window.print();
+            document.title = originalTitle;
+        };
 
         const JOINTS_DATA = {
           'Cervical': [ { name: 'Flexion', type: 'single', normal: '45°' }, { name: 'Extension', type: 'single', normal: '45°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '45°' }, { name: 'Rotation', type: 'bilateral', normal: '60°' } ],
@@ -111,7 +124,6 @@
             return <textarea ref={ref} value={value} {...props} style={{ overflow: 'hidden', resize: 'none' }} />;
         }
 
-        // --- Custom Table Component for RX ---
         function CustomTableEditor({ table, updateTable, removeTable, readOnly = false }) {
             const addRow = () => updateTable({ ...table, rows: [...table.rows, Array(table.headers.length).fill('')] });
             const addCol = () => updateTable({ ...table, headers: [...table.headers, 'New Col'], rows: table.rows.map(r => [...r, '']) });
@@ -168,46 +180,38 @@
             );
         }
 
-
         // ==========================================
         // MAIN APP COMPONENT
         // ==========================================
         function App() {
-          // --- App State ---
           const [user, setUser] = useState(null);
           const [isConnecting, setIsConnecting] = useState(true);
           const [activeTab, setActiveTab] = useState('rx'); // 'rx' or 'ex'
           
-          // --- Patients State (Firestore) ---
           const [allPatients, setAllPatients] = useState([]);
           const [activePatientId, setActivePatientId] = useState(null);
           const [draftPatient, setDraftPatient] = useState(null); 
-          const [rxViewMode, setRxViewMode] = useState('home'); // 'home' | 'patient'
+          const [rxViewMode, setRxViewMode] = useState('home'); 
           const [rxSearchQuery, setRxSearchQuery] = useState('');
           const [isSavingPatient, setIsSavingPatient] = useState(false);
 
-          // --- Exercises State (RTDB) ---
           const [exercises, setExercises] = useState([]);
           const [isExercisesLoading, setIsExercisesLoading] = useState(true);
-          const [exPrescriptionData, setExPrescriptionData] = useState({ patientId: '', patientName: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {} });
+          const [exPrescriptionData, setExPrescriptionData] = useState({ patientId: '', patientName: '', age: '', gender: '', notes: '', upid: '', contact: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null });
           const [exSearchQuery, setExSearchQuery] = useState("");
+          const [isSavingEx, setIsSavingEx] = useState(false);
           
-          // --- Ex DB Management State ---
           const [exManageMode, setExManageMode] = useState(false);
           const [editingExId, setEditingExId] = useState(null);
           const [newExercise, setNewExercise] = useState({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
           const [isUploadingImage, setIsUploadingImage] = useState(false);
-          const [dbSearchQuery, setDbSearchQuery] = useState("");
           const [exPrintMode, setExPrintMode] = useState(false);
 
           // Listen to Auth
           useEffect(() => {
             const unsubscribe = onAuthStateChanged(auth, (currentUser) => { 
-                if (currentUser && !currentUser.isAnonymous) {
-                    setUser(currentUser); 
-                } else {
-                    setUser(null);
-                }
+                if (currentUser && !currentUser.isAnonymous) { setUser(currentUser); } 
+                else { setUser(null); }
                 setIsConnecting(false);
             });
             return () => unsubscribe();
@@ -259,25 +263,26 @@
                           ...prev,
                           patientId: pat.id,
                           patientName: pat.name || '',
+                          contact: pat.contact || '',
                           age: pat.age || '',
                           gender: pat.gender === 'Male' ? 'M' : (pat.gender === 'Female' ? 'F' : ''),
-                          upid: pat.ipId || ''
+                          upid: pat.ipId || '',
+                          selectedExerciseIds: pat.prescribedExercises || [],
+                          exerciseParams: pat.exerciseParams || {},
+                          lastUpdated: pat.exercisesLastUpdated || null
                       }));
                   }
               }
           }, [activePatientId, draftPatient, allPatients]);
 
 
-          // --- Auth Handlers ---
           const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
           const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
 
           // --- Rx Tab Handlers ---
           const handleCreatePatient = () => {
             let newIpId;
-            // 6-DIGIT UPID GENERATION
             do { newIpId = Math.floor(100000 + Math.random() * 900000).toString(); } while (allPatients.some(p => p.ipId === newIpId));
-            
             const newPatient = { id: generateId(), ipId: newIpId, doctorId: user.uid, date: new Date().toISOString().split('T')[0], name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false };
             setDraftPatient(newPatient); setActivePatientId(newPatient.id); setRxViewMode('patient');
           };
@@ -309,15 +314,44 @@
           const handleExPatientSelect = (e) => {
               const selectedId = e.target.value;
               if(!selectedId) {
-                  setExPrescriptionData(prev => ({ ...prev, patientId: '', patientName: '', age: '', gender: '', upid: '' }));
+                  setExPrescriptionData({ patientId: '', patientName: '', contact: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null });
                   setActivePatientId(null);
                   return;
               }
               const pat = allPatients.find(p => p.id === selectedId);
               if (pat) {
-                  setExPrescriptionData(prev => ({ ...prev, patientId: pat.id, patientName: pat.name || '', age: pat.age || '', gender: pat.gender === 'Male' ? 'M' : (pat.gender === 'Female' ? 'F' : ''), upid: pat.ipId || '' }));
-                  setActivePatientId(pat.id); // Sync back to Rx
+                  setExPrescriptionData({
+                      patientId: pat.id, patientName: pat.name || '', contact: pat.contact || '', age: pat.age || '',
+                      gender: pat.gender === 'Male' ? 'M' : (pat.gender === 'Female' ? 'F' : ''),
+                      upid: pat.ipId || '', notes: '',
+                      selectedExerciseIds: pat.prescribedExercises || [],
+                      exerciseParams: pat.exerciseParams || {},
+                      lastUpdated: pat.exercisesLastUpdated || null
+                  });
+                  setActivePatientId(pat.id);
               }
+          };
+
+          const handleSaveExercises = async () => {
+              if (!exPrescriptionData.patientId) return alert("Select a patient first.");
+              setIsSavingEx(true);
+              try {
+                  const patRef = doc(db, 'artifacts', appId, 'public', 'data', 'patients', exPrescriptionData.patientId);
+                  const nowStr = new Date().toISOString();
+                  await updateDoc(patRef, {
+                      prescribedExercises: exPrescriptionData.selectedExerciseIds,
+                      exerciseParams: exPrescriptionData.exerciseParams,
+                      exercisesLastUpdated: nowStr
+                  });
+                  setExPrescriptionData(prev => ({...prev, lastUpdated: nowStr}));
+              } catch(e) { console.error(e); alert("Failed to save exercises to patient."); }
+              setIsSavingEx(false);
+          };
+
+          const openWhatsApp = (contact, name, upid) => {
+              if(!contact) return alert("No phone number saved for this patient.");
+              const msg = `Hello ${name}, here is your updated prescription and exercise video chart: https://therapeutichub.in/prescription/${upid}`;
+              window.open(`https://wa.me/91${contact.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
           };
 
           // --- Ex DB Manage Handlers ---
@@ -347,8 +381,6 @@
                     if (editingExId) { await set(ref(rtdb, 'exercises/' + editingExId), exerciseData); } 
                     else { await set(push(ref(rtdb, 'exercises')), exerciseData); }
                     setEditingExId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
-                    
-                    // Refetch manually for quick update
                     const snapshot = await get(ref(rtdb, 'exercises'));
                     if (snapshot.exists()) { setExercises(Object.keys(snapshot.val()).map(key => ({ ...snapshot.val()[key], id: key })).reverse()); }
                 } catch (error) { alert("Failed to save to DB."); } 
@@ -367,10 +399,6 @@
                 }
           };
 
-
-          // ==========================================
-          // RENDERERS
-          // ==========================================
           if (isConnecting) return null;
 
           if (!user) {
@@ -394,8 +422,7 @@
           return (
               <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
                   
-                  {/* --- TOP HEADER (Hidden in Print) --- */}
-                  {!(activeTab==='ex' && exPrintMode) && !(activeTab==='rx' && rxViewMode==='patient' && false /* Let print handle hiding */) && (
+                  {!(activeTab==='ex' && exPrintMode) && !(activeTab==='rx' && rxViewMode==='patient' && false) && (
                       <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50 h-[60px] flex items-center print:hidden">
                         <div className="w-full max-w-6xl mx-auto px-4 flex justify-between items-center">
                           <div className="flex items-center gap-2 text-navy">
@@ -403,7 +430,6 @@
                             <h1 className="text-lg font-bold tracking-tight hidden sm:block">Doctor Dashboard</h1>
                           </div>
                           
-                          {/* THE TOGGLE SWITCH */}
                           <div className="toggle-container w-[160px] sm:w-[200px]">
                               <div className="toggle-slider" style={{ transform: activeTab === 'rx' ? 'translateX(0)' : 'translateX(100%)' }}></div>
                               <button className={`toggle-btn ${activeTab === 'rx' ? 'active' : ''}`} onClick={() => setActiveTab('rx')}>Main Rx</button>
@@ -477,6 +503,8 @@
                                   onSave={handleSavePatient} 
                                   onCancel={() => { setDraftPatient(null); setRxViewMode('home'); setActivePatientId(null); }} 
                                   isSaving={isSavingPatient}
+                                  handleSmartPrint={handleSmartPrint}
+                                  openWhatsApp={openWhatsApp}
                               />
                           )
                       )}
@@ -487,7 +515,7 @@
                       {/* ==================================== */}
                       {activeTab === 'ex' && (
                           exPrintMode ? (
-                              <ExPrintView prescriptionData={exPrescriptionData} exercises={exercises} onBack={() => setExPrintMode(false)} />
+                              <ExPrintView prescriptionData={exPrescriptionData} exercises={exercises} onBack={() => setExPrintMode(false)} handleSmartPrint={handleSmartPrint} />
                           ) : exManageMode ? (
                               <ExDBManage 
                                   exercises={exercises} 
@@ -549,12 +577,30 @@
 
                                   {/* Right Panel: Config */}
                                   <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
-                                      <div className="flex justify-between items-center mb-4">
-                                          <h3 className="text-base md:text-lg font-bold text-slate-800">2. Configure Prescribed</h3>
-                                          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">{exPrescriptionData.selectedExerciseIds.length} Selected</span>
+                                      <div className="flex justify-between items-start mb-4">
+                                          <div>
+                                              <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                                  2. Configure Prescribed
+                                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{exPrescriptionData.selectedExerciseIds.length}</span>
+                                              </h3>
+                                              {exPrescriptionData.lastUpdated && (
+                                                  <p className="text-[10px] text-slate-500 mt-1">Last Saved: {new Date(exPrescriptionData.lastUpdated).toLocaleString('en-GB')}</p>
+                                              )}
+                                          </div>
+                                          
+                                          <div className="flex gap-2">
+                                              <button onClick={handleSaveExercises} className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-lg transition border border-emerald-200 flex items-center gap-1">
+                                                  <i className="ph-bold ph-floppy-disk"></i> {isSavingEx ? '...' : 'Save Routine'}
+                                              </button>
+                                              {exPrescriptionData.upid && (
+                                                  <button onClick={() => openWhatsApp(exPrescriptionData.contact, exPrescriptionData.patientName, exPrescriptionData.upid)} className="text-xs bg-[#25D366] hover:bg-[#20b957] text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                                      <i className="ph-bold ph-whatsapp-logo"></i>
+                                                  </button>
+                                              )}
+                                          </div>
                                       </div>
 
-                                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
+                                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '400px'}}>
                                           {exPrescriptionData.selectedExerciseIds.length === 0 ? (
                                               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
                                                   <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
@@ -584,7 +630,7 @@
 
                                       <div className="mt-4 pt-4 border-t border-slate-100">
                                           <button onClick={() => setExPrintMode(true)} disabled={exPrescriptionData.selectedExerciseIds.length === 0} className="w-full px-6 bg-azure text-white rounded-xl py-3.5 text-sm font-bold shadow-soft hover:bg-navy transition flex items-center justify-center disabled:opacity-50">
-                                              <i className="ph-bold ph-printer mr-2 text-lg"></i> Generate Printable Prescription
+                                              <i className="ph-bold ph-printer mr-2 text-lg"></i> View & Print Chart
                                           </button>
                                       </div>
                                   </div>
@@ -599,7 +645,7 @@
         // ==========================================
         // RX PATIENT DETAIL COMPONENT
         // ==========================================
-        function RxPatientDetail({ patient, onSave, onCancel, isSaving }) {
+        function RxPatientDetail({ patient, onSave, onCancel, isSaving, handleSmartPrint, openWhatsApp }) {
           const [formData, setFormData] = useState(() => {
               let rTables = patient.reassessmentTables || [];
               if (rTables.length === 0) rTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
@@ -620,7 +666,6 @@
 
           const handleInputChange = (e) => { const { name, value } = e; setFormData((prev) => ({ ...prev, [name]: value })); };
           
-          // Table Handlers
           const handleAddCustomTable = (section) => { setFormData(prev => ({ ...prev, customTables: [...prev.customTables, { id: generateId(), section: section, title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] })); };
           const handleUpdateCustomTable = (upd) => { setFormData(prev => ({ ...prev, customTables: prev.customTables.map(t => t.id === upd.id ? upd : t) })); };
           const handleRemoveCustomTable = (id) => { setFormData(prev => ({ ...prev, customTables: prev.customTables.filter(t => t.id !== id) })); };
@@ -637,7 +682,7 @@
           const updateMultiFieldCellValue = (tId, rId, mId, sub, v) => { setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== rId) return rec; let nv = { ...rec.values }; nv[mId] = { ...(nv[mId] || {}), [sub]: v }; return { ...rec, values: nv }; })}; }) })); };
 
           const togglePublish = () => { const newState = !formData.isPublished; setFormData(prev => ({ ...prev, isPublished: newState })); onSave({ ...formData, isPublished: newState }); };
-          const copyPatientLink = () => { navigator.clipboard.writeText(`${window.location.origin}/prescription#/reports/${formData.ipId}`).then(() => { setShowLinkCopied(true); setTimeout(() => setShowLinkCopied(false), 2000); }); };
+          const copyPatientLink = () => { navigator.clipboard.writeText(`https://therapeutichub.in/prescription/${formData.ipId}`).then(() => { setShowLinkCopied(true); setTimeout(() => setShowLinkCopied(false), 2000); }); };
           const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
 
           return (
@@ -652,7 +697,14 @@
                             <span className="text-[10px] font-bold text-slate-400">DATE:</span>
                             <input type="date" name="date" value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className="text-xs font-bold outline-none bg-transparent w-[95px] text-slate-800" />
                         </div>
-                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm" onClick={() => window.print()}>
+                        
+                        {formData.contact && formData.ipId && (
+                            <button onClick={() => openWhatsApp(formData.contact, formData.name, formData.ipId)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm">
+                                <i className="ph-bold ph-whatsapp-logo text-sm"></i> WhatsApp
+                            </button>
+                        )}
+                        
+                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm" onClick={() => handleSmartPrint('Prescription', formData.name)}>
                             <i className="ph-bold ph-printer text-sm"></i> Print
                         </button>
                         <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors">
@@ -791,14 +843,23 @@
                 </div>
               </div>
 
-              {/* --- PRINT VIEW --- */}
+              {/* --- PRINT VIEW MAIN RX --- */}
               <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
                   <div className="flex justify-between items-start pb-2">
                       <div>
                           <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
                           <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
                           <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
+                          <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
                       </div>
+                      
+                      {formData.ipId && (
+                      <div className="flex flex-col items-center justify-center pt-2 px-6">
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${formData.ipId}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                          <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                      </div>
+                      )}
+
                       <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
                           <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
                           <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span></div>
@@ -856,7 +917,6 @@
           );
         }
 
-        // --- ADD METRIC MODAL (For RX) ---
         function AddMetricModal({ onClose, onAdd }) {
           const [type, setType] = useState('ROM'); 
           const [romMode, setRomMode] = useState('Active');
@@ -913,7 +973,7 @@
         // ==========================================
         // EXERCISE PRINT COMPONENT
         // ==========================================
-        function ExPrintView({ prescriptionData, exercises, onBack }) {
+        function ExPrintView({ prescriptionData, exercises, onBack, handleSmartPrint }) {
             const prescribedExercises = exercises.filter(ex => prescriptionData.selectedExerciseIds.includes(ex.id));
             const today = new Date().toLocaleDateString('en-GB');
 
@@ -921,16 +981,25 @@
                 <div className="bg-slate-200 min-h-screen pt-4 md:pt-8 pb-20 print:bg-white print:p-0 absolute inset-0 z-50 overflow-y-auto">
                     <div className="max-w-4xl mx-auto mb-4 flex justify-between items-center print:hidden px-3 md:px-4">
                         <button onClick={onBack} className="flex items-center text-slate-600 font-semibold bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><i className="ph-bold ph-arrow-left mr-1"></i> Edit</button>
-                        <button onClick={() => window.print()} className="flex items-center text-white bg-azure font-bold px-4 py-1.5 md:px-6 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><i className="ph-bold ph-printer mr-2"></i> Print Chart</button>
+                        <button onClick={() => handleSmartPrint('Exercise_Chart', prescriptionData.patientName)} className="flex items-center text-white bg-azure font-bold px-4 py-1.5 md:px-6 md:py-2 rounded-lg shadow-sm text-sm md:text-base"><i className="ph-bold ph-printer mr-2"></i> Print Chart</button>
                     </div>
                     
-                    <div className="bg-white max-w-[21cm] min-h-[29.7cm] mx-auto print:shadow-none p-6 sm:p-10 text-slate-900 flex flex-col font-sans border border-slate-300 print:border-none">
+                    <div className="bg-white max-w-[21cm] min-h-[29.7cm] mx-auto print:shadow-none p-6 sm:p-10 text-slate-900 flex flex-col font-sans border border-slate-300 print:border-none print-full-width">
                         <div className="flex justify-between items-start mb-4 text-left">
                             <div>
                                 <h1 className="text-3xl font-bold text-[#1e3a8a] italic tracking-tight" style={{fontFamily: 'Georgia, serif'}}>Dr. Arpan Das (PT)</h1>
                                 <p className="text-[#1e3a8a] font-bold text-[11px] mt-1">BPT (KPC Medical College and Hospital)</p>
                                 <p className="text-[#1e3a8a] font-bold text-[11px]">Consultant Physiotherapist</p>
+                                <p className="text-[9px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
                             </div>
+                            
+                            {prescriptionData.upid && (
+                            <div className="flex flex-col items-center justify-center pt-2 px-6">
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${prescriptionData.upid}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                                <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
+                            </div>
+                            )}
+
                             <div className="text-right">
                                 <p className="font-bold text-[#1e3a8a] flex items-center justify-end text-sm"><i className="ph-fill ph-phone-call mr-1"></i> +91 9641568109</p>
                                 <div className="flex items-center justify-end mt-4 text-[11px] font-bold text-[#1e3a8a]">
@@ -965,29 +1034,29 @@
                             </div>
                         )}
 
-                        <div className="flex-1">
-                            <div className="grid grid-cols-3 gap-x-6 gap-y-10">
+                        <div className="flex-1 w-full">
+                            <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
                                 {prescribedExercises.map((ex) => {
                                     const params = prescriptionData.exerciseParams[ex.id] || {};
                                     const customNote = params.note;
                                     return (
-                                        <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left">
-                                            <div className="h-32 sm:h-40 w-full flex items-center justify-center mb-2">
+                                        <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
+                                            <div className="h-32 w-full flex items-center justify-center mb-2">
                                                 {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                                    <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.<br/>Please re-upload.</div>
+                                                    <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
                                                 ) : (
                                                     <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                                 )}
                                             </div>
-                                            <div className="w-full px-1 text-left">
-                                                <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left">{ex.name}</h4>
-                                                <div className="flex justify-start items-center space-x-3 text-[9px] font-bold text-[#1e3a8a] mb-1">
+                                            <div className="w-full text-left">
+                                                <h4 className="font-bold text-slate-800 text-[11px] mb-1 text-left">{ex.name}</h4>
+                                                <div className="flex justify-start items-center space-x-2 text-[8px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
                                                     {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
                                                     {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
                                                     {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
                                                 </div>
                                                 {customNote && (
-                                                    <p className="text-[9px] text-slate-600 leading-tight font-medium text-left">{customNote}</p>
+                                                    <p className="text-[8px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
                                                 )}
                                             </div>
                                         </div>
