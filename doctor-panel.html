@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Physio Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { background-color: #f4f7fb; color: #0f172a; font-family: sans-serif; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            @page { size: A4; margin: 15mm; }
+            .print-container { width: 100%; }
+            .print-header { border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
+            .print-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+            .print-section { margin-bottom: 20px; }
+            .print-title { font-weight: bold; color: #1e3a8a; font-size: 18px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+            .ex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+            .ex-card { border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; page-break-inside: avoid; }
+            .ex-img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center no-print">
+        <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
+            <i class="ph-fill ph-stethoscope text-5xl text-blue-600 mb-4"></i>
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">Doctor Portal</h1>
+            <button onclick="window.login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-screen" class="hidden min-h-screen no-print">
+        <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-blue-800 text-lg">
+                    <i class="ph-fill ph-activity text-2xl"></i> Clinical Dashboard
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="window.switchTab('patients')" id="tab-patients" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition">Prescriptions</button>
+                    <button onclick="window.switchTab('exercises')" id="tab-exercises" class="font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition">Exercise DB</button>
+                </div>
+                <button onclick="window.logout()" class="text-slate-500 hover:text-red-600 font-bold"><i class="ph-bold ph-sign-out text-xl"></i></button>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto p-4 mt-4">
+            
+            <!-- PATIENTS TAB -->
+            <div id="view-patients">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">Patient Records</h2>
+                    <button onclick="window.createNewPatient()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ New Patient</button>
+                </div>
+                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <p class="text-slate-500">Loading patients...</p>
+                </div>
+            </div>
+
+            <!-- EXERCISES DB TAB -->
+            <div id="view-exercises" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">Exercise Database</h2>
+                    <button onclick="window.openExerciseForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700">+ Add Exercise</button>
+                </div>
+                <div id="exercises-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+            </div>
+
+            <!-- PATIENT EDITOR (Prescription Maker) -->
+            <div id="view-editor" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <button onclick="window.switchTab('patients')" class="text-slate-600 font-bold hover:text-slate-800"><i class="ph-bold ph-arrow-left"></i> Back</button>
+                    <div class="flex gap-2">
+                        <button onclick="window.triggerPrint()" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-slate-50"><i class="ph-bold ph-printer"></i> Print PDF</button>
+                        <button onclick="window.savePatient()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-blue-700"><i class="ph-bold ph-floppy-disk"></i> Save Record</button>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Clinical Notes -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Clinical Details</h3>
+                        <div class="grid grid-cols-3 gap-3 mb-4">
+                            <input type="text" id="pat-name" placeholder="Name" class="col-span-2 border p-2 rounded outline-none focus:border-blue-500">
+                            <input type="text" id="pat-upid" placeholder="UPID" class="border p-2 rounded outline-none bg-slate-50 font-bold text-blue-700" readonly>
+                            <input type="number" id="pat-age" placeholder="Age" class="border p-2 rounded outline-none focus:border-blue-500">
+                            <select id="pat-gender" class="border p-2 rounded outline-none focus:border-blue-500"><option value="">Gender</option><option value="M">Male</option><option value="F">Female</option></select>
+                            <input type="date" id="pat-date" class="border p-2 rounded outline-none focus:border-blue-500">
+                        </div>
+                        <div class="space-y-3">
+                            <textarea id="pat-cc" placeholder="Chief Complaints" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
+                            <textarea id="pat-hx" placeholder="History" rows="2" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
+                            <textarea id="pat-ax" placeholder="Assessment" rows="3" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
+                            <textarea id="pat-tx" placeholder="Treatment Plan" rows="3" class="w-full border p-2 rounded outline-none focus:border-blue-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Exercise Assignment -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 class="font-bold text-slate-800">Assign Exercises</h3>
+                            <span id="selected-count" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">0 Selected</span>
+                        </div>
+                        
+                        <div id="assigned-exercises-container" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 border-b pb-4">
+                            <p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>
+                        </div>
+
+                        <div>
+                            <input type="text" id="ex-search" placeholder="Search database to add..." oninput="window.filterAssignedList()" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm mb-2">
+                            <div id="ex-picker-list" class="h-[150px] overflow-y-auto border rounded p-2 bg-slate-50 space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Adding Exercises -->
+    <div id="exercise-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-slate-800" id="ex-modal-title">Add Exercise</h3>
+                <button onclick="document.getElementById('exercise-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="space-y-3">
+                <input type="hidden" id="ex-id">
+                <div><label class="text-xs font-bold text-slate-500">Name</label><input type="text" id="ex-name" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></div>
+                <div><label class="text-xs font-bold text-slate-500">Description</label><textarea id="ex-desc" rows="3" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></textarea></div>
+                <div><label class="text-xs font-bold text-slate-500">Tags (comma separated)</label><input type="text" id="ex-tags" class="w-full border p-2 rounded outline-none focus:border-blue-500 text-sm"></div>
+                
+                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 block mb-1">Image Upload (Cloudinary)</label>
+                    <input type="file" accept="image/*" onchange="window.uploadImage(this)" class="w-full text-xs mb-2">
+                    <input type="text" id="ex-img" placeholder="Image URL" class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs" readonly>
+                    <img id="ex-preview" class="h-16 w-16 object-contain mt-2 hidden border bg-white rounded">
+                </div>
+                
+                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 block mb-1">Video URL (Youtube/MP4)</label>
+                    <input type="url" id="ex-vid" placeholder="https://..." class="w-full border p-1.5 rounded outline-none focus:border-blue-500 text-xs">
+                </div>
+
+                <button onclick="window.saveExerciseDB()" class="w-full bg-slate-800 text-white font-bold py-2 rounded shadow hover:bg-slate-900 mt-2">Save to Database</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIDDEN PRINT LAYOUT -->
+    <div id="print-layout" class="hidden print-only print-container font-sans text-slate-900">
+        <div class="print-header">
+            <h1 style="font-size:28px; font-family: Georgia, serif; color:#1e3a8a; font-style:italic;">Dr. Arpan Das (PT)</h1>
+            <p style="font-weight:bold; color:#1e3a8a; margin-top:4px;">BPT (KPC Medical College and Hospital)</p>
+            <p style="font-weight:bold; color:#1e3a8a;">Consultant Physiotherapist</p>
+            <div style="position:absolute; right:15mm; top:15mm; text-align:right;">
+                <p style="font-weight:bold; color:#1e3a8a;">+91 9641568109</p>
+                <p style="font-weight:bold; margin-top:10px;">Date: <span id="print-date" style="border-b:1px solid #000; padding:0 10px;"></span></p>
+            </div>
+        </div>
+
+        <div class="print-row" style="border-bottom: 1px solid #1e3a8a; padding-bottom:10px; margin-bottom:20px; font-weight:bold;">
+            <div>Patient: <span id="print-name" style="font-weight:normal;"></span></div>
+            <div>Age: <span id="print-age" style="font-weight:normal;"></span></div>
+            <div>Gender: <span id="print-gender" style="font-weight:normal;"></span></div>
+            <div>UPID: <span id="print-upid" style="font-weight:normal;"></span></div>
+        </div>
+
+        <div class="print-section"><div class="print-title">Chief Complaint</div><div id="print-cc" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div class="print-section"><div class="print-title">History</div><div id="print-hx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div class="print-section"><div class="print-title">Assessment</div><div id="print-ax" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+        <div class="print-section"><div class="print-title">Treatment Plan</div><div id="print-tx" style="white-space:pre-wrap; padding-left:10px;"></div></div>
+
+        <div class="print-section" id="print-exercises-section">
+            <div class="print-title">Prescribed Exercises</div>
+            <div class="ex-grid" id="print-exercises-list"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getDatabase, ref as rtdbRef, onValue, push, set as rtdbSet, remove as rtdbRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus", authDomain: "patient-records-arpan.firebaseapp.com", projectId: "patient-records-arpan", storageBucket: "patient-records-arpan.firebasestorage.app", messagingSenderId: "599041105903", appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a", databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com" };
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const rtdb = getDatabase(app);
+
+        // State
+        window.state = { user: null, patients: [], exercises: [], currentPatient: null };
+
+        // Auth
+        onAuthStateChanged(auth, user => {
+            window.state.user = user;
+            if (user) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                loadData();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('dashboard-screen').classList.add('hidden');
+            }
+        });
+
+        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.logout = () => signOut(auth);
+
+        // Load Data
+        function loadData() {
+            // Load Patients (Firestore)
+            onSnapshot(collection(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'), (snap) => {
+                window.state.patients = [];
+                snap.forEach(d => window.state.patients.push({id: d.id, ...d.data()}));
+                renderPatients();
+            });
+
+            // Load Exercises (RTDB)
+            onValue(rtdbRef(rtdb, 'exercises'), (snap) => {
+                window.state.exercises = [];
+                if(snap.exists()) {
+                    const data = snap.val();
+                    Object.keys(data).forEach(k => window.state.exercises.push({id: k, ...data[k]}));
+                    window.state.exercises.reverse();
+                }
+                renderExercisesDB();
+                if(window.state.currentPatient) renderAssignedExercises();
+            });
+        }
+
+        // Tabs & Navigation
+        window.switchTab = (tab) => {
+            document.getElementById('view-patients').classList.add('hidden');
+            document.getElementById('view-exercises').classList.add('hidden');
+            document.getElementById('view-editor').classList.add('hidden');
+            document.getElementById('tab-patients').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
+            document.getElementById('tab-exercises').className = "font-bold text-slate-500 hover:text-slate-800 px-2 py-4 transition";
+            
+            if(tab === 'patients') {
+                document.getElementById('view-patients').classList.remove('hidden');
+                document.getElementById('tab-patients').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition";
+            } else if (tab === 'exercises') {
+                document.getElementById('view-exercises').classList.remove('hidden');
+                document.getElementById('tab-exercises').className = "font-bold text-blue-600 border-b-2 border-blue-600 px-2 py-4 transition";
+            }
+        };
+
+        // --- PATIENTS VIEW ---
+        function renderPatients() {
+            const list = document.getElementById('patients-list');
+            if(window.state.patients.length === 0) return list.innerHTML = '<p class="text-slate-500">No records found.</p>';
+            
+            list.innerHTML = window.state.patients.map(p => `
+                <div onclick="window.openPatient('${p.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-slate-800 text-lg truncate">${p.name || 'Unnamed'}</h3>
+                        <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">#${p.ipId}</span>
+                    </div>
+                    <p class="text-sm text-slate-500 mb-2 truncate">${p.assessmentNote || 'No notes yet.'}</p>
+                    <div class="text-xs font-bold text-blue-600">${(p.exerciseIds || []).length} Exercises Prescribed</div>
+                </div>
+            `).join('');
+        }
+
+        window.createNewPatient = () => {
+            const newId = crypto.randomUUID();
+            const upid = Math.floor(1000 + Math.random() * 9000).toString();
+            window.state.currentPatient = { id: newId, ipId: upid, name: '', age: '', gender: '', date: new Date().toISOString().split('T')[0], chiefComplaints: '', history: '', assessmentNote: '', treatmentNote: '', exerciseIds: [], exerciseParams: {} };
+            openEditor();
+        };
+
+        window.openPatient = (id) => {
+            window.state.currentPatient = JSON.parse(JSON.stringify(window.state.patients.find(p => p.id === id)));
+            if(!window.state.currentPatient.exerciseIds) window.state.currentPatient.exerciseIds = [];
+            if(!window.state.currentPatient.exerciseParams) window.state.currentPatient.exerciseParams = {};
+            openEditor();
+        };
+
+        function openEditor() {
+            document.getElementById('view-patients').classList.add('hidden');
+            document.getElementById('view-exercises').classList.add('hidden');
+            document.getElementById('view-editor').classList.remove('hidden');
+
+            const p = window.state.currentPatient;
+            document.getElementById('pat-name').value = p.name || '';
+            document.getElementById('pat-upid').value = p.ipId || '';
+            document.getElementById('pat-age').value = p.age || '';
+            document.getElementById('pat-gender').value = p.gender || '';
+            document.getElementById('pat-date').value = p.date || '';
+            document.getElementById('pat-cc').value = p.chiefComplaints || '';
+            document.getElementById('pat-hx').value = p.history || '';
+            document.getElementById('pat-ax').value = p.assessmentNote || '';
+            document.getElementById('pat-tx').value = p.treatmentNote || '';
+            
+            renderAssignedExercises();
+        }
+
+        window.savePatient = async () => {
+            const p = window.state.currentPatient;
+            p.name = document.getElementById('pat-name').value;
+            p.age = document.getElementById('pat-age').value;
+            p.gender = document.getElementById('pat-gender').value;
+            p.date = document.getElementById('pat-date').value;
+            p.chiefComplaints = document.getElementById('pat-cc').value;
+            p.history = document.getElementById('pat-hx').value;
+            p.assessmentNote = document.getElementById('pat-ax').value;
+            p.treatmentNote = document.getElementById('pat-tx').value;
+
+            // Grab exercise params from DOM
+            p.exerciseIds.forEach(id => {
+                p.exerciseParams[id] = {
+                    reps: document.getElementById(`rep-${id}`)?.value || '',
+                    sets: document.getElementById(`set-${id}`)?.value || '',
+                    freq: document.getElementById(`freq-${id}`)?.value || '',
+                    note: document.getElementById(`note-${id}`)?.value || ''
+                };
+            });
+
+            await setDoc(doc(db, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', p.id), p);
+            alert("Record Saved!");
+        };
+
+        // --- EXERCISE PRESCRIPTION LOGIC ---
+        window.toggleExercise = (id) => {
+            const p = window.state.currentPatient;
+            if(p.exerciseIds.includes(id)) {
+                p.exerciseIds = p.exerciseIds.filter(e => e !== id);
+                delete p.exerciseParams[id];
+            } else {
+                p.exerciseIds.push(id);
+                p.exerciseParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
+            }
+            renderAssignedExercises();
+        };
+
+        function renderAssignedExercises() {
+            const p = window.state.currentPatient;
+            document.getElementById('selected-count').textContent = `${p.exerciseIds.length} Selected`;
+
+            // Render Assigned List
+            const assignedContainer = document.getElementById('assigned-exercises-container');
+            if(p.exerciseIds.length === 0) {
+                assignedContainer.innerHTML = '<p class="text-slate-400 text-center text-sm mt-10">Select exercises below to assign them.</p>';
+            } else {
+                assignedContainer.innerHTML = p.exerciseIds.map(id => {
+                    const ex = window.state.exercises.find(e => e.id === id);
+                    if(!ex) return '';
+                    const params = p.exerciseParams[id] || {};
+                    return `
+                    <div class="border border-slate-200 rounded p-3 bg-slate-50">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-sm text-slate-800">${ex.name}</h4>
+                            <button onclick="window.toggleExercise('${id}')" class="text-xs text-red-500 font-bold">Remove</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Reps</label><input type="text" id="rep-${id}" value="${params.reps||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
+                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Sets</label><input type="text" id="set-${id}" value="${params.sets||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
+                            <div><label class="text-[9px] font-bold text-blue-800 uppercase block mb-1">Freq</label><input type="text" id="freq-${id}" value="${params.freq||''}" class="w-full text-xs p-1.5 border rounded outline-none"></div>
+                        </div>
+                        <input type="text" id="note-${id}" value="${params.note||''}" placeholder="Instructions..." class="w-full text-xs p-1.5 border rounded outline-none">
+                    </div>`;
+                }).join('');
+            }
+
+            window.filterAssignedList(); // Update the picker list
+        }
+
+        window.filterAssignedList = () => {
+            const query = (document.getElementById('ex-search').value || '').toLowerCase();
+            const list = document.getElementById('ex-picker-list');
+            const p = window.state.currentPatient;
+            
+            const filtered = window.state.exercises.filter(ex => ex.name.toLowerCase().includes(query));
+            list.innerHTML = filtered.map(ex => {
+                const isSelected = p.exerciseIds.includes(ex.id);
+                return `
+                <label class="flex items-center text-xs p-2 rounded cursor-pointer border ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:bg-slate-100'}">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.toggleExercise('${ex.id}')" class="mr-3">
+                    <span class="font-bold text-slate-700">${ex.name}</span>
+                </label>`;
+            }).join('');
+        };
+
+        // --- EXERCISE DB MANAGEMENT ---
+        function renderExercisesDB() {
+            const list = document.getElementById('exercises-list');
+            if(window.state.exercises.length === 0) return list.innerHTML = '<p class="text-slate-500">No exercises in DB.</p>';
+            
+            list.innerHTML = window.state.exercises.map(ex => `
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <img src="${ex.imageUrl || ''}" class="w-full h-24 object-cover bg-slate-100">
+                    <div class="p-3">
+                        <h4 class="font-bold text-sm text-slate-800 truncate">${ex.name}</h4>
+                        <div class="flex justify-between mt-2">
+                            <button onclick="window.editExDB('${ex.id}')" class="text-xs font-bold text-blue-600">Edit</button>
+                            <button onclick="window.deleteExDB('${ex.id}')" class="text-xs font-bold text-red-500">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.openExerciseForm = () => {
+            document.getElementById('ex-id').value = '';
+            document.getElementById('ex-name').value = '';
+            document.getElementById('ex-desc').value = '';
+            document.getElementById('ex-tags').value = '';
+            document.getElementById('ex-img').value = '';
+            document.getElementById('ex-vid').value = '';
+            document.getElementById('ex-preview').classList.add('hidden');
+            document.getElementById('ex-modal-title').innerText = 'Add Exercise';
+            document.getElementById('exercise-modal').classList.remove('hidden');
+        };
+
+        window.editExDB = (id) => {
+            const ex = window.state.exercises.find(e => e.id === id);
+            document.getElementById('ex-id').value = ex.id;
+            document.getElementById('ex-name').value = ex.name;
+            document.getElementById('ex-desc').value = ex.description || '';
+            document.getElementById('ex-tags').value = (ex.tags||[]).join(', ');
+            document.getElementById('ex-img').value = ex.imageUrl || '';
+            document.getElementById('ex-vid').value = ex.videoUrl || '';
+            if(ex.imageUrl) { document.getElementById('ex-preview').src = ex.imageUrl; document.getElementById('ex-preview').classList.remove('hidden'); }
+            document.getElementById('ex-modal-title').innerText = 'Edit Exercise';
+            document.getElementById('exercise-modal').classList.remove('hidden');
+        };
+
+        window.saveExerciseDB = async () => {
+            const id = document.getElementById('ex-id').value;
+            const data = {
+                name: document.getElementById('ex-name').value,
+                description: document.getElementById('ex-desc').value,
+                tags: document.getElementById('ex-tags').value.split(',').map(t=>t.trim().toLowerCase()),
+                imageUrl: document.getElementById('ex-img').value,
+                videoUrl: document.getElementById('ex-vid').value
+            };
+            if(id) { await rtdbSet(rtdbRef(rtdb, 'exercises/' + id), data); } 
+            else { await rtdbSet(push(rtdbRef(rtdb, 'exercises')), data); }
+            document.getElementById('exercise-modal').classList.add('hidden');
+        };
+
+        window.deleteExDB = async (id) => {
+            if(confirm('Delete exercise permanently?')) await rtdbRemove(rtdbRef(rtdb, 'exercises/' + id));
+        };
+
+        window.uploadImage = async (input) => {
+            const file = input.files[0]; if(!file) return;
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', 'Physio_uploads');
+            try {
+                input.disabled = true;
+                const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: fd });
+                const data = await res.json();
+                if(data.secure_url) {
+                    document.getElementById('ex-img').value = data.secure_url;
+                    document.getElementById('ex-preview').src = data.secure_url;
+                    document.getElementById('ex-preview').classList.remove('hidden');
+                }
+            } catch(e) { alert("Upload failed"); } finally { input.disabled = false; }
+        };
+
+        // --- PRINT LOGIC ---
+        window.triggerPrint = () => {
+            // Save params first
+            const p = window.state.currentPatient;
+            p.name = document.getElementById('pat-name').value;
+            p.age = document.getElementById('pat-age').value;
+            p.gender = document.getElementById('pat-gender').value;
+            p.date = document.getElementById('pat-date').value;
+            p.chiefComplaints = document.getElementById('pat-cc').value;
+            p.history = document.getElementById('pat-hx').value;
+            p.assessmentNote = document.getElementById('pat-ax').value;
+            p.treatmentNote = document.getElementById('pat-tx').value;
+            
+            p.exerciseIds.forEach(id => {
+                p.exerciseParams[id] = {
+                    reps: document.getElementById(`rep-${id}`)?.value || '',
+                    sets: document.getElementById(`set-${id}`)?.value || '',
+                    freq: document.getElementById(`freq-${id}`)?.value || '',
+                    note: document.getElementById(`note-${id}`)?.value || ''
+                };
+            });
+
+            // Populate Print Div
+            document.getElementById('print-date').innerText = p.date ? new Date(p.date).toLocaleDateString('en-GB') : '';
+            document.getElementById('print-name').innerText = p.name;
+            document.getElementById('print-age').innerText = p.age;
+            document.getElementById('print-gender').innerText = p.gender;
+            document.getElementById('print-upid').innerText = p.ipId;
+
+            const setField = (id, val) => { const el = document.getElementById(id); el.innerText = val; el.parentElement.style.display = val ? 'block' : 'none'; };
+            setField('print-cc', p.chiefComplaints);
+            setField('print-hx', p.history);
+            setField('print-ax', p.assessmentNote);
+            setField('print-tx', p.treatmentNote);
+
+            const exContainer = document.getElementById('print-exercises-list');
+            if(p.exerciseIds.length > 0) {
+                document.getElementById('print-exercises-section').style.display = 'block';
+                exContainer.innerHTML = p.exerciseIds.map(id => {
+                    const ex = window.state.exercises.find(e => e.id === id);
+                    if(!ex) return '';
+                    const params = p.exerciseParams[id];
+                    return `
+                    <div class="ex-card">
+                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="ex-img">` : ''}
+                        <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${ex.name}</div>
+                        <div style="font-size:11px; color:#1e3a8a; font-weight:bold;">
+                            ${params.reps ? `Reps: <span style="color:#000">${params.reps}</span> &nbsp;` : ''}
+                            ${params.sets ? `Sets: <span style="color:#000">${params.sets}</span> &nbsp;` : ''}
+                            ${params.freq ? `Freq: <span style="color:#000">${params.freq}</span>` : ''}
+                        </div>
+                        ${params.note ? `<div style="font-size:11px; margin-top:4px;">${params.note}</div>` : ''}
+                    </div>`;
+                }).join('');
+            } else {
+                document.getElementById('print-exercises-section').style.display = 'none';
+            }
+
+            window.print();
+        };
+
+    </script>
+</body>
+</html>
