@@ -37,7 +37,7 @@
             .editable-cell:empty:before { content: none !important; display: none !important; }
             
             /* Maximize A4 width for exercise print */
-            .print-full-width { width: 100% !important; max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
+            .print-full-width { width: 100% !important; max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin: 0 !important; }
         }
         
         .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
@@ -65,11 +65,11 @@
     </div>
 
     <script type="text/babel" data-type="module">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
@@ -186,20 +186,14 @@
         function App() {
           const [user, setUser] = useState(null);
           const [isConnecting, setIsConnecting] = useState(true);
-          const [activeTab, setActiveTab] = useState('rx'); // 'rx' or 'ex'
           
           const [allPatients, setAllPatients] = useState([]);
           const [activePatientId, setActivePatientId] = useState(null);
           const [draftPatient, setDraftPatient] = useState(null); 
-          const [rxViewMode, setRxViewMode] = useState('home'); 
-          const [rxSearchQuery, setRxSearchQuery] = useState('');
+          const [homeSearchQuery, setHomeSearchQuery] = useState('');
           const [isSavingPatient, setIsSavingPatient] = useState(false);
 
           const [exercises, setExercises] = useState([]);
-          const [isExercisesLoading, setIsExercisesLoading] = useState(true);
-          const [exPrescriptionData, setExPrescriptionData] = useState({ patientId: '', patientName: '', age: '', gender: '', notes: '', upid: '', contact: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null });
-          const [exSearchQuery, setExSearchQuery] = useState("");
-          const [isSavingEx, setIsSavingEx] = useState(false);
 
           // Listen to Auth
           useEffect(() => {
@@ -237,47 +231,24 @@
               if(!user) return;
               const fetchEx = async () => {
                   try {
-                      setIsExercisesLoading(true);
                       const snapshot = await get(ref(rtdb, 'exercises'));
                       if (snapshot.exists()) {
                           const exArray = Object.keys(snapshot.val()).map(key => ({ ...snapshot.val()[key], id: key }));
                           setExercises(exArray.reverse()); 
                       } else { setExercises([]); }
-                  } catch (e) { console.error(e); } finally { setIsExercisesLoading(false); }
+                  } catch (e) { console.error(e); }
               };
               fetchEx();
           }, [user]);
 
-          // Seamless Tab Integration: When active patient in RX changes, update EX tab selection
-          useEffect(() => {
-              if (activePatientId) {
-                  const pat = allPatients.find(p => p.id === activePatientId) || draftPatient;
-                  if (pat) {
-                      setExPrescriptionData(prev => ({
-                          ...prev,
-                          patientId: pat.id,
-                          patientName: pat.name || '',
-                          contact: pat.contact || '',
-                          age: pat.age || '',
-                          gender: pat.gender === 'Male' ? 'M' : (pat.gender === 'Female' ? 'F' : ''),
-                          upid: pat.ipId || '',
-                          selectedExerciseIds: pat.prescribedExercises || [],
-                          exerciseParams: pat.exerciseParams || {},
-                          lastUpdated: pat.exercisesLastUpdated || null
-                      }));
-                  }
-              }
-          }, [activePatientId, draftPatient, allPatients]);
-
           const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
           const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
 
-          // --- Rx Tab Handlers ---
           const handleCreatePatient = () => {
             let newIpId;
             do { newIpId = Math.floor(100000 + Math.random() * 900000).toString(); } while (allPatients.some(p => p.ipId === newIpId));
-            const newPatient = { id: generateId(), ipId: newIpId, doctorId: user.uid, date: new Date().toISOString().split('T')[0], name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false };
-            setDraftPatient(newPatient); setActivePatientId(newPatient.id); setRxViewMode('patient');
+            const newPatient = { id: generateId(), ipId: newIpId, doctorId: user.uid, date: new Date().toISOString().split('T')[0], name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false, prescribedExercises: [], exerciseParams: {} };
+            setDraftPatient(newPatient); setActivePatientId(newPatient.id);
           };
 
           const handleSavePatient = async (updatedPatient) => {
@@ -288,57 +259,12 @@
                 if (patientToSave.customTables) patientToSave.customTables = patientToSave.customTables.map(t => ({ ...t, rows: JSON.stringify(t.rows) }));
                 Object.keys(patientToSave).forEach(key => { if (patientToSave[key] === undefined) delete patientToSave[key]; });
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'patients', updatedPatient.id), patientToSave);
-                setDraftPatient(null);
-            } catch(e) { console.error(e); }
+                // After save, update local draft state if it was a draft
+                if(draftPatient && draftPatient.id === updatedPatient.id) {
+                    setDraftPatient(null);
+                }
+            } catch(e) { console.error(e); alert("Save failed"); }
             setTimeout(() => setIsSavingPatient(false), 500); 
-          };
-
-          // --- Ex Tab Handlers ---
-          const togglePrescriptionExercise = (id) => {
-                setExPrescriptionData(prev => {
-                    const isSelected = prev.selectedExerciseIds.includes(id); let newIds = [...prev.selectedExerciseIds]; let newParams = { ...prev.exerciseParams };
-                    if (isSelected) { newIds = newIds.filter(eId => eId !== id); delete newParams[id]; } 
-                    else { newIds.push(id); newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' }; }
-                    return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
-                });
-          };
-          const handleExParamChange = (id, field, value) => { setExPrescriptionData(prev => ({ ...prev, exerciseParams: { ...prev.exerciseParams, [id]: { ...prev.exerciseParams[id], [field]: value } } })); };
-
-          const handleExPatientSelect = (e) => {
-              const selectedId = e.target.value;
-              if(!selectedId) {
-                  setExPrescriptionData({ patientId: '', patientName: '', contact: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null });
-                  setActivePatientId(null);
-                  return;
-              }
-              const pat = allPatients.find(p => p.id === selectedId);
-              if (pat) {
-                  setExPrescriptionData({
-                      patientId: pat.id, patientName: pat.name || '', contact: pat.contact || '', age: pat.age || '',
-                      gender: pat.gender === 'Male' ? 'M' : (pat.gender === 'Female' ? 'F' : ''),
-                      upid: pat.ipId || '', notes: '',
-                      selectedExerciseIds: pat.prescribedExercises || [],
-                      exerciseParams: pat.exerciseParams || {},
-                      lastUpdated: pat.exercisesLastUpdated || null
-                  });
-                  setActivePatientId(pat.id);
-              }
-          };
-
-          const handleSaveExercises = async () => {
-              if (!exPrescriptionData.patientId) return alert("Select a patient first.");
-              setIsSavingEx(true);
-              try {
-                  const patRef = doc(db, 'artifacts', appId, 'public', 'data', 'patients', exPrescriptionData.patientId);
-                  const nowStr = new Date().toISOString();
-                  await updateDoc(patRef, {
-                      prescribedExercises: exPrescriptionData.selectedExerciseIds,
-                      exerciseParams: exPrescriptionData.exerciseParams,
-                      exercisesLastUpdated: nowStr
-                  });
-                  setExPrescriptionData(prev => ({...prev, lastUpdated: nowStr}));
-              } catch(e) { console.error(e); alert("Failed to save exercises to patient."); }
-              setIsSavingEx(false);
           };
 
           const openWhatsApp = (contact, name, upid) => {
@@ -365,26 +291,19 @@
           }
 
           const myPatients = allPatients.filter(p => p.doctorId === user.uid);
-          const activePatientForRx = draftPatient || allPatients.find(p => p.id === activePatientId) || { id: activePatientId };
+          const activePatient = draftPatient || allPatients.find(p => p.id === activePatientId);
 
           return (
               <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
                   
-                  {/* Global Main Header (Not sticky, scrolls away naturally) */}
-                  {!(activeTab === 'rx' && rxViewMode === 'patient') && !(activeTab === 'ex' && exPrescriptionData.patientId) && (
-                      <header className="bg-white shadow-sm border-b border-slate-200 print:hidden h-[60px] flex items-center">
+                  {/* Home Screen Header (Only visible when NO patient is selected) */}
+                  {!activePatientId && (
+                      <header className="bg-white shadow-sm border-b border-slate-200 h-[60px] flex items-center">
                         <div className="w-full max-w-6xl mx-auto px-4 flex justify-between items-center">
                           <div className="flex items-center gap-2 text-navy">
                             <i className="ph-bold ph-stethoscope text-2xl text-azure"></i>
-                            <h1 className="text-lg font-bold tracking-tight hidden sm:block">Doctor Dashboard</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Doctor Dashboard</h1>
                           </div>
-                          
-                          <div className="toggle-container w-[160px] sm:w-[200px]">
-                              <div className="toggle-slider" style={{ transform: activeTab === 'rx' ? 'translateX(0)' : 'translateX(100%)' }}></div>
-                              <button className={`toggle-btn ${activeTab === 'rx' ? 'active' : ''}`} onClick={() => setActiveTab('rx')}>Main Rx</button>
-                              <button className={`toggle-btn ${activeTab === 'ex' ? 'active' : ''}`} onClick={() => setActiveTab('ex')}>Exercise</button>
-                          </div>
-
                           <button onClick={handleLogout} className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 ml-2" title="Logout">
                               <i className="ph-bold ph-sign-out text-lg"></i>
                           </button>
@@ -392,19 +311,14 @@
                       </header>
                   )}
 
-
-                  <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none">
+                  <main className={`max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none`}>
                       
-                      {/* ==================================== */}
-                      {/* MAIN RX TAB CONTENT                  */}
-                      {/* ==================================== */}
-                      {activeTab === 'rx' && (
-                          rxViewMode === 'home' ? (
+                      {!activePatientId ? (
                             <div className="space-y-4 animate-in fade-in">
                                 <div className="flex gap-2 items-center">
                                     <div className="flex-1 bg-surface p-2.5 rounded-xl shadow-soft border border-slate-200 flex items-center gap-2">
                                         <i className="ph-bold ph-magnifying-glass text-slate-400 ml-1"></i>
-                                        <input type="text" value={rxSearchQuery} onChange={(e) => setRxSearchQuery(e.target.value)} placeholder="Search patients..." className="w-full bg-transparent outline-none text-sm text-slate-700" />
+                                        <input type="text" value={homeSearchQuery} onChange={(e) => setHomeSearchQuery(e.target.value)} placeholder="Search patients..." className="w-full bg-transparent outline-none text-sm text-slate-700" />
                                     </div>
                                     <button onClick={handleCreatePatient} className="flex items-center gap-1 bg-azure text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-navy shadow-sm shrink-0"><i className="ph-bold ph-plus"></i> New Patient</button>
                                 </div>
@@ -421,11 +335,11 @@
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {myPatients.filter(p => p.ipId?.includes(rxSearchQuery) || p.name?.toLowerCase().includes(rxSearchQuery.toLowerCase())).length === 0 ? (
+                                        {myPatients.filter(p => p.ipId?.includes(homeSearchQuery) || p.name?.toLowerCase().includes(homeSearchQuery.toLowerCase())).length === 0 ? (
                                           <tr><td colSpan="4" className="py-10 text-center text-sm text-slate-400 font-medium">No records found. Create one above.</td></tr>
                                         ) : (
-                                          myPatients.filter(p => p.ipId?.includes(rxSearchQuery) || p.name?.toLowerCase().includes(rxSearchQuery.toLowerCase())).map(p => (
-                                            <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={() => { setActivePatientId(p.id); setRxViewMode('patient'); }}>
+                                          myPatients.filter(p => p.ipId?.includes(homeSearchQuery) || p.name?.toLowerCase().includes(homeSearchQuery.toLowerCase())).map(p => (
+                                            <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={() => setActivePatientId(p.id)}>
                                               <td className="py-3 px-4 text-sm font-bold text-azure align-top">#{p.ipId}</td>
                                               <td className="py-3 px-4 align-top">
                                                 <div className="font-bold text-sm text-slate-800 leading-tight">{p.name || 'Unnamed'}</div>
@@ -446,234 +360,16 @@
                                   </div>
                                 </div>
                             </div>
-                          ) : (
-                              <RxPatientDetail 
-                                  patient={activePatientForRx} 
-                                  onSave={handleSavePatient} 
-                                  onCancel={() => { setDraftPatient(null); setRxViewMode('home'); setActivePatientId(null); }} 
-                                  isSaving={isSavingPatient}
-                                  handleSmartPrint={handleSmartPrint}
-                                  openWhatsApp={openWhatsApp}
-                              />
-                          )
-                      )}
-
-
-                      {/* ==================================== */}
-                      {/* EXERCISE TAB CONTENT                 */}
-                      {/* ==================================== */}
-                      {activeTab === 'ex' && (
-                          <div className="w-full relative animate-in fade-in">
-                              
-                              {/* Non-sticky, unified action header for Exercise Tab */}
-                              {exPrescriptionData.patientId && (
-                                  <div className="bg-white shadow-sm border border-slate-200 rounded-xl print:hidden px-3 sm:px-4 py-3 mb-4 w-full flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-                                          <button onClick={() => { setActivePatientId(null); setExPrescriptionData({ patientId: '', patientName: '', contact: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null }); }} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
-                                              <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
-                                          </button>
-                                          <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{exPrescriptionData.upid}</div>
-                                      </div>
-                                      
-                                      <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                                          {exPrescriptionData.contact && exPrescriptionData.upid && (
-                                              <button onClick={() => openWhatsApp(exPrescriptionData.contact, exPrescriptionData.patientName, exPrescriptionData.upid)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm shrink-0">
-                                                  <i className="ph-bold ph-whatsapp-logo text-sm"></i> <span className="hidden sm:inline">WhatsApp</span>
-                                              </button>
-                                          )}
-                                          <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm shrink-0" onClick={() => handleSmartPrint('Exercise_Chart', exPrescriptionData.patientName)} disabled={!exPrescriptionData.patientId}>
-                                              <i className="ph-bold ph-printer text-sm"></i> Print
-                                          </button>
-                                          <button onClick={handleSaveExercises} disabled={!exPrescriptionData.patientId} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors shrink-0 disabled:opacity-50">
-                                              <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSavingEx && "..."}
-                                          </button>
-                                      </div>
-                                  </div>
-                              )}
-
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 print:hidden">
-                                  {/* Left Panel: Selection */}
-                                  <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 h-fit">
-                                      <div className="flex justify-between items-center mb-4">
-                                          <h3 className="text-base md:text-lg font-bold text-slate-800">1. Patient Details & Selection</h3>
-                                      </div>
-                                      
-                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4">
-                                          <div className="col-span-2 relative">
-                                              <select value={exPrescriptionData.patientId || ''} onChange={handleExPatientSelect} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50 font-bold text-navy appearance-none cursor-pointer">
-                                                  <option value="">-- Select Patient --</option>
-                                                  {myPatients.map(p => <option key={p.id} value={p.id}>{p.name} (#{p.ipId})</option>)}
-                                              </select>
-                                              <i className="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i>
-                                          </div>
-                                          
-                                          <input type="number" placeholder="Age" value={exPrescriptionData.age} onChange={e => setExPrescriptionData({...exPrescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" />
-                                          <select value={exPrescriptionData.gender} onChange={e => setExPrescriptionData({...exPrescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-azure">
-                                              <option value="">Gender</option><option value="M">Male</option><option value="F">Female</option>
-                                          </select>
-                                          <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={exPrescriptionData.notes} onChange={e => setExPrescriptionData({...exPrescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" rows="2" />
-                                      </div>
-
-                                      <div className="border-t border-slate-100 pt-4">
-                                          <div className="relative mb-2">
-                                              <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
-                                              <input type="text" placeholder="Search exercises..." value={exSearchQuery} onChange={(e) => setExSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-azure" />
-                                          </div>
-                                          
-                                          <div className="h-[250px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1 h-scroll">
-                                              {isExercisesLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading database...</div> :
-                                              exercises.filter(e => (e.name || "").toLowerCase().includes(exSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(exSearchQuery.toLowerCase())))).map(ex => {
-                                                  const isSelected = exPrescriptionData.selectedExerciseIds.includes(ex.id);
-                                                  return (
-                                                      <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
-                                                          <input type="checkbox" className="w-4 h-4 rounded text-azure accent-azure" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
-                                                          <div className="ml-3 flex-1 min-w-0 text-left">
-                                                              <p className="text-sm font-bold text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                              <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
-                                                          </div>
-                                                      </label>
-                                                  );
-                                              })}
-                                          </div>
-                                      </div>
-                                  </div>
-
-                                  {/* Right Panel: Config */}
-                                  <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
-                                      <div className="flex justify-between items-start mb-4">
-                                          <div>
-                                              <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                                                  2. Configure Prescribed
-                                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{exPrescriptionData.selectedExerciseIds.length}</span>
-                                              </h3>
-                                              {exPrescriptionData.lastUpdated && (
-                                                  <p className="text-[10px] text-slate-500 mt-1">Last Saved: {new Date(exPrescriptionData.lastUpdated).toLocaleString('en-GB')}</p>
-                                              )}
-                                          </div>
-                                      </div>
-
-                                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
-                                          {exPrescriptionData.selectedExerciseIds.length === 0 ? (
-                                              <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
-                                                  <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
-                                                  <p>No exercises selected.</p>
-                                              </div>
-                                          ) : (
-                                              exPrescriptionData.selectedExerciseIds.map(id => {
-                                                  const ex = exercises.find(e => e.id === id);
-                                                  if (!ex) return null;
-                                                  return (
-                                                      <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
-                                                          <div className="flex justify-between items-center mb-2">
-                                                              <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
-                                                              <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:text-red-700 font-bold">Remove</button>
-                                                          </div>
-                                                          <div className="grid grid-cols-3 gap-2 mb-2">
-                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Reps</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleExParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Sets</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleExParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Freq</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleExParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                          </div>
-                                                          <input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleExParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure"/>
-                                                      </div>
-                                                  );
-                                              })
-                                          )}
-                                      </div>
-                                  </div>
-                                  
-                                  {/* Bottom Action Buttons (Exercise Tab) */}
-                                  {exPrescriptionData.patientId && (
-                                      <div className="col-span-1 lg:col-span-2 flex justify-end gap-2 mt-2 print:hidden">
-                                          <button className="flex items-center gap-1 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 shadow-sm" onClick={() => handleSmartPrint('Exercise_Chart', exPrescriptionData.patientName)}>
-                                              <i className="ph-bold ph-printer text-lg"></i> Print
-                                          </button>
-                                          <button onClick={handleSaveExercises} className="flex items-center gap-1 px-5 py-2 bg-azure text-white rounded-lg text-sm font-bold hover:bg-navy shadow-sm transition-colors">
-                                              <i className="ph-bold ph-floppy-disk text-lg"></i> Save {isSavingEx && "..."}
-                                          </button>
-                                      </div>
-                                  )}
-                              </div>
-
-                              {/* --- HIDDEN CSS PRINT VIEW FOR EXERCISE TAB --- */}
-                              <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative print-full-width">
-                                  <div className="flex justify-between items-start pb-2 text-left">
-                                      <div>
-                                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                                          <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                                          <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                                      </div>
-                                      
-                                      {exPrescriptionData.upid && (
-                                      <div className="flex flex-col items-center justify-center pt-2 px-6">
-                                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${exPrescriptionData.upid}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                                          <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
-                                      </div>
-                                      )}
-
-                                      <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                                          <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
-                                          <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{new Date().toLocaleDateString('en-GB')}</span></div>
-                                      </div>
-                                  </div>
-                                  <div className="border-b border-[#1e40af] mb-1.5"></div>
-                                  <table className="main-print-table">
-                                      <thead className="print-table-header">
-                                          <tr><td className="pb-4 pt-2">
-                                                  <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                                      <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{exPrescriptionData.patientName}</span></div>
-                                                      <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.age}</span></div>
-                                                      <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.gender}</span></div>
-                                                      <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.upid}</span></div>
-                                                  </div>
-                                                  <div className="border-b border-[#1e40af]"></div>
-                                          </td></tr>
-                                      </thead>
-                                      <tbody>
-                                          <tr className="main-print-row-allow-break"><td className="pt-2 px-0 pb-4">
-                                              {exPrescriptionData.notes && (
-                                                  <div className="mb-6 px-2">
-                                                      <span className="font-bold text-[20px] text-[#1e40af]">Goals / Notes :-</span>
-                                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{exPrescriptionData.notes}</p>
-                                                  </div>
-                                              )}
-                                              
-                                              <div className="flex-1 w-full mt-4">
-                                                  <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
-                                                      {exercises.filter(ex => exPrescriptionData.selectedExerciseIds.includes(ex.id)).map((ex) => {
-                                                          const params = exPrescriptionData.exerciseParams[ex.id] || {};
-                                                          const customNote = params.note;
-                                                          return (
-                                                              <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
-                                                                  <div className="h-32 w-full flex items-center justify-center mb-2">
-                                                                      {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                                                          <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
-                                                                      ) : (
-                                                                          <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                                      )}
-                                                                  </div>
-                                                                  <div className="w-full text-left">
-                                                                      <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
-                                                                      <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
-                                                                          {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                                          {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                                          {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                                      </div>
-                                                                      {customNote && (
-                                                                          <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
-                                                                      )}
-                                                                  </div>
-                                                              </div>
-                                                          );
-                                                      })}
-                                                  </div>
-                                              </div>
-                                          </td></tr>
-                                      </tbody>
-                                  </table>
-                              </div>
-
-                          </div>
+                      ) : (
+                            <PatientDetail 
+                                patient={activePatient} 
+                                exercises={exercises}
+                                onSave={handleSavePatient} 
+                                onCancel={() => { setDraftPatient(null); setActivePatientId(null); }} 
+                                isSaving={isSavingPatient}
+                                handleSmartPrint={handleSmartPrint}
+                                openWhatsApp={openWhatsApp}
+                            />
                       )}
                   </main>
               </div>
@@ -681,33 +377,52 @@
         }
 
         // ==========================================
-        // RX PATIENT DETAIL COMPONENT
+        // UNIFIED PATIENT DETAIL COMPONENT
         // ==========================================
-        function RxPatientDetail({ patient, onSave, onCancel, isSaving, handleSmartPrint, openWhatsApp }) {
+        function PatientDetail({ patient, exercises, onSave, onCancel, isSaving, handleSmartPrint, openWhatsApp }) {
           const [formData, setFormData] = useState(() => {
               let rTables = patient.reassessmentTables || [];
               if (rTables.length === 0) rTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
-              return { ...patient, customTables: patient.customTables || [], reassessmentTables: rTables, treatmentNote: patient.treatmentNote || '', isPublished: patient.isPublished || false };
+              return { 
+                  ...patient, 
+                  customTables: patient.customTables || [], 
+                  reassessmentTables: rTables, 
+                  treatmentNote: patient.treatmentNote || '', 
+                  isPublished: patient.isPublished || false,
+                  prescribedExercises: patient.prescribedExercises || [],
+                  exerciseParams: patient.exerciseParams || {}
+              };
           });
 
           useEffect(() => {
               if (patient && patient.id !== formData.id && patient.id) {
                   let rTables = patient.reassessmentTables || [];
                   if (rTables.length === 0) rTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
-                  setFormData({ ...patient, customTables: patient.customTables || [], reassessmentTables: rTables, treatmentNote: patient.treatmentNote || '', isPublished: patient.isPublished || false });
+                  setFormData({ 
+                      ...patient, 
+                      customTables: patient.customTables || [], 
+                      reassessmentTables: rTables, 
+                      treatmentNote: patient.treatmentNote || '', 
+                      isPublished: patient.isPublished || false,
+                      prescribedExercises: patient.prescribedExercises || [],
+                      exerciseParams: patient.exerciseParams || {}
+                  });
               }
           }, [patient]);
 
+          const [activeTab, setActiveTab] = useState('rx'); // 'rx' or 'ex'
+          const [exSearchQuery, setExSearchQuery] = useState("");
+          
           const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
           const [activeReassessmentTableId, setActiveReassessmentTableId] = useState(null);
           const [showLinkCopied, setShowLinkCopied] = useState(false);
 
           const handleInputChange = (e) => { const { name, value } = e; setFormData((prev) => ({ ...prev, [name]: value })); };
           
+          // Rx Tracking Handlers
           const handleAddCustomTable = (section) => { setFormData(prev => ({ ...prev, customTables: [...prev.customTables, { id: generateId(), section: section, title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] })); };
           const handleUpdateCustomTable = (upd) => { setFormData(prev => ({ ...prev, customTables: prev.customTables.map(t => t.id === upd.id ? upd : t) })); };
           const handleRemoveCustomTable = (id) => { setFormData(prev => ({ ...prev, customTables: prev.customTables.filter(t => t.id !== id) })); };
-          
           const addReassessmentTable = () => { setFormData(prev => ({ ...prev, reassessmentTables: [...prev.reassessmentTables, { id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }] })); };
           const removeReassessmentTable = (id) => { setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.filter(t => t.id !== id) })); };
           const updateReassessmentTableTitle = (id, title) => { setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === id ? { ...t, title } : t) })); };
@@ -719,6 +434,30 @@
           const updateSimpleCellValue = (tId, rId, mId, v) => { setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== rId) return rec; return { ...rec, values: { ...rec.values, [mId]: v } }; })}; }) })); };
           const updateMultiFieldCellValue = (tId, rId, mId, sub, v) => { setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== rId) return rec; let nv = { ...rec.values }; nv[mId] = { ...(nv[mId] || {}), [sub]: v }; return { ...rec, values: nv }; })}; }) })); };
 
+          // Exercise Handlers
+          const toggleExercise = (id) => {
+              setFormData(prev => {
+                  const isSelected = prev.prescribedExercises.includes(id);
+                  let newIds = [...prev.prescribedExercises];
+                  let newParams = { ...prev.exerciseParams };
+                  if (isSelected) {
+                      newIds = newIds.filter(e => e !== id);
+                      delete newParams[id];
+                  } else {
+                      newIds.push(id);
+                      newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
+                  }
+                  return { ...prev, prescribedExercises: newIds, exerciseParams: newParams };
+              });
+          };
+
+          const handleExParamChange = (id, field, value) => {
+              setFormData(prev => ({
+                  ...prev,
+                  exerciseParams: { ...prev.exerciseParams, [id]: { ...(prev.exerciseParams[id] || {}), [field]: value } }
+              }));
+          };
+
           const togglePublish = () => { const newState = !formData.isPublished; setFormData(prev => ({ ...prev, isPublished: newState })); onSave({ ...formData, isPublished: newState }); };
           const copyPatientLink = () => { navigator.clipboard.writeText(`https://therapeutichub.in/prescription/${formData.ipId}`).then(() => { setShowLinkCopied(true); setTimeout(() => setShowLinkCopied(false), 2000); }); };
           const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
@@ -726,234 +465,401 @@
           return (
             <div className="w-full relative animate-in fade-in">
               
-              {/* Non-sticky, unified action header for Main Rx */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-xl print:hidden px-3 sm:px-4 py-3 mb-4 w-full flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-                      <button onClick={onCancel} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
-                          <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
+              {/* Non-sticky, unified action header */}
+              <div className="bg-white shadow-sm border border-slate-200 rounded-xl print:hidden px-3 sm:px-4 py-3 mb-4 w-full flex flex-col gap-3">
+                  {/* Top Row: Back, Toggle, UPID */}
+                  <div className="flex justify-between items-center w-full">
+                      <button onClick={onCancel} className="flex items-center justify-center w-9 h-9 bg-slate-100 text-slate-500 hover:text-navy hover:bg-slate-200 rounded-full shrink-0 transition-colors" title="Back">
+                          <i className="ph-bold ph-arrow-left text-lg"></i>
                       </button>
-                      <div className="flex items-center gap-2">
-                          <button onClick={togglePublish} className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold border shadow-sm ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                              {formData.isPublished ? <><i className="ph-fill ph-check-circle"></i> Published</> : <><i className="ph-fill ph-lock-key"></i> Draft</>}
-                          </button>
-                          <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{formData.ipId}</div>
+                      
+                      <div className="toggle-container w-[160px] sm:w-[200px]">
+                          <div className="toggle-slider" style={{ transform: activeTab === 'rx' ? 'translateX(0)' : 'translateX(100%)' }}></div>
+                          <button className={`toggle-btn ${activeTab === 'rx' ? 'active' : ''}`} onClick={() => setActiveTab('rx')}>Main Rx</button>
+                          <button className={`toggle-btn ${activeTab === 'ex' ? 'active' : ''}`} onClick={() => setActiveTab('ex')}>Exercise</button>
                       </div>
+
+                      <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200 shrink-0">#{formData.ipId}</div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                      <div className="flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded border border-slate-200 shadow-sm shrink-0">
-                          <span className="text-[10px] font-bold text-slate-400">DATE:</span>
-                          <input type="date" name="date" value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className="text-xs font-bold outline-none bg-transparent w-[95px] text-slate-800" />
+                  
+                  {/* Bottom Row: Date, Publish, Actions */}
+                  <div className="flex justify-between items-center w-full">
+                      <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded border border-slate-200 shadow-sm shrink-0">
+                              <span className="text-[10px] font-bold text-slate-400">DATE:</span>
+                              <input type="date" name="date" value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className="text-xs font-bold outline-none bg-transparent w-[95px] text-slate-800" />
+                          </div>
+                          <button onClick={togglePublish} className={`flex items-center justify-center w-8 h-8 rounded border shadow-sm transition-colors ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`} title={formData.isPublished ? "Published" : "Draft"}>
+                              {formData.isPublished ? <i className="ph-fill ph-check-circle text-lg"></i> : <i className="ph-fill ph-lock-key text-lg"></i>}
+                          </button>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto h-scroll">
-                          <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1.5 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-xs font-bold shrink-0">
-                              <i className="ph-bold ph-link text-sm"></i> <span className="hidden sm:inline">Link</span>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                          <button onClick={copyPatientLink} className="relative flex items-center justify-center w-9 h-9 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm" title="Copy Link">
+                              <i className="ph-bold ph-link text-lg"></i>
                               {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
                           </button>
                           {formData.contact && formData.ipId && (
-                              <button onClick={() => openWhatsApp(formData.contact, formData.name, formData.ipId)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm shrink-0">
-                                  <i className="ph-bold ph-whatsapp-logo text-sm"></i> <span className="hidden sm:inline">WhatsApp</span>
+                              <button onClick={() => openWhatsApp(formData.contact, formData.name, formData.ipId)} className="flex items-center justify-center w-9 h-9 bg-[#25D366] text-white rounded border border-[#20b957] hover:bg-[#20b957] shadow-sm transition-colors" title="WhatsApp">
+                                  <i className="ph-bold ph-whatsapp-logo text-lg"></i>
                               </button>
                           )}
-                          <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm shrink-0" onClick={() => handleSmartPrint('Prescription', formData.name)}>
-                              <i className="ph-bold ph-printer text-sm"></i> Print
+                          <button onClick={() => handleSmartPrint(activeTab === 'rx' ? 'Prescription' : 'Exercise_Chart', formData.name)} className="flex items-center justify-center w-9 h-9 bg-white border border-slate-200 text-slate-700 rounded hover:bg-slate-50 shadow-sm transition-colors" title="Print Current Tab">
+                              <i className="ph-bold ph-printer text-lg"></i>
                           </button>
-                          <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors shrink-0">
-                              <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSaving && "..."}
+                          <button onClick={() => onSave(formData)} className="flex items-center justify-center w-9 h-9 bg-azure text-white rounded hover:bg-navy shadow-sm transition-colors" title="Save All Data">
+                              {isSaving ? <i className="ph-bold ph-spinner animate-spin text-lg"></i> : <i className="ph-bold ph-floppy-disk text-lg"></i>}
                           </button>
                       </div>
                   </div>
               </div>
               
-              <div className="w-full space-y-3 print:hidden">
+              {/* --- TAB CONTENT --- */}
+              <div className="w-full print:hidden">
 
-                {/* Profile */}
-                <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-azure"></div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <input type="text" name="name" value={formData.name || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Name" />
-                    <input type="number" name="age" value={formData.age || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Age" />
-                    <select name="gender" value={formData.gender || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure appearance-none"><option value="">Gender</option><option value="Male">M</option><option value="Female">F</option></select>
-                    <input type="tel" name="contact" value={formData.contact || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Phone" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                    <AutoTextArea name="chiefComplaints" minHeight="40px" value={formData.chiefComplaints || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Chief Complaints" />
-                    <AutoTextArea name="history" minHeight="40px" value={formData.history || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Medical History" />
-                  </div>
-                </section>
-
-                {/* Assessment */}
-                <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-navy"></div>
-                  <div className="flex items-center justify-between mb-2">
-                      <h2 className="font-bold text-navy text-sm"><i className="ph-fill ph-clipboard-text"></i> Assessment</h2>
-                      <button onClick={() => handleAddCustomTable('assessment')} className="text-[10px] font-bold bg-ice text-navy px-2 py-1 rounded hover:bg-blue-200">+ Table</button>
-                  </div>
-                  <AutoTextArea name="assessmentNote" minHeight="50px" value={formData.assessmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-navy" placeholder="Assessment notes..." />
-                  {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
-                      <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}</div>
-                  )}
-                  <div className="mt-2"><input type="text" name="diagnosis" value={formData.diagnosis || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm rounded-md outline-none font-bold bg-ice/50 border border-blue-200 text-navy" placeholder="Diagnosis..." /></div>
-                </section>
-
-                {/* Treatment */}
-                <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                  <div className="flex items-center justify-between mb-2">
-                      <h2 className="font-bold text-emerald-700 text-sm"><i className="ph-fill ph-bandaids"></i> Treatment</h2>
-                      <button onClick={() => handleAddCustomTable('treatment')} className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-100">+ Table</button>
-                  </div>
-                  <AutoTextArea name="treatmentNote" minHeight="50px" value={formData.treatmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-emerald-500" placeholder="Treatment plan..." />
-                  {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
-                      <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}</div>
-                  )}
-                </section>
-
-                {/* Tracking */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between px-1">
-                        <h2 className="font-bold text-sm text-navy"><i className="ph-fill ph-chart-line-up"></i> Tracking</h2>
-                        <button onClick={() => handleAddCustomTable('reassessment')} className="bg-white text-navy border border-slate-200 px-2 py-1 rounded text-[10px] font-bold shadow-sm">+ Table</button>
-                    </div>
-
-                    {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
-                        <div className="flex flex-wrap gap-3 p-3 bg-surface border border-slate-200 rounded-xl shadow-soft">
-                            {formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}
-                        </div>
-                    )}
-
-                    {formData.reassessmentTables.map((rtable) => (
-                        <section key={rtable.id} className="bg-surface rounded-xl shadow-soft border border-slate-200 overflow-hidden">
-                          <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex justify-between gap-2 items-center">
-                            <div contentEditable suppressContentEditableWarning onBlur={e => updateReassessmentTableTitle(rtable.id, e.currentTarget.innerText)} className="font-bold text-xs text-navy outline-none border-b border-dashed border-blue-200">{rtable.title}</div>
-                            <div className="flex gap-1">
-                                {formData.reassessmentTables.length > 1 && <button onClick={() => removeReassessmentTable(rtable.id)} className="text-red-500 px-1.5 py-0.5 rounded text-[10px] font-bold"><i className="ph-bold ph-trash"></i></button>}
-                                <button onClick={() => { setActiveReassessmentTableId(rtable.id); setIsMetricModalOpen(true); }} className="bg-navy text-white px-2 py-1 rounded text-[10px] font-bold">+ Col</button>
-                            </div>
+                {/* ======================= MAIN RX TAB ======================= */}
+                {activeTab === 'rx' && (
+                    <div className="space-y-3 animate-in fade-in">
+                        {/* Profile */}
+                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-azure"></div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <input type="text" name="name" value={formData.name || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Name" />
+                            <input type="number" name="age" value={formData.age || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Age" />
+                            <select name="gender" value={formData.gender || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure appearance-none"><option value="">Gender</option><option value="Male">M</option><option value="Female">F</option></select>
+                            <input type="tel" name="contact" value={formData.contact || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Phone" />
                           </div>
-
-                          {rtable.trackedMetrics.length > 0 ? (
-                              <div className="overflow-x-auto p-2 bg-white h-scroll">
-                                <table className="w-full table-auto border-collapse text-xs border border-slate-200">
-                                  <thead>
-                                    <tr>
-                                      <th className="p-1.5 text-left text-[10px] font-bold text-navy border border-slate-200 w-20 bg-slate-50">Date</th>
-                                      {rtable.trackedMetrics.map(metric => (
-                                          <th key={metric.id} className="text-left font-bold text-navy border border-slate-200 p-0 bg-slate-50 group min-w-[70px]">
-                                            <div className="flex justify-between p-1">
-                                              <div className="flex flex-col leading-tight"><span className="text-[8px] text-slate-400 uppercase">{metric.type}</span><span className="text-[10px]">{metric.title}</span></div>
-                                              <button onClick={() => removeMetricColumn(rtable.id, metric.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 p-0"><i className="ph-bold ph-x text-[10px]"></i></button>
-                                            </div>
-                                            {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-0.5 text-center">L</div></div>}
-                                            {metric.type === 'ROM with VAS' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">VAS</div><div className="flex-1 py-0.5 text-center">{metric.romMode==='Passive'?'PROM':'AROM'}</div></div>}
-                                            {metric.type === 'Custom 2-Column' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">{metric.col1}</div><div className="flex-1 py-0.5 text-center">{metric.col2}</div></div>}
-                                          </th>
-                                      ))}
-                                      <th className="p-1 border border-slate-200 w-6 bg-slate-50"></th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {rtable.records.map(record => (
-                                      <tr key={record.id} className="border-b border-slate-200">
-                                        <td className="p-0 border border-slate-200 bg-white"><input type="date" value={record.date} onChange={(e) => updateRecordDate(rtable.id, record.id, e.target.value)} className="w-full h-full min-h-[28px] px-1 text-[10px] font-bold outline-none bg-transparent" /></td>
-                                        {rtable.trackedMetrics.map(metric => {
-                                          const v = record.values[metric.id];
-                                          if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'r', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.r||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'l', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.l||''}</div></div></div></td>;
-                                          if (metric.type === 'ROM with VAS') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'vas', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.vas||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'rom', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.rom||''}</div></div></div></td>;
-                                          if (metric.type === 'Custom 2-Column') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c1', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c1||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c2', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c2||''}</div></div></div></td>;
-                                          return <td key={metric.id} className="p-0 border border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateSimpleCellValue(rtable.id, record.id, metric.id, e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px] min-h-[28px]">{v||''}</div></td>;
-                                        })}
-                                        <td className="p-0 text-center border border-slate-200"><button onClick={() => removeDateRow(rtable.id, record.id)} className="text-red-400 p-1"><i className="ph-bold ph-trash text-[10px]"></i></button></td>
-                                      </tr>
-                                    ))}
-                                    <tr><td colSpan={rtable.trackedMetrics.length + 2} className="p-0"><button onClick={() => addDateRow(rtable.id)} className="w-full py-1.5 text-[10px] text-azure font-bold bg-slate-50">+ Add Session Record</button></td></tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                          ) : ( <div className="p-4 text-xs text-slate-400 text-center">No metrics tracked yet.</div> )}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                            <AutoTextArea name="chiefComplaints" minHeight="40px" value={formData.chiefComplaints || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Chief Complaints" />
+                            <AutoTextArea name="history" minHeight="40px" value={formData.history || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" placeholder="Medical History" />
+                          </div>
                         </section>
-                    ))}
-                    <button onClick={addReassessmentTable} className="w-full py-2.5 mt-1 text-xs text-navy font-bold border border-dashed border-slate-300 rounded-xl hover:bg-slate-50">+ New Group</button>
-                    
-                    {/* Bottom Action Buttons (Main Rx) */}
-                    <div className="flex justify-end gap-2 mt-4 print:hidden">
-                        <button className="flex items-center gap-1 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 shadow-sm" onClick={() => handleSmartPrint('Prescription', formData.name)}>
-                            <i className="ph-bold ph-printer text-lg"></i> Print
-                        </button>
-                        <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-5 py-2 bg-azure text-white rounded-lg text-sm font-bold hover:bg-navy shadow-sm transition-colors">
-                            <i className="ph-bold ph-floppy-disk text-lg"></i> Save {isSaving && "..."}
-                        </button>
+
+                        {/* Assessment */}
+                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-navy"></div>
+                          <div className="flex items-center justify-between mb-2">
+                              <h2 className="font-bold text-navy text-sm"><i className="ph-fill ph-clipboard-text"></i> Assessment</h2>
+                              <button onClick={() => handleAddCustomTable('assessment')} className="text-[10px] font-bold bg-ice text-navy px-2 py-1 rounded hover:bg-blue-200">+ Table</button>
+                          </div>
+                          <AutoTextArea name="assessmentNote" minHeight="50px" value={formData.assessmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-navy" placeholder="Assessment notes..." />
+                          {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
+                              <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}</div>
+                          )}
+                          <div className="mt-2"><input type="text" name="diagnosis" value={formData.diagnosis || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm rounded-md outline-none font-bold bg-ice/50 border border-blue-200 text-navy" placeholder="Diagnosis..." /></div>
+                        </section>
+
+                        {/* Treatment */}
+                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                          <div className="flex items-center justify-between mb-2">
+                              <h2 className="font-bold text-emerald-700 text-sm"><i className="ph-fill ph-bandaids"></i> Treatment</h2>
+                              <button onClick={() => handleAddCustomTable('treatment')} className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-100">+ Table</button>
+                          </div>
+                          <AutoTextArea name="treatmentNote" minHeight="50px" value={formData.treatmentNote || ''} onChange={(e) => handleInputChange(e.target)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-emerald-500" placeholder="Treatment plan..." />
+                          {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
+                              <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}</div>
+                          )}
+                        </section>
+
+                        {/* Tracking */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="font-bold text-sm text-navy"><i className="ph-fill ph-chart-line-up"></i> Tracking</h2>
+                                <button onClick={() => handleAddCustomTable('reassessment')} className="bg-white text-navy border border-slate-200 px-2 py-1 rounded text-[10px] font-bold shadow-sm">+ Table</button>
+                            </div>
+
+                            {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
+                                <div className="flex flex-wrap gap-3 p-3 bg-surface border border-slate-200 rounded-xl shadow-soft">
+                                    {formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} />))}
+                                </div>
+                            )}
+
+                            {formData.reassessmentTables.map((rtable) => (
+                                <section key={rtable.id} className="bg-surface rounded-xl shadow-soft border border-slate-200 overflow-hidden">
+                                  <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex justify-between gap-2 items-center">
+                                    <div contentEditable suppressContentEditableWarning onBlur={e => updateReassessmentTableTitle(rtable.id, e.currentTarget.innerText)} className="font-bold text-xs text-navy outline-none border-b border-dashed border-blue-200">{rtable.title}</div>
+                                    <div className="flex gap-1">
+                                        {formData.reassessmentTables.length > 1 && <button onClick={() => removeReassessmentTable(rtable.id)} className="text-red-500 px-1.5 py-0.5 rounded text-[10px] font-bold"><i className="ph-bold ph-trash"></i></button>}
+                                        <button onClick={() => { setActiveReassessmentTableId(rtable.id); setIsMetricModalOpen(true); }} className="bg-navy text-white px-2 py-1 rounded text-[10px] font-bold">+ Col</button>
+                                    </div>
+                                  </div>
+
+                                  {rtable.trackedMetrics.length > 0 ? (
+                                      <div className="overflow-x-auto p-2 bg-white h-scroll">
+                                        <table className="w-full table-auto border-collapse text-xs border border-slate-200">
+                                          <thead>
+                                            <tr>
+                                              <th className="p-1.5 text-left text-[10px] font-bold text-navy border border-slate-200 w-20 bg-slate-50">Date</th>
+                                              {rtable.trackedMetrics.map(metric => (
+                                                  <th key={metric.id} className="text-left font-bold text-navy border border-slate-200 p-0 bg-slate-50 group min-w-[70px]">
+                                                    <div className="flex justify-between p-1">
+                                                      <div className="flex flex-col leading-tight"><span className="text-[8px] text-slate-400 uppercase">{metric.type}</span><span className="text-[10px]">{metric.title}</span></div>
+                                                      <button onClick={() => removeMetricColumn(rtable.id, metric.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 p-0"><i className="ph-bold ph-x text-[10px]"></i></button>
+                                                    </div>
+                                                    {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-0.5 text-center">L</div></div>}
+                                                    {metric.type === 'ROM with VAS' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">VAS</div><div className="flex-1 py-0.5 text-center">{metric.romMode==='Passive'?'PROM':'AROM'}</div></div>}
+                                                    {metric.type === 'Custom 2-Column' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">{metric.col1}</div><div className="flex-1 py-0.5 text-center">{metric.col2}</div></div>}
+                                                  </th>
+                                              ))}
+                                              <th className="p-1 border border-slate-200 w-6 bg-slate-50"></th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {rtable.records.map(record => (
+                                              <tr key={record.id} className="border-b border-slate-200">
+                                                <td className="p-0 border border-slate-200 bg-white"><input type="date" value={record.date} onChange={(e) => updateRecordDate(rtable.id, record.id, e.target.value)} className="w-full h-full min-h-[28px] px-1 text-[10px] font-bold outline-none bg-transparent" /></td>
+                                                {rtable.trackedMetrics.map(metric => {
+                                                  const v = record.values[metric.id];
+                                                  if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'r', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.r||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'l', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.l||''}</div></div></div></td>;
+                                                  if (metric.type === 'ROM with VAS') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'vas', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.vas||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'rom', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.rom||''}</div></div></div></td>;
+                                                  if (metric.type === 'Custom 2-Column') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c1', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c1||''}</div></div><div className="flex-1"><div contentEditable suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c2', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c2||''}</div></div></div></td>;
+                                                  return <td key={metric.id} className="p-0 border border-slate-200"><div contentEditable suppressContentEditableWarning onBlur={e => updateSimpleCellValue(rtable.id, record.id, metric.id, e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px] min-h-[28px]">{v||''}</div></td>;
+                                                })}
+                                                <td className="p-0 text-center border border-slate-200"><button onClick={() => removeDateRow(rtable.id, record.id)} className="text-red-400 p-1"><i className="ph-bold ph-trash text-[10px]"></i></button></td>
+                                              </tr>
+                                            ))}
+                                            <tr><td colSpan={rtable.trackedMetrics.length + 2} className="p-0"><button onClick={() => addDateRow(rtable.id)} className="w-full py-1.5 text-[10px] text-azure font-bold bg-slate-50">+ Add Session Record</button></td></tr>
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                  ) : ( <div className="p-4 text-xs text-slate-400 text-center">No metrics tracked yet.</div> )}
+                                </section>
+                            ))}
+                            <button onClick={addReassessmentTable} className="w-full py-2.5 mt-1 text-xs text-navy font-bold border border-dashed border-slate-300 rounded-xl hover:bg-slate-50">+ New Group</button>
+                        </div>
                     </div>
+                )}
+
+                {/* ======================= EXERCISE TAB ======================= */}
+                {activeTab === 'ex' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 animate-in fade-in">
+                        {/* Left Panel: Selection */}
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 h-fit">
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-4">1. Select Exercises</h3>
+                            
+                            <div className="relative mb-2">
+                                <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
+                                <input type="text" placeholder="Search exercises..." value={exSearchQuery} onChange={(e) => setExSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-azure" />
+                            </div>
+                            
+                            <div className="h-[400px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1 h-scroll">
+                                {exercises.filter(e => (e.name || "").toLowerCase().includes(exSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(exSearchQuery.toLowerCase())))).map(ex => {
+                                    const isSelected = formData.prescribedExercises.includes(ex.id);
+                                    return (
+                                        <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
+                                            <input type="checkbox" className="w-4 h-4 rounded text-azure accent-azure" checked={isSelected} onChange={() => toggleExercise(ex.id)} />
+                                            <div className="ml-3 flex-1 min-w-0 text-left">
+                                                <p className="text-sm font-bold text-slate-800 truncate leading-tight">{ex.name}</p>
+                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Right Panel: Config */}
+                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    2. Configure Prescribed
+                                    <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{formData.prescribedExercises.length}</span>
+                                </h3>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
+                                {formData.prescribedExercises.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
+                                        <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
+                                        <p>No exercises selected.</p>
+                                    </div>
+                                ) : (
+                                    formData.prescribedExercises.map(id => {
+                                        const ex = exercises.find(e => e.id === id);
+                                        if (!ex) return null;
+                                        return (
+                                            <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
+                                                    <button onClick={() => toggleExercise(ex.id)} className="text-xs text-red-500 hover:text-red-700 font-bold">Remove</button>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Reps</label><input type="text" value={formData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleExParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Sets</label><input type="text" value={formData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleExParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Freq</label><input type="text" value={formData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleExParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                </div>
+                                                <input type="text" value={formData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleExParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure"/>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                {/* --- LARGE BOTTOM BUTTONS --- */}
+                <div className="flex justify-end gap-3 mt-4 print:hidden w-full">
+                    <button className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 shadow-soft" onClick={() => handleSmartPrint(activeTab === 'rx' ? 'Prescription' : 'Exercise_Chart', formData.name)}>
+                        <i className="ph-bold ph-printer text-lg"></i> Print
+                    </button>
+                    <button onClick={() => onSave(formData)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-8 py-3 bg-azure text-white rounded-xl text-sm font-bold hover:bg-navy shadow-soft transition-colors">
+                        <i className="ph-bold ph-floppy-disk text-lg"></i> Save
+                    </button>
                 </div>
+
               </div>
 
-              {/* --- PRINT VIEW MAIN RX --- */}
-              <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
-                  <div className="flex justify-between items-start pb-2 text-left">
-                      <div>
-                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                          <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                          <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                      </div>
-                      
-                      {formData.ipId && (
-                      <div className="flex flex-col items-center justify-center pt-2 px-6">
-                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${formData.ipId}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                          <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
-                      </div>
-                      )}
+              {/* ========================================================================= */}
+              {/* PRINT VIEW: MAIN RX (Only renders when activeTab is 'rx')                  */}
+              {/* ========================================================================= */}
+              {activeTab === 'rx' && (
+                  <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
+                      <div className="flex justify-between items-start pb-2 text-left">
+                          <div>
+                              <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
+                              <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
+                              <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
+                              <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
+                          </div>
+                          
+                          {formData.ipId && (
+                          <div className="flex flex-col items-center justify-center pt-2 px-6">
+                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${formData.ipId}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                              <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                          </div>
+                          )}
 
-                      <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                          <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
-                          <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span></div>
+                          <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
+                              <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
+                              <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span></div>
+                          </div>
                       </div>
-                  </div>
-                  <div className="border-b border-[#1e40af] mb-1.5"></div>
-                  <table className="main-print-table">
-                      <thead className="print-table-header">
-                          <tr><td className="pb-4 pt-2">
-                                  <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                      <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span></div>
-                                      <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span></div>
-                                      <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span></div>
-                                      <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span></div>
-                                  </div>
-                                  <div className="border-b border-[#1e40af]"></div>
-                          </td></tr>
-                      </thead>
-                      <tbody>
-                          <tr className="main-print-row"><td className="pt-2 px-2 pb-4">
-                                  <div className="text-[#1e40af] mb-4"><span className="font-bold text-[20px]">Chief Complaint :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.chiefComplaints || "\u00A0"}</p></div>
-                                  <div className="text-[#1e40af]"><span className="font-bold text-[20px]">History :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.history || "\u00A0"}</p></div>
-                          </td></tr>
-                          <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
-                                  <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Assessment :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.assessmentNote || "\u00A0"}</p>
-                                      {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div>)}
-                                  </div>
-                          </td></tr>
-                          {formData.diagnosis && (<tr className="main-print-row"><td className="px-2 pb-6"><div className="text-[#1e40af]"><span className="font-bold text-[20px]">Diagnosis:</span><span className="ml-2 text-slate-900 font-bold text-[19px]">{formData.diagnosis}</span></div></td></tr>)}
-                          <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
-                                  <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Treatment Plan / Advice :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{formData.treatmentNote || "\u00A0"}</p>
-                                      {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div>)}
-                                  </div>
-                          </td></tr>
-                          {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (<tr className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span><div className="flex flex-wrap items-start gap-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div></td></tr>)}
-                          {formData.reassessmentTables.map((rtable) => (
-                              <tr key={rtable.id} className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]">
-                                      <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
-                                      {rtable.trackedMetrics.length > 0 ? (
-                                        <div className="pl-4 pr-2 w-full">
-                                            <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
-                                                <thead><tr><th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>{rtable.trackedMetrics.map(metric => (<th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div className="flex flex-col h-full justify-between"><span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>{metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}{metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}{metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}</div></th>))}</tr></thead>
-                                                <tbody>{rtable.records.map(record => (<tr key={record.id} className="print-break-inside-avoid"><td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>{rtable.trackedMetrics.map(metric => { const cellValue = record.values[metric.id]; if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return ( <td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div></div></td> ); if (metric.type === 'ROM with VAS') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div></div></td>); if (metric.type === 'Custom 2-Column') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div></div></td>); return ( <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> ); })}</tr>))}</tbody>
-                                            </table>
-                                        </div>
-                                      ) : null }
+                      <div className="border-b border-[#1e40af] mb-1.5"></div>
+                      <table className="main-print-table">
+                          <thead className="print-table-header">
+                              <tr><td className="pb-4 pt-2">
+                                      <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
+                                          <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span></div>
+                                          <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span></div>
+                                          <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span></div>
+                                          <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span></div>
+                                      </div>
+                                      <div className="border-b border-[#1e40af]"></div>
                               </td></tr>
-                          ))}
-                      </tbody>
-                  </table>
-              </div>
+                          </thead>
+                          <tbody>
+                              <tr className="main-print-row"><td className="pt-2 px-2 pb-4">
+                                      <div className="text-[#1e40af] mb-4"><span className="font-bold text-[20px]">Chief Complaint :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.chiefComplaints || "\u00A0"}</p></div>
+                                      <div className="text-[#1e40af]"><span className="font-bold text-[20px]">History :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.history || "\u00A0"}</p></div>
+                              </td></tr>
+                              <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
+                                      <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Assessment :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.assessmentNote || "\u00A0"}</p>
+                                          {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div>)}
+                                      </div>
+                              </td></tr>
+                              {formData.diagnosis && (<tr className="main-print-row"><td className="px-2 pb-6"><div className="text-[#1e40af]"><span className="font-bold text-[20px]">Diagnosis:</span><span className="ml-2 text-slate-900 font-bold text-[19px]">{formData.diagnosis}</span></div></td></tr>)}
+                              <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
+                                      <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Treatment Plan / Advice :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{formData.treatmentNote || "\u00A0"}</p>
+                                          {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div>)}
+                                      </div>
+                              </td></tr>
+                              {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (<tr className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span><div className="flex flex-wrap items-start gap-4 pl-4 pr-2">{formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />))}</div></td></tr>)}
+                              {formData.reassessmentTables.map((rtable) => (
+                                  <tr key={rtable.id} className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]">
+                                          <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
+                                          {rtable.trackedMetrics.length > 0 ? (
+                                            <div className="pl-4 pr-2 w-full">
+                                                <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
+                                                    <thead><tr><th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>{rtable.trackedMetrics.map(metric => (<th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div className="flex flex-col h-full justify-between"><span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>{metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}{metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}{metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}</div></th>))}</tr></thead>
+                                                    <tbody>{rtable.records.map(record => (<tr key={record.id} className="print-break-inside-avoid"><td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>{rtable.trackedMetrics.map(metric => { const cellValue = record.values[metric.id]; if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return ( <td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div></div></td> ); if (metric.type === 'ROM with VAS') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div></div></td>); if (metric.type === 'Custom 2-Column') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div></div></td>); return ( <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> ); })}</tr>))}</tbody>
+                                                </table>
+                                            </div>
+                                          ) : null }
+                                  </td></tr>
+                              ))}
+                          </tbody>
+                      </table>
+                  </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* PRINT VIEW: EXERCISE CHART (Only renders when activeTab is 'ex')           */}
+              {/* ========================================================================= */}
+              {activeTab === 'ex' && (
+                  <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative print-full-width">
+                      <div className="flex justify-between items-start pb-2 text-left">
+                          <div>
+                              <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
+                              <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
+                              <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
+                              <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
+                          </div>
+                          
+                          {formData.ipId && (
+                          <div className="flex flex-col items-center justify-center pt-2 px-6">
+                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${formData.ipId}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                              <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
+                          </div>
+                          )}
+
+                          <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
+                              <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
+                              <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span></div>
+                          </div>
+                      </div>
+                      <div className="border-b border-[#1e40af] mb-1.5"></div>
+                      <table className="main-print-table">
+                          <thead className="print-table-header">
+                              <tr><td className="pb-4 pt-2">
+                                      <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
+                                          <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span></div>
+                                          <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span></div>
+                                          <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span></div>
+                                          <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span></div>
+                                      </div>
+                                      <div className="border-b border-[#1e40af]"></div>
+                              </td></tr>
+                          </thead>
+                          <tbody>
+                              <tr className="main-print-row-allow-break"><td className="pt-2 px-0 pb-4">
+                                  
+                                  <div className="flex-1 w-full mt-4">
+                                      <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
+                                          {exercises.filter(ex => formData.prescribedExercises.includes(ex.id)).map((ex) => {
+                                              const params = formData.exerciseParams[ex.id] || {};
+                                              const customNote = params.note;
+                                              return (
+                                                  <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
+                                                      <div className="h-32 w-full flex items-center justify-center mb-2">
+                                                          {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
+                                                              <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
+                                                          ) : (
+                                                              <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                                          )}
+                                                      </div>
+                                                      <div className="w-full text-left">
+                                                          <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
+                                                          <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
+                                                              {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
+                                                              {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
+                                                              {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
+                                                          </div>
+                                                          {customNote && (
+                                                              <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
+                                                          )}
+                                                      </div>
+                                                  </div>
+                                              );
+                                          })}
+                                      </div>
+                                  </div>
+                              </td></tr>
+                          </tbody>
+                      </table>
+                  </div>
+              )}
 
               {isMetricModalOpen && <AddMetricModal onClose={() => { setIsMetricModalOpen(false); setActiveReassessmentTableId(null); }} onAdd={(metricObj) => addMetricColumn(activeReassessmentTableId, metricObj)} />}
             </div>
@@ -1018,4 +924,3 @@
     </script>
 </body>
 </html>
-
