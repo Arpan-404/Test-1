@@ -70,7 +70,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
 
@@ -200,11 +200,6 @@
           const [exPrescriptionData, setExPrescriptionData] = useState({ patientId: '', patientName: '', age: '', gender: '', notes: '', upid: '', contact: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null });
           const [exSearchQuery, setExSearchQuery] = useState("");
           const [isSavingEx, setIsSavingEx] = useState(false);
-          
-          const [exManageMode, setExManageMode] = useState(false);
-          const [editingExId, setEditingExId] = useState(null);
-          const [newExercise, setNewExercise] = useState({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' });
-          const [isUploadingImage, setIsUploadingImage] = useState(false);
 
           // Listen to Auth
           useEffect(() => {
@@ -352,51 +347,6 @@
               window.open(`https://wa.me/91${contact.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
           };
 
-          // --- Ex DB Manage Handlers ---
-          const uploadFileToCloudinary = async (file) => {
-                const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', 'Physio_uploads');
-                try {
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.secure_url) return data.secure_url;
-                } catch (err) { alert(`Upload Error: ${err.message}`); return null; }
-          };
-          const handleImageUpload = async (e) => { 
-                const file = e.target.files[0]; 
-                if (file) { 
-                    setIsUploadingImage(true); 
-                    const secureUrl = await uploadFileToCloudinary(file); 
-                    if(secureUrl) setNewExercise(prev => ({ ...prev, imageUrl: secureUrl })); 
-                    setIsUploadingImage(false); 
-                } 
-          };
-          const handleAddOrUpdateExercise = async (e) => {
-                e.preventDefault();
-                const tagsArray = typeof newExercise.tags === 'string' ? newExercise.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : newExercise.tags;
-                const exerciseData = { name: newExercise.name, description: newExercise.description, imageUrl: newExercise.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=400', videoUrl: newExercise.videoUrl, tags: tagsArray };
-                
-                try {
-                    if (editingExId) { await set(ref(rtdb, 'exercises/' + editingExId), exerciseData); } 
-                    else { await set(push(ref(rtdb, 'exercises')), exerciseData); }
-                    setEditingExId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); 
-                    const snapshot = await get(ref(rtdb, 'exercises'));
-                    if (snapshot.exists()) { setExercises(Object.keys(snapshot.val()).map(key => ({ ...snapshot.val()[key], id: key })).reverse()); }
-                } catch (error) { alert("Failed to save to DB."); } 
-          };
-          const handleDeleteEx = async (id) => {
-                if (confirm("Delete this exercise permanently?")) {
-                    try {
-                        await remove(ref(rtdb, 'exercises/' + id));
-                        setExPrescriptionData(prev => {
-                            const newIds = prev.selectedExerciseIds.filter(eId => eId !== id);
-                            const newParams = { ...prev.exerciseParams }; delete newParams[id];
-                            return { ...prev, selectedExerciseIds: newIds, exerciseParams: newParams };
-                        });
-                        setExercises(prev => prev.filter(e => e.id !== id));
-                    } catch (error) { alert("Failed to delete"); }
-                }
-          };
-
           if (isConnecting) return null;
 
           if (!user) {
@@ -420,9 +370,9 @@
           return (
               <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
                   
-                  {/* Global Main Header */}
-                  {!(activeTab === 'rx' && rxViewMode === 'patient') && !(activeTab === 'ex' && !exManageMode && exPrescriptionData.patientId) && !exManageMode && (
-                      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50 h-[60px] flex items-center print:hidden">
+                  {/* Global Main Header (Not sticky, scrolls away naturally) */}
+                  {!(activeTab === 'rx' && rxViewMode === 'patient') && !(activeTab === 'ex' && exPrescriptionData.patientId) && (
+                      <header className="bg-white shadow-sm border-b border-slate-200 print:hidden h-[60px] flex items-center">
                         <div className="w-full max-w-6xl mx-auto px-4 flex justify-between items-center">
                           <div className="flex items-center gap-2 text-navy">
                             <i className="ph-bold ph-stethoscope text-2xl text-azure"></i>
@@ -513,226 +463,217 @@
                       {/* EXERCISE TAB CONTENT                 */}
                       {/* ==================================== */}
                       {activeTab === 'ex' && (
-                          exManageMode ? (
-                              <ExDBManage 
-                                  exercises={exercises} 
-                                  editingExId={editingExId} setEditingExId={setEditingExId}
-                                  newExercise={newExercise} setNewExercise={setNewExercise}
-                                  handleAddOrUpdateExercise={handleAddOrUpdateExercise}
-                                  handleDeleteEx={handleDeleteEx}
-                                  handleImageUpload={handleImageUpload} isUploadingImage={isUploadingImage}
-                                  onBack={() => { setExManageMode(false); setEditingExId(null); setNewExercise({ name: '', description: '', imageUrl: '', videoUrl: '', tags: '' }); }}
-                              />
-                          ) : (
-                              <div className="w-full relative animate-in fade-in">
-                                  
-                                  {/* Unified, bug-free sticky header for Exercise Tab */}
-                                  {exPrescriptionData.patientId && (
-                                      <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-[60px] z-40 print:hidden -mx-2 sm:-mx-4 -mt-4 mb-4 px-3 sm:px-6 py-2 space-y-2">
-                                          <div className="flex justify-between items-center w-full">
-                                              <button onClick={() => { setActivePatientId(null); setExPrescriptionData({ patientId: '', patientName: '', contact: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null }); }} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
-                                                  <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
-                                              </button>
-                                              
-                                              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                                                  <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{exPrescriptionData.upid}</div>
-                                              </div>
-                                          </div>
-                                          <div className="flex justify-between items-center gap-2">
-                                              <div className="flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded border border-slate-200 shadow-sm shrink-0 opacity-0 invisible pointer-events-none">
-                                                  {/* Placeholder to balance flex layout */}
-                                                  <span className="text-[10px] font-bold text-slate-400">DATE:</span>
-                                              </div>
-                                              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto h-scroll">
-                                                  {exPrescriptionData.contact && exPrescriptionData.upid && (
-                                                      <button onClick={() => openWhatsApp(exPrescriptionData.contact, exPrescriptionData.patientName, exPrescriptionData.upid)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm shrink-0">
-                                                          <i className="ph-bold ph-whatsapp-logo text-sm"></i> <span className="hidden sm:inline">WhatsApp</span>
-                                                      </button>
-                                                  )}
-                                                  <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm shrink-0" onClick={() => handleSmartPrint('Exercise_Chart', exPrescriptionData.patientName)} disabled={!exPrescriptionData.patientId}>
-                                                      <i className="ph-bold ph-printer text-sm"></i> Print
-                                                  </button>
-                                                  <button onClick={handleSaveExercises} disabled={!exPrescriptionData.patientId} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors shrink-0 disabled:opacity-50">
-                                                      <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSavingEx && "..."}
-                                                  </button>
-                                              </div>
-                                          </div>
+                          <div className="w-full relative animate-in fade-in">
+                              
+                              {/* Non-sticky, unified action header for Exercise Tab */}
+                              {exPrescriptionData.patientId && (
+                                  <div className="bg-white shadow-sm border border-slate-200 rounded-xl print:hidden px-3 sm:px-4 py-3 mb-4 w-full flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                                          <button onClick={() => { setActivePatientId(null); setExPrescriptionData({ patientId: '', patientName: '', contact: '', age: '', gender: '', notes: '', upid: '', selectedExerciseIds: [], exerciseParams: {}, lastUpdated: null }); }} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
+                                              <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
+                                          </button>
+                                          <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{exPrescriptionData.upid}</div>
                                       </div>
-                                  )}
+                                      
+                                      <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                                          {exPrescriptionData.contact && exPrescriptionData.upid && (
+                                              <button onClick={() => openWhatsApp(exPrescriptionData.contact, exPrescriptionData.patientName, exPrescriptionData.upid)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm shrink-0">
+                                                  <i className="ph-bold ph-whatsapp-logo text-sm"></i> <span className="hidden sm:inline">WhatsApp</span>
+                                              </button>
+                                          )}
+                                          <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm shrink-0" onClick={() => handleSmartPrint('Exercise_Chart', exPrescriptionData.patientName)} disabled={!exPrescriptionData.patientId}>
+                                              <i className="ph-bold ph-printer text-sm"></i> Print
+                                          </button>
+                                          <button onClick={handleSaveExercises} disabled={!exPrescriptionData.patientId} className="flex items-center gap-1 px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors shrink-0 disabled:opacity-50">
+                                              <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSavingEx && "..."}
+                                          </button>
+                                      </div>
+                                  </div>
+                              )}
 
-                                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 print:hidden">
-                                      {/* Left Panel: Selection */}
-                                      <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 h-fit">
-                                          <div className="flex justify-between items-center mb-4">
-                                              <h3 className="text-base md:text-lg font-bold text-slate-800">1. Patient Details & Selection</h3>
-                                              <button onClick={() => setExManageMode(true)} className="text-xs bg-slate-100 hover:bg-slate-200 text-navy font-bold px-3 py-1.5 rounded-lg transition"><i className="ph-bold ph-database"></i> Manage DB</button>
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 print:hidden">
+                                  {/* Left Panel: Selection */}
+                                  <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 h-fit">
+                                      <div className="flex justify-between items-center mb-4">
+                                          <h3 className="text-base md:text-lg font-bold text-slate-800">1. Patient Details & Selection</h3>
+                                      </div>
+                                      
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4">
+                                          <div className="col-span-2 relative">
+                                              <select value={exPrescriptionData.patientId || ''} onChange={handleExPatientSelect} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50 font-bold text-navy appearance-none cursor-pointer">
+                                                  <option value="">-- Select Patient --</option>
+                                                  {myPatients.map(p => <option key={p.id} value={p.id}>{p.name} (#{p.ipId})</option>)}
+                                              </select>
+                                              <i className="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i>
                                           </div>
                                           
-                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4">
-                                              <div className="col-span-2 relative">
-                                                  <select value={exPrescriptionData.patientId || ''} onChange={handleExPatientSelect} className="w-full text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure bg-slate-50 font-bold text-navy appearance-none cursor-pointer">
-                                                      <option value="">-- Select Patient --</option>
-                                                      {myPatients.map(p => <option key={p.id} value={p.id}>{p.name} (#{p.ipId})</option>)}
-                                                  </select>
-                                                  <i className="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i>
-                                              </div>
-                                              
-                                              <input type="number" placeholder="Age" value={exPrescriptionData.age} onChange={e => setExPrescriptionData({...exPrescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" />
-                                              <select value={exPrescriptionData.gender} onChange={e => setExPrescriptionData({...exPrescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-azure">
-                                                  <option value="">Gender</option><option value="M">Male</option><option value="F">Female</option>
-                                              </select>
-                                              <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={exPrescriptionData.notes} onChange={e => setExPrescriptionData({...exPrescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" rows="2" />
-                                          </div>
-
-                                          <div className="border-t border-slate-100 pt-4">
-                                              <div className="relative mb-2">
-                                                  <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
-                                                  <input type="text" placeholder="Search exercises..." value={exSearchQuery} onChange={(e) => setExSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-azure" />
-                                              </div>
-                                              
-                                              <div className="h-[250px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1 h-scroll">
-                                                  {isExercisesLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading database...</div> :
-                                                  exercises.filter(e => e.name.toLowerCase().includes(exSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(exSearchQuery.toLowerCase())))).map(ex => {
-                                                      const isSelected = exPrescriptionData.selectedExerciseIds.includes(ex.id);
-                                                      return (
-                                                          <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
-                                                              <input type="checkbox" className="w-4 h-4 rounded text-azure accent-azure" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
-                                                              <div className="ml-3 flex-1 min-w-0 text-left">
-                                                                  <p className="text-sm font-bold text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                                  <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
-                                                              </div>
-                                                          </label>
-                                                      );
-                                                  })}
-                                              </div>
-                                          </div>
+                                          <input type="number" placeholder="Age" value={exPrescriptionData.age} onChange={e => setExPrescriptionData({...exPrescriptionData, age: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" />
+                                          <select value={exPrescriptionData.gender} onChange={e => setExPrescriptionData({...exPrescriptionData, gender: e.target.value})} className="text-sm border border-slate-200 rounded-md p-2 bg-white outline-none focus:border-azure">
+                                              <option value="">Gender</option><option value="M">Male</option><option value="F">Female</option>
+                                          </select>
+                                          <textarea placeholder="Additional Notes (Goals, Diagnosis, Plans, etc.)" value={exPrescriptionData.notes} onChange={e => setExPrescriptionData({...exPrescriptionData, notes: e.target.value})} className="col-span-2 md:col-span-4 text-sm border border-slate-200 rounded-md p-2 outline-none focus:border-azure" rows="2" />
                                       </div>
 
-                                      {/* Right Panel: Config */}
-                                      <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
-                                          <div className="flex justify-between items-start mb-4">
-                                              <div>
-                                                  <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                                                      2. Configure Prescribed
-                                                      <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{exPrescriptionData.selectedExerciseIds.length}</span>
-                                                  </h3>
-                                                  {exPrescriptionData.lastUpdated && (
-                                                      <p className="text-[10px] text-slate-500 mt-1">Last Saved: {new Date(exPrescriptionData.lastUpdated).toLocaleString('en-GB')}</p>
-                                                  )}
-                                              </div>
+                                      <div className="border-t border-slate-100 pt-4">
+                                          <div className="relative mb-2">
+                                              <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
+                                              <input type="text" placeholder="Search exercises..." value={exSearchQuery} onChange={(e) => setExSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-azure" />
                                           </div>
-
-                                          <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
-                                              {exPrescriptionData.selectedExerciseIds.length === 0 ? (
-                                                  <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
-                                                      <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
-                                                      <p>No exercises selected.</p>
-                                                  </div>
-                                              ) : (
-                                                  exPrescriptionData.selectedExerciseIds.map(id => {
-                                                      const ex = exercises.find(e => e.id === id);
-                                                      if (!ex) return null;
-                                                      return (
-                                                          <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
-                                                              <div className="flex justify-between items-center mb-2">
-                                                                  <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
-                                                                  <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:text-red-700 font-bold">Remove</button>
-                                                              </div>
-                                                              <div className="grid grid-cols-3 gap-2 mb-2">
-                                                                  <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Reps</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleExParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                                  <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Sets</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleExParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                                  <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Freq</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleExParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
-                                                              </div>
-                                                              <input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleExParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure"/>
+                                          
+                                          <div className="h-[250px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1 h-scroll">
+                                              {isExercisesLoading ? <div className="text-center p-4 text-slate-500 text-xs">Loading database...</div> :
+                                              exercises.filter(e => (e.name || "").toLowerCase().includes(exSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(exSearchQuery.toLowerCase())))).map(ex => {
+                                                  const isSelected = exPrescriptionData.selectedExerciseIds.includes(ex.id);
+                                                  return (
+                                                      <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
+                                                          <input type="checkbox" className="w-4 h-4 rounded text-azure accent-azure" checked={isSelected} onChange={() => togglePrescriptionExercise(ex.id)} />
+                                                          <div className="ml-3 flex-1 min-w-0 text-left">
+                                                              <p className="text-sm font-bold text-slate-800 truncate leading-tight">{ex.name}</p>
+                                                              <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
                                                           </div>
-                                                      );
-                                                  })
+                                                      </label>
+                                                  );
+                                              })}
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  {/* Right Panel: Config */}
+                                  <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
+                                      <div className="flex justify-between items-start mb-4">
+                                          <div>
+                                              <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                                  2. Configure Prescribed
+                                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{exPrescriptionData.selectedExerciseIds.length}</span>
+                                              </h3>
+                                              {exPrescriptionData.lastUpdated && (
+                                                  <p className="text-[10px] text-slate-500 mt-1">Last Saved: {new Date(exPrescriptionData.lastUpdated).toLocaleString('en-GB')}</p>
                                               )}
                                           </div>
                                       </div>
-                                  </div>
 
-                                  {/* --- HIDDEN CSS PRINT VIEW FOR EXERCISE TAB --- */}
-                                  <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative print-full-width">
-                                      <div className="flex justify-between items-start pb-2 text-left">
-                                          <div>
-                                              <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                                              <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                                              <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                                              <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                                          </div>
-                                          
-                                          {exPrescriptionData.upid && (
-                                          <div className="flex flex-col items-center justify-center pt-2 px-6">
-                                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${exPrescriptionData.upid}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                                              <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
-                                          </div>
+                                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
+                                          {exPrescriptionData.selectedExerciseIds.length === 0 ? (
+                                              <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
+                                                  <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
+                                                  <p>No exercises selected.</p>
+                                              </div>
+                                          ) : (
+                                              exPrescriptionData.selectedExerciseIds.map(id => {
+                                                  const ex = exercises.find(e => e.id === id);
+                                                  if (!ex) return null;
+                                                  return (
+                                                      <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                                                          <div className="flex justify-between items-center mb-2">
+                                                              <h4 className="font-bold text-sm text-slate-800">{ex.name}</h4>
+                                                              <button onClick={() => togglePrescriptionExercise(ex.id)} className="text-xs text-red-500 hover:text-red-700 font-bold">Remove</button>
+                                                          </div>
+                                                          <div className="grid grid-cols-3 gap-2 mb-2">
+                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Reps</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleExParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Sets</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleExParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                              <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Freq</label><input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleExParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure" /></div>
+                                                          </div>
+                                                          <input type="text" value={exPrescriptionData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleExParamChange(ex.id, 'note', e.target.value)} placeholder="Custom Instructions (e.g. Hold 5s)" className="w-full text-xs p-1.5 border border-slate-300 rounded bg-white outline-none focus:border-azure"/>
+                                                      </div>
+                                                  );
+                                              })
                                           )}
-
-                                          <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                                              <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
-                                              <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{new Date().toLocaleDateString('en-GB')}</span></div>
-                                          </div>
                                       </div>
-                                      <div className="border-b border-[#1e40af] mb-1.5"></div>
-                                      <table className="main-print-table">
-                                          <thead className="print-table-header">
-                                              <tr><td className="pb-4 pt-2">
-                                                      <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                                          <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{exPrescriptionData.patientName}</span></div>
-                                                          <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.age}</span></div>
-                                                          <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.gender}</span></div>
-                                                          <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.upid}</span></div>
-                                                      </div>
-                                                      <div className="border-b border-[#1e40af]"></div>
-                                              </td></tr>
-                                          </thead>
-                                          <tbody>
-                                              <tr className="main-print-row-allow-break"><td className="pt-2 px-0 pb-4">
-                                                  {exPrescriptionData.notes && (
-                                                      <div className="mb-6 px-2">
-                                                          <span className="font-bold text-[20px] text-[#1e40af]">Goals / Notes :-</span>
-                                                          <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{exPrescriptionData.notes}</p>
-                                                      </div>
-                                                  )}
-                                                  
-                                                  <div className="flex-1 w-full mt-4">
-                                                      <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
-                                                          {exercises.filter(ex => exPrescriptionData.selectedExerciseIds.includes(ex.id)).map((ex) => {
-                                                              const params = exPrescriptionData.exerciseParams[ex.id] || {};
-                                                              const customNote = params.note;
-                                                              return (
-                                                                  <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
-                                                                      <div className="h-32 w-full flex items-center justify-center mb-2">
-                                                                          {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                                                              <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
-                                                                          ) : (
-                                                                              <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                                          )}
-                                                                      </div>
-                                                                      <div className="w-full text-left">
-                                                                          <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
-                                                                          <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
-                                                                              {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                                              {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                                              {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                                          </div>
-                                                                          {customNote && (
-                                                                              <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
-                                                                          )}
-                                                                      </div>
-                                                                  </div>
-                                                              );
-                                                          })}
-                                                      </div>
-                                                  </div>
-                                              </td></tr>
-                                          </tbody>
-                                      </table>
                                   </div>
-
+                                  
+                                  {/* Bottom Action Buttons (Exercise Tab) */}
+                                  {exPrescriptionData.patientId && (
+                                      <div className="col-span-1 lg:col-span-2 flex justify-end gap-2 mt-2 print:hidden">
+                                          <button className="flex items-center gap-1 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 shadow-sm" onClick={() => handleSmartPrint('Exercise_Chart', exPrescriptionData.patientName)}>
+                                              <i className="ph-bold ph-printer text-lg"></i> Print
+                                          </button>
+                                          <button onClick={handleSaveExercises} className="flex items-center gap-1 px-5 py-2 bg-azure text-white rounded-lg text-sm font-bold hover:bg-navy shadow-sm transition-colors">
+                                              <i className="ph-bold ph-floppy-disk text-lg"></i> Save {isSavingEx && "..."}
+                                          </button>
+                                      </div>
+                                  )}
                               </div>
-                          )
+
+                              {/* --- HIDDEN CSS PRINT VIEW FOR EXERCISE TAB --- */}
+                              <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative print-full-width">
+                                  <div className="flex justify-between items-start pb-2 text-left">
+                                      <div>
+                                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
+                                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
+                                          <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
+                                          <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
+                                      </div>
+                                      
+                                      {exPrescriptionData.upid && (
+                                      <div className="flex flex-col items-center justify-center pt-2 px-6">
+                                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription/${exPrescriptionData.upid}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                                          <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
+                                      </div>
+                                      )}
+
+                                      <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
+                                          <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
+                                          <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{new Date().toLocaleDateString('en-GB')}</span></div>
+                                      </div>
+                                  </div>
+                                  <div className="border-b border-[#1e40af] mb-1.5"></div>
+                                  <table className="main-print-table">
+                                      <thead className="print-table-header">
+                                          <tr><td className="pb-4 pt-2">
+                                                  <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
+                                                      <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{exPrescriptionData.patientName}</span></div>
+                                                      <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.age}</span></div>
+                                                      <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.gender}</span></div>
+                                                      <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{exPrescriptionData.upid}</span></div>
+                                                  </div>
+                                                  <div className="border-b border-[#1e40af]"></div>
+                                          </td></tr>
+                                      </thead>
+                                      <tbody>
+                                          <tr className="main-print-row-allow-break"><td className="pt-2 px-0 pb-4">
+                                              {exPrescriptionData.notes && (
+                                                  <div className="mb-6 px-2">
+                                                      <span className="font-bold text-[20px] text-[#1e40af]">Goals / Notes :-</span>
+                                                      <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{exPrescriptionData.notes}</p>
+                                                  </div>
+                                              )}
+                                              
+                                              <div className="flex-1 w-full mt-4">
+                                                  <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
+                                                      {exercises.filter(ex => exPrescriptionData.selectedExerciseIds.includes(ex.id)).map((ex) => {
+                                                          const params = exPrescriptionData.exerciseParams[ex.id] || {};
+                                                          const customNote = params.note;
+                                                          return (
+                                                              <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
+                                                                  <div className="h-32 w-full flex items-center justify-center mb-2">
+                                                                      {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
+                                                                          <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
+                                                                      ) : (
+                                                                          <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                                                      )}
+                                                                  </div>
+                                                                  <div className="w-full text-left">
+                                                                      <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
+                                                                      <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
+                                                                          {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
+                                                                          {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
+                                                                          {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
+                                                                      </div>
+                                                                      {customNote && (
+                                                                          <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
+                                                                      )}
+                                                                  </div>
+                                                              </div>
+                                                          );
+                                                      })}
+                                                  </div>
+                                              </div>
+                                          </td></tr>
+                                      </tbody>
+                                  </table>
+                              </div>
+
+                          </div>
                       )}
                   </main>
               </div>
@@ -785,30 +726,29 @@
           return (
             <div className="w-full relative animate-in fade-in">
               
-              {/* Unified, bug-free sticky header for Main Rx */}
-              <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-[60px] z-40 print:hidden -mx-2 sm:-mx-4 -mt-4 mb-4 px-3 sm:px-6 py-2 space-y-2">
-                  <div className="flex justify-between items-center w-full">
+              {/* Non-sticky, unified action header for Main Rx */}
+              <div className="bg-white shadow-sm border border-slate-200 rounded-xl print:hidden px-3 sm:px-4 py-3 mb-4 w-full flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                       <button onClick={onCancel} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
                           <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Back</span>
                       </button>
-                      
-                      <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                          <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-[10px] font-bold">
-                              <i className="ph-bold ph-link"></i> Link
-                              {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
-                          </button>
+                      <div className="flex items-center gap-2">
                           <button onClick={togglePublish} className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold border shadow-sm ${formData.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                               {formData.isPublished ? <><i className="ph-fill ph-check-circle"></i> Published</> : <><i className="ph-fill ph-lock-key"></i> Draft</>}
                           </button>
                           <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{formData.ipId}</div>
                       </div>
                   </div>
-                  <div className="flex justify-between items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-1.5 rounded border border-slate-200 shadow-sm shrink-0">
                           <span className="text-[10px] font-bold text-slate-400">DATE:</span>
                           <input type="date" name="date" value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className="text-xs font-bold outline-none bg-transparent w-[95px] text-slate-800" />
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto h-scroll">
+                          <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1.5 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-xs font-bold shrink-0">
+                              <i className="ph-bold ph-link text-sm"></i> <span className="hidden sm:inline">Link</span>
+                              {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
+                          </button>
                           {formData.contact && formData.ipId && (
                               <button onClick={() => openWhatsApp(formData.contact, formData.name, formData.ipId)} className="flex items-center gap-1 px-3 py-1.5 bg-[#25D366] text-white rounded-md text-xs font-bold hover:bg-[#20b957] shadow-sm shrink-0">
                                   <i className="ph-bold ph-whatsapp-logo text-sm"></i> <span className="hidden sm:inline">WhatsApp</span>
@@ -933,6 +873,16 @@
                         </section>
                     ))}
                     <button onClick={addReassessmentTable} className="w-full py-2.5 mt-1 text-xs text-navy font-bold border border-dashed border-slate-300 rounded-xl hover:bg-slate-50">+ New Group</button>
+                    
+                    {/* Bottom Action Buttons (Main Rx) */}
+                    <div className="flex justify-end gap-2 mt-4 print:hidden">
+                        <button className="flex items-center gap-1 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 shadow-sm" onClick={() => handleSmartPrint('Prescription', formData.name)}>
+                            <i className="ph-bold ph-printer text-lg"></i> Print
+                        </button>
+                        <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-5 py-2 bg-azure text-white rounded-lg text-sm font-bold hover:bg-navy shadow-sm transition-colors">
+                            <i className="ph-bold ph-floppy-disk text-lg"></i> Save {isSaving && "..."}
+                        </button>
+                    </div>
                 </div>
               </div>
 
@@ -1068,3 +1018,4 @@
     </script>
 </body>
 </html>
+
