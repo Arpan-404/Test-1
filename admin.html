@@ -218,7 +218,7 @@
             const [exercises, setExercises] = useState([]);
 
             // Form States
-            const [editingItem, setEditingItem] = useState(null); // Completely isolated edit state
+            const [editingItem, setEditingItem] = useState(null); 
             const [formType, setFormType] = useState(null); 
             const [searchQuery, setSearchQuery] = useState("");
 
@@ -401,11 +401,9 @@
             );
 
             // --- ISOLATED EDIT FORM WRAPPER ---
-            // Fixes mobile keyboard crash by holding local state and preventing AdminApp re-renders
             const IsolatedForm = ({ item, title, type, onSave, onCancel }) => {
                 const [localData, setLocalData] = useState(item || {});
                 
-                // Keep local data synced if parent forces a new item
                 useEffect(() => { setLocalData(item || {}); }, [item]);
 
                 const updateField = (f, v) => setLocalData(prev => ({ ...prev, [f]: v }));
@@ -439,7 +437,7 @@
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="3" value={localData.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div className="bg-green-50 p-3 rounded-lg border border-green-100">
                                             <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message when booking this doctor. Use tag: {doctor_name}</p>
+                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message when booking this doctor. Use tag: {"{doctor_name}"}</p>
                                             <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I want to book an appointment with {doctor_name}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
                                         </div>
                                     </div>
@@ -456,7 +454,7 @@
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="2" value={localData.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div className="bg-green-50 p-3 rounded-lg border border-green-100">
                                             <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message. Use tag: {service_title}</p>
+                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message. Use tag: {"{service_title}"}</p>
                                             <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I need consultation for {service_title}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
                                         </div>
                                     </div>
@@ -475,7 +473,7 @@
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={localData.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div className="bg-green-50 p-3 rounded-lg border border-green-100">
                                             <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Use tags: {product_name}, {price}</p>
+                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Use tags: {"{product_name}"}, {"{price}"}</p>
                                             <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I want to buy {product_name} at {price}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
                                         </div>
                                     </div>
@@ -641,3 +639,4 @@
     </script>
 </body>
 </html>
+
