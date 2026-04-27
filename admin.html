@@ -69,7 +69,8 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // --- FIREBASE CONFIG ---
+        // --- FIREBASE CONFIG (STRICTLY SEPARATED) ---
+        // App 1: Public Website Data
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -77,6 +78,7 @@
             projectId: "clinic-bdf92"
         };
 
+        // App 2: Private Patient/Exercise Records
         const recordsConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -94,11 +96,11 @@
 
         const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
-        // --- CLOUDINARY UPLOAD HELPER ---
+        // --- CLOUDINARY UPLOAD HELPER (PUBLIC SITE CLOUDINARY) ---
         const uploadToCloudinary = async (file, type = 'image') => {
             const formData = new FormData(); 
             formData.append('file', file); 
-            formData.append('upload_preset', 'Physio_uploads');
+            formData.append('upload_preset', 'Physio_uploads'); // Admin Panel specific preset
             try {
                 const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/${type}/upload`, { method: 'POST', body: formData });
                 const data = await res.json();
@@ -143,7 +145,7 @@
                                                 const range = this.quill.getSelection(true);
                                                 this.quill.insertText(range.index, 'Uploading image...', 'user');
                                                 const url = await uploadToCloudinary(file);
-                                                this.quill.deleteText(range.index, 18); // remove 'uploading...'
+                                                this.quill.deleteText(range.index, 18); 
                                                 if (url) {
                                                     this.quill.insertEmbed(range.index, 'image', url);
                                                 }
@@ -152,24 +154,76 @@
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
 
-                    // Set initial value
-                    if (value) quillInstance.current.root.innerHTML = value;
+                        if (value) quillInstance.current.root.innerHTML = value;
 
-                    // Listen for changes
-                    quillInstance.current.on('text-change', () => {
-                        onChange(quillInstance.current.root.innerHTML);
-                    });
-                }
-            }, []);
+                        quillInstance.current.on('text-change', () => {
+                            onChange(quillInstance.current.root.innerHTML);
+                        });
+                    }
+                }, []);
 
             return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
         }
 
+        // --- COMPONENT: MULTIPLE IMAGE SLIDER MANAGER ---
+        function MultiImageManager({ images = [], onChange, label }) {
+            const [isUploading, setIsUploading] = useState(false);
 
-        // --- COMPONENT: IMAGE UPLOADER ---
+            const handleUpload = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                setIsUploading(true);
+                const url = await uploadToCloudinary(file, 'image');
+                if (url) {
+                    onChange([...images, url]);
+                }
+                setIsUploading(false);
+                e.target.value = ''; // Reset input so same file can be selected again if needed
+            };
+
+            const removeImage = (idx) => {
+                const newImages = [...images];
+                newImages.splice(idx, 1);
+                onChange(newImages);
+            };
+
+            return (
+                <div className="w-full">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">{label}</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {images.map((url, idx) => (
+                            <div key={idx} className="relative aspect-[16/9] rounded-lg border border-slate-200 overflow-hidden group bg-slate-50 shadow-sm">
+                                <img src={url} className="w-full h-full object-cover" />
+                                <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-white text-red-500 w-7 h-7 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50" title="Remove Image">
+                                    <i className="ph-bold ph-trash text-sm"></i>
+                                </button>
+                                <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">Slide {idx + 1}</div>
+                            </div>
+                        ))}
+                        
+                        <div className="relative aspect-[16/9] rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center hover:bg-slate-100 transition cursor-pointer">
+                            {isUploading ? (
+                                <div className="flex flex-col items-center gap-1">
+                                    <div className="w-5 h-5 border-2 border-slate-200 border-t-azure rounded-full animate-spin"></div>
+                                    <span className="text-[9px] font-bold text-slate-500">Uploading...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <i className="ph-bold ph-plus text-2xl text-slate-400 mb-1"></i>
+                                    <span className="text-[10px] font-bold text-slate-500">Add Slide Image</span>
+                                </>
+                            )}
+                            <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={isUploading} />
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2 italic">Images will slide automatically every 3.5 seconds on the home page.</p>
+                </div>
+            );
+        }
+
+        // --- COMPONENT: SINGLE IMAGE UPLOADER ---
         function ImageUploader({ url, onUploadComplete, label, isIcon = false }) {
             const [isUploading, setIsUploading] = useState(false);
             const handleUpload = async (e) => {
@@ -518,13 +572,30 @@
                             )}
 
                             {/* Website Details Form */}
-                            {type === 'clinicInfo' && (
+                            {type === 'clinicInfo' && (() => {
+                                // Automatically initialize sliderImages from bannerImageUrl if needed
+                                const currentSliderImages = localData.sliderImages || (localData.bannerImageUrl ? [localData.bannerImageUrl] : []);
+                                
+                                return (
                                 <div className="space-y-5">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <ImageUploader label="Logo" url={localData.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
-                                        <ImageUploader label="Hero Banner" url={localData.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                                        <ImageUploader label="Clinic Logo" url={localData.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
                                     </div>
-                                    <div className="space-y-3">
+
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                                        <MultiImageManager 
+                                            label="Hero Slider Images" 
+                                            images={currentSliderImages} 
+                                            onChange={(newImages) => {
+                                                updateField('sliderImages', newImages);
+                                                // Sync fallback banner image
+                                                if (newImages.length > 0) updateField('bannerImageUrl', newImages[0]);
+                                                else updateField('bannerImageUrl', '');
+                                            }} 
+                                        />
+                                    </div>
+
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</label><input type="text" value={localData.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Primary WhatsApp Number</label><input type="text" value={localData.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} placeholder="+919876543210" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div className="bg-green-50 p-3 rounded-lg border border-green-100 mt-4">
@@ -534,7 +605,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            )})()}
                         </div>
                     </div>
                 );
@@ -616,7 +687,14 @@
                                                     <div><p className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</p><p className="font-bold text-navy">{siteData.hero.clinicName || 'Not Set'}</p></div>
                                                 </div>
                                                 <div><p className="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</p><p className="text-sm font-medium text-slate-800">{siteData.hero.whatsappNumber || 'Not Set'}</p></div>
-                                                <div><p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Main Banner</p><img src={siteData.hero.bannerImageUrl} className="w-full max-w-sm rounded-lg border border-slate-200" /></div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Main Banner Slider</p>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {(siteData.hero.sliderImages || [siteData.hero.bannerImageUrl]).filter(Boolean).map((img, i) => (
+                                                            <img key={i} src={img} className="w-full aspect-[16/9] object-cover rounded-lg border border-slate-200" />
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -639,4 +717,3 @@
     </script>
 </body>
 </html>
-
