@@ -12,12 +12,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            colors: { navy: '#0f172a', primary: '#2563eb', surface: '#ffffff', appbg: '#f8fafc', border: '#e2e8f0' },
-            boxShadow: { 'soft': '0 4px 15px rgba(15, 23, 42, 0.04)', 'float': '0 -4px 15px rgba(0,0,0,0.05)' }
+            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f4f7fb', surface: '#ffffff' },
+            boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)', 'float': '0 -4px 15px rgba(0,0,0,0.05)' }
           }
         }
       }
@@ -26,20 +29,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #334155; overflow-x: hidden;}
+        
         .h-scroll::-webkit-scrollbar { display: none; }
         .h-scroll { scrollbar-width: none; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loader { width: 24px; height: 24px; border: 3px solid #e2e8f0; border-top: 3px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }
         
-        /* Sidebar transition for mobile */
+        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+        
         .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Quill Editor Overrides for Mobile Compactness */
+        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
+        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; font-family: inherit; font-size: 15px; }
+        .ql-editor { min-height: 250px; }
     </style>
 </head>
 <body>
     <div id="root">
-        <div class="h-screen flex flex-col justify-center items-center">
-            <div class="loader mb-4 w-10 h-10 border-4"></div>
-            <div class="font-bold text-navy">Loading Admin Panel...</div>
+        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
+            <div class="native-loader"></div>
+            <div style="font-weight: bold; font-size: 1.1rem;">Loading Admin Panel...</div>
         </div>
     </div>
 
@@ -47,7 +56,7 @@
         const { useState, useEffect, useRef } = React;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // App 1: Clinic Site Data
@@ -77,6 +86,83 @@
 
         const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
+        // --- CLOUDINARY WYSIWYG RICH TEXT EDITOR ---
+        function RichTextEditor({ value, onChange, placeholder }) {
+            const editorRef = useRef(null);
+            const quillRef = useRef(null);
+
+            useEffect(() => {
+                if (!quillRef.current && editorRef.current) {
+                    quillRef.current = new Quill(editorRef.current, {
+                        theme: 'snow',
+                        placeholder: placeholder || 'Write content here...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link', 'image', 'video'],
+                                ['clean']
+                            ]
+                        }
+                    });
+
+                    // Custom Cloudinary Image Handler
+                    quillRef.current.getModule('toolbar').addHandler('image', () => {
+                        const input = document.createElement('input');
+                        input.setAttribute('type', 'file');
+                        input.setAttribute('accept', 'image/*');
+                        input.click();
+                        
+                        input.onchange = async () => {
+                            const file = input.files[0];
+                            if (file) {
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('upload_preset', 'Physio_uploads');
+                                
+                                // Show a temporary loading state
+                                const range = quillRef.current.getSelection(true);
+                                quillRef.current.insertText(range.index, 'Uploading image...', 'user');
+                                
+                                try {
+                                    const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: formData });
+                                    const data = await res.json();
+                                    
+                                    quillRef.current.deleteText(range.index, 18); // Remove 'Uploading image...'
+                                    
+                                    if (data.secure_url) {
+                                        quillRef.current.insertEmbed(range.index, 'image', data.secure_url);
+                                    }
+                                } catch (err) {
+                                    quillRef.current.deleteText(range.index, 18);
+                                    alert("Image upload failed.");
+                                }
+                            }
+                        };
+                    });
+
+                    quillRef.current.on('text-change', () => {
+                        onChange(quillRef.current.root.innerHTML);
+                    });
+                }
+            }, []);
+
+            useEffect(() => {
+                if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+                    if (value) {
+                         // dangerouslyPasteHTML prevents cursor jumping vs setText
+                         quillRef.current.clipboard.dangerouslyPasteHTML(value);
+                    } else {
+                         quillRef.current.setText('');
+                    }
+                }
+            }, [value]);
+
+            return <div ref={editorRef} className="bg-white"></div>;
+        }
+
         // --- REUSABLE IMAGE UPLOADER COMPONENT ---
         function ImageUploader({ url, onUploadComplete, label, isIcon = false }) {
             const [isUploading, setIsUploading] = useState(false);
@@ -99,10 +185,10 @@
 
             return (
                 <div className="w-full">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{label}</label>
-                    <div className={`relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-24 h-24' : 'w-full h-40'}`}>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</label>
+                    <div className={`relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-24 h-24' : 'w-full h-32'}`}>
                         {isUploading ? (
-                            <div className="flex flex-col items-center"><div className="loader"></div><span className="text-[10px] mt-2 font-bold text-slate-500">Uploading...</span></div>
+                            <div className="flex flex-col items-center"><i className="ph-bold ph-spinner animate-spin text-azure text-2xl"></i></div>
                         ) : url ? (
                             <>
                                 <img src={url} alt="Preview" className="w-full h-full object-contain p-1" />
@@ -134,48 +220,51 @@
             const [exercises, setExercises] = useState([]);
 
             // Form States
-            const [editingItem, setEditingItem] = useState(null); // The item being edited
-            const [formType, setFormType] = useState(null); // 'doctor', 'service', 'product', 'article', 'exercise'
+            const [editingItem, setEditingItem] = useState(null); 
+            const [formType, setFormType] = useState(null); 
             const [searchQuery, setSearchQuery] = useState("");
 
             // Toast
             const [toast, setToast] = useState({ show: false, msg: '' });
             const showToast = (msg) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: '' }), 3000); };
 
+            // Initialize Hash Routing & Auth
             useEffect(() => {
+                const handleHashChange = () => {
+                    const hash = window.location.hash.replace('#/', '');
+                    if (hash) { setActiveTab(hash); }
+                };
+                
+                window.addEventListener('hashchange', handleHashChange);
+                handleHashChange(); // Run on initial load
+
                 const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
                     setUser(currentUser);
                     setIsConnecting(false);
                 });
-                return () => unsubscribe();
+                
+                return () => {
+                    window.removeEventListener('hashchange', handleHashChange);
+                    unsubscribe();
+                }
             }, []);
 
             useEffect(() => {
                 if (!user) return;
                 
-                // Fetch Site Data
                 const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
-                        setSiteData({
-                            hero: data.hero || {},
-                            doctors: data.doctors || [],
-                            services: data.services || [],
-                            products: data.products || [],
-                            articles: data.articles || []
-                        });
+                        setSiteData({ hero: data.hero || {}, doctors: data.doctors || [], services: data.services || [], products: data.products || [], articles: data.articles || [] });
                     }
                 });
 
-                // Fetch Exercises Data
                 const unsubEx = onValue(ref(dbRecords, 'exercises'), (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         const exArray = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
                         setExercises(exArray);
-                    } else {
-                        setExercises([]);
-                    }
+                    } else { setExercises([]); }
                 });
 
                 return () => { unsubSite(); unsubEx(); };
@@ -219,7 +308,7 @@
                 return (
                     <div className="min-h-screen bg-appbg flex flex-col items-center justify-center p-4">
                         <div className="max-w-sm w-full bg-surface rounded-xl shadow-soft border border-slate-200 p-8 text-center">
-                            <i className="ph-bold ph-shield-check text-5xl text-primary mb-3"></i>
+                            <i className="ph-bold ph-shield-check text-5xl text-azure mb-3"></i>
                             <h1 className="text-2xl font-bold text-navy mb-6">Admin Panel</h1>
                             <button onClick={handleLogin} className="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -242,34 +331,31 @@
             ];
 
             const changeTab = (tab) => {
-                setActiveTab(tab);
-                setEditingItem(null); // Reset form when switching tabs
+                window.location.hash = `/${tab}`;
+                setEditingItem(null); 
                 setSearchQuery("");
                 setIsSidebarOpen(false);
             };
 
             const renderSidebar = () => (
                 <>
-                    {/* Mobile Overlay */}
                     <div className={`fixed inset-0 bg-navy/50 z-40 lg:hidden transition-opacity ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} onClick={() => setIsSidebarOpen(false)}></div>
-                    
-                    {/* Sidebar */}
-                    <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-navy text-slate-300 flex flex-col z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                            <h2 className="text-white font-bold text-xl flex items-center gap-2"><i className="ph-fill ph-shield-check text-primary"></i> Admin</h2>
-                            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setIsSidebarOpen(false)}><i className="ph-bold ph-x text-xl"></i></button>
+                    <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-white border-r border-slate-200 flex flex-col z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h2 className="text-navy font-bold text-xl flex items-center gap-2"><i className="ph-fill ph-shield-check text-azure"></i> Admin</h2>
+                            <button className="lg:hidden text-slate-400 hover:text-navy" onClick={() => setIsSidebarOpen(false)}><i className="ph-bold ph-x text-xl"></i></button>
                         </div>
                         <div className="flex-1 overflow-y-auto py-4">
                             <nav className="space-y-1 px-3">
                                 {navItems.map(item => (
-                                    <button key={item.id} onClick={() => changeTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition ${activeTab === item.id ? 'bg-primary text-white' : 'hover:bg-slate-800 hover:text-white'}`}>
+                                    <button key={item.id} onClick={() => changeTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm transition ${activeTab === item.id ? 'bg-ice text-azure' : 'text-slate-600 hover:bg-slate-50'}`}>
                                         <i className={`ph-bold ${item.icon} text-lg`}></i> {item.label}
                                     </button>
                                 ))}
                             </nav>
                         </div>
-                        <div className="p-4 border-t border-slate-800">
-                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition"><i className="ph-bold ph-sign-out"></i> Logout</button>
+                        <div className="p-4 border-t border-slate-100">
+                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-slate-50 text-red-600 border border-slate-200 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-50 transition"><i className="ph-bold ph-sign-out"></i> Logout</button>
                         </div>
                     </aside>
                 </>
@@ -280,22 +366,21 @@
                 const filteredData = data.filter(item => (item.name || item.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
                 return (
                     <div className="animate-in fade-in">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                            <h2 className="text-2xl font-bold text-navy">{title}</h2>
-                            <button onClick={onAdd} className="bg-primary text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center gap-2"><i className="ph-bold ph-plus"></i> Add New</button>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                            <h2 className="text-xl font-bold text-navy">{title}</h2>
+                            <button onClick={onAdd} className="bg-azure text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-navy transition flex items-center gap-2"><i className="ph-bold ph-plus"></i> Add New</button>
                         </div>
                         
-                        <div className="bg-surface rounded-2xl shadow-soft border border-slate-200 p-4 mb-6">
-                            <div className="relative">
-                                <i className="ph-bold ph-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
-                                <input type="text" placeholder={`Search ${title.toLowerCase()}...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition text-sm" />
-                            </div>
+                        <div className="bg-surface p-2.5 rounded-xl shadow-soft border border-slate-200 flex items-center gap-2 mb-6">
+                            <i className="ph-bold ph-magnifying-glass text-slate-400 ml-1"></i>
+                            <input type="text" placeholder={`Search ${title.toLowerCase()}...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-transparent outline-none text-sm text-slate-700" />
                         </div>
 
                         {filteredData.length === 0 ? (
-                            <div className="text-center py-12 text-slate-500 bg-surface rounded-2xl border border-dashed border-slate-300">No items found. Click "Add New" to start.</div>
+                            <div className="text-center py-12 text-slate-400 text-sm bg-surface rounded-2xl border border-dashed border-slate-200">No items found. Click "Add New" to start.</div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            // Use vertical cards structured in a 2-column grid layout for compactness
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {filteredData.map(item => renderCard(item))}
                             </div>
                         )}
@@ -304,99 +389,104 @@
             };
 
             const renderDoctorCard = (d) => (
-                <div key={d.id} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
-                    <img src={d.photoUrl || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-full object-cover bg-slate-100" />
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-navy truncate">{d.name}</h4>
-                        <p className="text-xs text-slate-500 truncate">{d.qualification}</p>
+                <div key={d.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <img src={d.photoUrl || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200" />
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-navy truncate">{d.name}</h4>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{d.qualification}</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
-                        <button onClick={() => {setEditingItem(d); setFormType('doctor');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
-                        <button onClick={() => deleteSiteItem('doctors', siteData.doctors, d.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button onClick={() => {setEditingItem(d); setFormType('doctor');}} className="flex-1 flex items-center justify-center gap-1 bg-slate-50 text-slate-600 hover:text-azure py-1.5 rounded text-xs font-bold"><i className="ph-bold ph-pencil-simple"></i> Edit</button>
+                        <button onClick={() => deleteSiteItem('doctors', siteData.doctors, d.id)} className="flex items-center justify-center bg-slate-50 px-3 text-slate-400 hover:text-red-500 rounded text-xs"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
 
             const renderProductCard = (p) => (
-                <div key={p.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-3">
-                    <img src={p.profilePhoto || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-lg object-contain bg-slate-50 p-1" />
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-navy truncate text-sm">{p.name}</h4>
-                        <p className="text-xs font-bold text-primary">{p.price}</p>
+                <div key={p.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <img src={p.profilePhoto || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded object-contain bg-slate-50 border border-slate-100 p-1" />
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-navy truncate">{p.name}</h4>
+                            <p className="text-xs font-bold text-azure mt-0.5">{p.price}</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
-                        <button onClick={() => {setEditingItem(p); setFormType('product');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
-                        <button onClick={() => deleteSiteItem('products', siteData.products, p.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button onClick={() => {setEditingItem(p); setFormType('product');}} className="flex-1 flex items-center justify-center gap-1 bg-slate-50 text-slate-600 hover:text-azure py-1.5 rounded text-xs font-bold"><i className="ph-bold ph-pencil-simple"></i> Edit</button>
+                        <button onClick={() => deleteSiteItem('products', siteData.products, p.id)} className="flex items-center justify-center bg-slate-50 px-3 text-slate-400 hover:text-red-500 rounded text-xs"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
 
             const renderExerciseCard = (ex) => (
-                <div key={ex.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-3">
-                    <img src={ex.imageUrl || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-lg object-contain bg-slate-50 p-1" />
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-navy truncate text-sm">{ex.name}</h4>
-                        <p className="text-[10px] text-slate-400 truncate">{ex.tags ? ex.tags.join(', ') : 'No tags'}</p>
+                <div key={ex.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <img src={ex.imageUrl || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded object-contain bg-slate-50 border border-slate-100 p-1" />
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-navy truncate">{ex.name}</h4>
+                            <p className="text-[10px] text-slate-400 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : 'No tags'}</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
-                        <button onClick={() => {setEditingItem(ex); setFormType('exercise');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
-                        <button onClick={() => deleteExercise(ex.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button onClick={() => {setEditingItem(ex); setFormType('exercise');}} className="flex-1 flex items-center justify-center gap-1 bg-slate-50 text-slate-600 hover:text-azure py-1.5 rounded text-xs font-bold"><i className="ph-bold ph-pencil-simple"></i> Edit</button>
+                        <button onClick={() => deleteExercise(ex.id)} className="flex items-center justify-center bg-slate-50 px-3 text-slate-400 hover:text-red-500 rounded text-xs"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
 
             const renderServiceCard = (s) => (
-                <div key={s.id} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
-                    {s.bannerImageUrl ? <img src={s.bannerImageUrl} className="w-16 h-16 rounded-lg object-cover" /> : <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-2xl">{s.icon || '⚕️'}</div>}
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-navy truncate">{s.title}</h4>
-                        <p className="text-xs text-slate-500 truncate">{(s.tests || []).length} Sub-services</p>
+                <div key={s.id} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        {s.bannerImageUrl ? <img src={s.bannerImageUrl} className="w-12 h-12 rounded object-cover border border-slate-100" /> : <div className="w-12 h-12 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-xl">{s.icon || '⚕️'}</div>}
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-navy truncate">{s.title}</h4>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{(s.tests || []).length} Sub-services</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
-                        <button onClick={() => {setEditingItem(s); setFormType('service');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
-                        <button onClick={() => deleteSiteItem('services', siteData.services, s.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button onClick={() => {setEditingItem(s); setFormType('service');}} className="flex-1 flex items-center justify-center gap-1 bg-slate-50 text-slate-600 hover:text-azure py-1.5 rounded text-xs font-bold"><i className="ph-bold ph-pencil-simple"></i> Edit</button>
+                        <button onClick={() => deleteSiteItem('services', siteData.services, s.id)} className="flex items-center justify-center bg-slate-50 px-3 text-slate-400 hover:text-red-500 rounded text-xs"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
 
             const renderArticleCard = (a) => (
-                <div key={a.id || a.slug} className="bg-surface border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-4">
-                    {a.imageUrl ? <img src={a.imageUrl} className="w-16 h-16 rounded-lg object-cover" /> : <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-2xl">📄</div>}
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-navy truncate">{a.title}</h4>
-                        <p className="text-xs text-slate-500 truncate">/{a.slug}</p>
+                <div key={a.id || a.slug} className="bg-surface border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        {a.imageUrl ? <img src={a.imageUrl} className="w-12 h-12 rounded object-cover border border-slate-100" /> : <div className="w-12 h-12 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-xl">📄</div>}
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-navy truncate">{a.title}</h4>
+                            <p className="text-[10px] text-slate-400 truncate mt-0.5">/{a.slug}</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-2 border-l border-slate-100 pl-3">
-                        <button onClick={() => {setEditingItem(a); setFormType('article');}} className="text-slate-400 hover:text-primary"><i className="ph-bold ph-pencil-simple"></i></button>
-                        <button onClick={() => deleteSiteItem('articles', siteData.articles, a.id)} className="text-slate-400 hover:text-red-500"><i className="ph-bold ph-trash"></i></button>
+                    <div className="flex gap-2 pt-2 border-t border-slate-100">
+                        <button onClick={() => {setEditingItem(a); setFormType('article');}} className="flex-1 flex items-center justify-center gap-1 bg-slate-50 text-slate-600 hover:text-azure py-1.5 rounded text-xs font-bold"><i className="ph-bold ph-pencil-simple"></i> Edit</button>
+                        <button onClick={() => deleteSiteItem('articles', siteData.articles, a.id)} className="flex items-center justify-center bg-slate-50 px-3 text-slate-400 hover:text-red-500 rounded text-xs"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
 
-            // --- FORM WRAPPER (Sticky Save Button) ---
+            // --- FORM WRAPPER ---
             const FormWrapper = ({ title, onSave, onCancel, children }) => (
-                <div className="bg-surface rounded-2xl shadow-soft border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
-                    <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white z-10">
-                        <h2 className="text-xl font-bold text-navy flex items-center gap-2"><button onClick={onCancel} className="text-slate-400 hover:text-navy"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
+                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 flex flex-col h-full md:h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
+                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <h2 className="text-lg font-bold text-navy flex items-center gap-2"><button onClick={onCancel} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-50 text-slate-500 hover:text-navy"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
+                        <button onClick={onSave} className="px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-azure hover:bg-navy shadow-sm transition flex items-center gap-1"><i className="ph-bold ph-floppy-disk"></i> Save</button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-                        <div className="max-w-3xl mx-auto space-y-6">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-appbg">
+                        <div className="max-w-3xl mx-auto space-y-4">
                             {children}
                         </div>
                     </div>
-                    <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3 sticky bottom-0 z-20 shadow-float">
-                        <button onClick={onCancel} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
-                        <button onClick={onSave} className="px-8 py-2.5 rounded-xl font-bold text-white bg-primary hover:bg-blue-700 shadow-sm transition flex items-center gap-2"><i className="ph-bold ph-floppy-disk"></i> Save Changes</button>
-                    </div>
                 </div>
             );
-
 
             // --- SPECIFIC FORMS ---
             const renderEditForm = () => {
                 if (!editingItem) return null;
                 const d = editingItem;
-
                 const updateField = (field, val) => setEditingItem({ ...d, [field]: val });
 
                 if (formType === 'doctor') {
@@ -406,12 +496,12 @@
                             if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
                             saveSiteData('doctors', arr);
                         }}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                 <ImageUploader label="Profile Photo" url={d.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Qualifications</label><input type="text" value={d.qualification||''} onChange={e=>updateField('qualification', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Biography / Details</label><textarea rows="3" value={d.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" value={d.qualification||''} onChange={e=>updateField('qualification', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="3" value={d.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 </div>
                             </div>
                         </FormWrapper>
@@ -424,12 +514,17 @@
                             const tagsArray = typeof d.tags === 'string' ? d.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (d.tags||[]);
                             saveExercise({ ...d, tags: tagsArray });
                         }}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Exercise Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(d.tags)?d.tags.join(', '):(d.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, stretch" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Video URL (Optional)</label><input type="url" value={d.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube Link" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 <ImageUploader label="Exercise Illustration" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
-                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Exercise Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Description / Instructions</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(d.tags)?d.tags.join(', '):(d.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, back, stretching" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Video URL (Optional)</label><input type="url" value={d.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube Link" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase">Description / Instructions</label>
+                                    <RichTextEditor value={d.description||''} onChange={html => updateField('description', html)} placeholder="Write instructions..." />
+                                </div>
                             </div>
                         </FormWrapper>
                     );
@@ -442,12 +537,12 @@
                             if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
                             saveSiteData('products', arr);
                         }}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                                <ImageUploader label="Main Product Photo" url={d.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Product Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Price</label><input type="text" value={d.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Description</label><textarea rows="4" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                                <ImageUploader label="Product Photo" url={d.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Product Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" value={d.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 </div>
                             </div>
                         </FormWrapper>
@@ -461,12 +556,12 @@
                             if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
                             saveSiteData('services', arr);
                         }}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
                                 <ImageUploader label="Banner Image (Optional)" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Service Title</label><input type="text" value={d.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Small Icon (Emoji)</label><input type="text" value={d.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                    <div className="space-y-1 sm:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Service Title</label><input type="text" value={d.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" value={d.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 </div>
                             </div>
                         </FormWrapper>
@@ -481,19 +576,19 @@
                             if(!d.id) { d.id = Date.now(); d.date = new Date().toISOString(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
                             saveSiteData('articles', arr);
                         }}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
                                 <ImageUploader label="Cover Image" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Article Title</label>
-                                    <input type="text" value={d.title||''} onChange={e=> { updateField('title', e.target.value); if(!d.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary font-bold text-lg" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase">Article Title</label>
+                                    <input type="text" value={d.title||''} onChange={e=> { updateField('title', e.target.value); if(!d.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure font-bold" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">URL Slug (Auto)</label>
-                                    <input type="text" readOnly value={d.slug||''} className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-sm" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase">URL Slug (Auto)</label>
+                                    <input type="text" readOnly value={d.slug||''} className="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-500" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Article Content</label>
-                                    <textarea rows="12" value={d.content||''} onChange={e=>updateField('content', e.target.value)} placeholder="Write your article here..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary font-serif" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase">Article Content (Rich Text)</label>
+                                    <RichTextEditor value={d.content||''} onChange={html => updateField('content', html)} />
                                 </div>
                             </div>
                         </FormWrapper>
@@ -503,18 +598,18 @@
                 if (formType === 'clinicInfo') {
                     return (
                         <FormWrapper title="Website Details" onCancel={() => setEditingItem(null)} onSave={() => saveSiteData('hero', d)}>
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
                                 <div>
-                                    <h3 className="font-bold text-navy mb-4 border-b pb-2">Branding</h3>
+                                    <h3 className="font-bold text-sm text-navy mb-3 border-b pb-1">Branding</h3>
                                     <ImageUploader label="Clinic Logo" url={d.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
-                                    <div className="mt-4"><ImageUploader label="Main Hero Banner" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} /></div>
+                                    <div className="mt-3"><ImageUploader label="Main Hero Banner" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} /></div>
                                 </div>
                                 
-                                <div>
-                                    <h3 className="font-bold text-navy mb-4 border-b pb-2">Contact & Texts</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">Clinic Name</label><input type="text" value={d.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
-                                        <div className="space-y-1"><label className="text-xs font-bold text-slate-500 uppercase">WhatsApp Number</label><input type="text" value={d.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-primary" /></div>
+                                <div className="pt-2">
+                                    <h3 className="font-bold text-sm text-navy mb-3 border-b pb-1">Contact Details</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</label><input type="text" value={d.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</label><input type="text" value={d.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                     </div>
                                 </div>
                             </div>
@@ -525,12 +620,12 @@
 
             // --- MAIN RENDER ---
             return (
-                <div className="flex h-screen overflow-hidden relative">
+                <div className="flex h-screen overflow-hidden bg-appbg relative">
                     
-                    {/* Toast */}
+                    {/* Toast Notification */}
                     <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-                        <div className="bg-emerald-500 text-white px-6 py-3 rounded-full shadow-lg font-bold flex items-center gap-2">
-                            <i className="ph-bold ph-check-circle"></i> {toast.msg}
+                        <div className="bg-slate-800 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2">
+                            <i className="ph-bold ph-check-circle text-emerald-400"></i> {toast.msg}
                         </div>
                     </div>
 
@@ -538,44 +633,44 @@
 
                     <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
                         {/* Top Header Mobile */}
-                        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:hidden shrink-0 z-30 relative">
-                            <h1 className="font-bold text-navy flex items-center gap-2"><i className="ph-fill ph-shield-check text-primary"></i> Admin</h1>
-                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600"><i className="ph-bold ph-list text-2xl"></i></button>
+                        <header className="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30 relative shadow-sm">
+                            <h1 className="font-bold text-navy flex items-center gap-2 text-lg"><i className="ph-fill ph-shield-check text-azure"></i> Admin</h1>
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 text-slate-600 bg-slate-50 rounded"><i className="ph-bold ph-list text-xl"></i></button>
                         </header>
 
-                        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                        <main className="flex-1 overflow-y-auto p-3 md:p-6 relative">
                             {editingItem ? renderEditForm() : (
                                 <>
                                     {activeTab === 'overview' && (
-                                        <div className="animate-in fade-in space-y-6">
-                                            <h2 className="text-2xl font-bold text-navy">Dashboard Overview</h2>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('exercises')}>
-                                                    <i className="ph-fill ph-person-simple-walk text-4xl text-blue-500 mb-2"></i>
-                                                    <span className="text-3xl font-black text-navy">{exercises.length}</span>
-                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Exercises</span>
+                                        <div className="animate-in fade-in space-y-4 md:space-y-6">
+                                            <h2 className="text-xl font-bold text-navy">Dashboard Overview</h2>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                <div className="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-azure transition" onClick={() => changeTab('exercises')}>
+                                                    <i className="ph-fill ph-person-simple-walk text-3xl text-azure mb-1"></i>
+                                                    <span className="text-2xl font-black text-navy">{exercises.length}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Exercises</span>
                                                 </div>
-                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('doctors')}>
-                                                    <i className="ph-fill ph-stethoscope text-4xl text-emerald-500 mb-2"></i>
-                                                    <span className="text-3xl font-black text-navy">{siteData.doctors.length}</span>
-                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Doctors</span>
+                                                <div className="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-emerald-500 transition" onClick={() => changeTab('doctors')}>
+                                                    <i className="ph-fill ph-stethoscope text-3xl text-emerald-500 mb-1"></i>
+                                                    <span className="text-2xl font-black text-navy">{siteData.doctors.length}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Doctors</span>
                                                 </div>
-                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('products')}>
-                                                    <i className="ph-fill ph-shopping-bag text-4xl text-purple-500 mb-2"></i>
-                                                    <span className="text-3xl font-black text-navy">{siteData.products.length}</span>
-                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Products</span>
+                                                <div className="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-500 transition" onClick={() => changeTab('products')}>
+                                                    <i className="ph-fill ph-shopping-bag text-3xl text-purple-500 mb-1"></i>
+                                                    <span className="text-2xl font-black text-navy">{siteData.products.length}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Products</span>
                                                 </div>
-                                                <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition" onClick={() => changeTab('articles')}>
-                                                    <i className="ph-fill ph-article text-4xl text-orange-500 mb-2"></i>
-                                                    <span className="text-3xl font-black text-navy">{siteData.articles.length}</span>
-                                                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">Articles</span>
+                                                <div className="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center justify-center text-center cursor-pointer hover:border-orange-500 transition" onClick={() => changeTab('articles')}>
+                                                    <i className="ph-fill ph-article text-3xl text-orange-500 mb-1"></i>
+                                                    <span className="text-2xl font-black text-navy">{siteData.articles.length}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Articles</span>
                                                 </div>
                                             </div>
                                             
-                                            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 mt-6">
-                                                <h3 className="font-bold text-navy mb-4 border-b pb-2">Quick Actions</h3>
-                                                <div className="flex flex-wrap gap-3">
-                                                    <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="px-4 py-2 bg-slate-100 text-navy font-bold rounded-lg hover:bg-slate-200 flex items-center gap-2"><i className="ph-bold ph-pencil-simple"></i> Edit Website Info</button>
+                                            <div className="bg-white p-4 md:p-5 rounded-xl shadow-soft border border-slate-200 mt-4">
+                                                <h3 className="font-bold text-sm text-navy mb-3 border-b pb-1">Quick Actions</h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="px-3 py-1.5 bg-ice text-azure text-xs font-bold rounded-lg hover:bg-blue-200 flex items-center gap-1.5"><i className="ph-bold ph-pencil-simple"></i> Edit Website Info</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -583,14 +678,14 @@
 
                                     {activeTab === 'clinic' && (
                                         <div className="animate-in fade-in">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <h2 className="text-2xl font-bold text-navy">Website Details</h2>
-                                                <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="bg-primary text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center gap-2"><i className="ph-bold ph-pencil-simple"></i> Edit Info</button>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h2 className="text-xl font-bold text-navy">Website Details</h2>
+                                                <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="bg-azure text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-navy transition flex items-center gap-1.5"><i className="ph-bold ph-pencil-simple"></i> Edit Info</button>
                                             </div>
-                                            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200 space-y-4">
-                                                <div className="flex items-center gap-4 border-b pb-4"><img src={siteData.hero.logoUrl || '/favicon.png'} className="w-16 h-16 rounded bg-slate-50 object-contain p-1" /> <div><p className="text-xs font-bold text-slate-500 uppercase">Clinic Name</p><p className="font-bold text-lg text-navy">{siteData.hero.clinicName || 'Not Set'}</p></div></div>
-                                                <div><p className="text-xs font-bold text-slate-500 uppercase">WhatsApp Number</p><p className="font-medium text-slate-800">{siteData.hero.whatsappNumber || 'Not Set'}</p></div>
-                                                <div><p className="text-xs font-bold text-slate-500 uppercase">Main Banner</p><img src={siteData.hero.bannerImageUrl} className="w-full max-w-sm rounded-lg mt-1 border" /></div>
+                                            <div className="bg-white p-4 md:p-6 rounded-xl shadow-soft border border-slate-200 space-y-4">
+                                                <div className="flex items-center gap-4 border-b pb-4"><img src={siteData.hero.logoUrl || '/favicon.png'} className="w-12 h-12 rounded bg-slate-50 object-contain p-1 border border-slate-200" /> <div><p className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</p><p className="font-bold text-base text-navy">{siteData.hero.clinicName || 'Not Set'}</p></div></div>
+                                                <div><p className="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</p><p className="font-medium text-sm text-slate-800">{siteData.hero.whatsappNumber || 'Not Set'}</p></div>
+                                                <div><p className="text-[10px] font-bold text-slate-400 uppercase">Main Banner</p><img src={siteData.hero.bannerImageUrl} className="w-full max-w-xs rounded-lg mt-1 border border-slate-200" /></div>
                                             </div>
                                         </div>
                                     )}
@@ -599,7 +694,7 @@
                                     {activeTab === 'services' && renderList("Services", siteData.services, renderServiceCard, () => {setEditingItem({title:''}); setFormType('service');})}
                                     {activeTab === 'products' && renderList("Wellness Products", siteData.products, renderProductCard, () => {setEditingItem({name:'', price:''}); setFormType('product');})}
                                     {activeTab === 'articles' && renderList("Health Articles", siteData.articles, renderArticleCard, () => {setEditingItem({title:'', content:''}); setFormType('article');})}
-                                    {activeTab === 'exercises' && renderList("Rehabilitation Exercises", exercises, renderExerciseCard, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
+                                    {activeTab === 'exercises' && renderList("Exercise DB", exercises, renderExerciseCard, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
                                 </>
                             )}
                         </main>
