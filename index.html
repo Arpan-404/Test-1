@@ -10,18 +10,22 @@
     <meta name="apple-mobile-web-app-title" content="Therapeutic Hub">
     
     <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <!-- Phosphor Icons for the Menu -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
         /* PREMIUM MEDICAL THEME */
         :root {
-            --app-bg: #f8fafc;        /* Cleaner, cooler gray */
+            --app-bg: #f8fafc;        
             --surface: #ffffff;       
-            --primary: #2563eb;       /* Trusted medical blue */
+            --primary: #2563eb;       
             --primary-dark: #1e40af;  
-            --text-dark: #0f172a;     /* Deep slate for text */
+            --text-dark: #0f172a;     
             --text-muted: #475569;    
             --border: #e2e8f0;
-            --shadow-soft: 0 4px 15px rgba(15, 23, 42, 0.04); /* Very subtle, premium shadow */
-            --radius-sm: 8px;         /* Professional rounded corners, not pills */
+            --shadow-soft: 0 4px 15px rgba(15, 23, 42, 0.04); 
+            --radius-sm: 8px;         
             --radius-md: 12px;
             --radius-lg: 16px;
         }
@@ -43,20 +47,28 @@
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 20px; height: 2px; background: var(--text-dark); margin: 2.5px 0; border-radius: 2px; transition: 0.2s; }
 
-        /* Search Results & Menu */
+        /* Search Results */
         .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; border: 1px solid var(--border); }
         .search-results.active { display: block; }
         .search-result-item { padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 12px; font-size: 0.9rem; border-radius: var(--radius-sm); transition: background 0.2s;}
         .search-result-item:hover { background: #f8fafc; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 5px 5px; font-weight: 700; }
 
-        /* BUG-FREE MENU ANIMATION */
-        .mobile-menu { position: fixed; top: 0; right: -300px; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 4rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border);}
-        .mobile-menu.active { right: 0; } /* Perfectly slides in to the edge */
+        /* SMOOTH SLIDING MENU */
+        .mobile-menu { 
+            position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
+            background: var(--surface); z-index: 1001; 
+            transform: translateX(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
+            overflow-y: auto; border-left: 1px solid var(--border);
+        }
+        .mobile-menu.active { transform: translateX(0); } 
         .mobile-menu ul { list-style: none; }
-        .mobile-menu ul li a { display: block; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: var(--text-dark); transition: color 0.2s;}
-        .mobile-menu ul li a:hover { color: var(--primary); }
-        .close-menu { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: var(--text-dark); transition: color 0.2s;}
+        .mobile-menu ul li a.main-nav-link:hover { color: var(--primary); }
+        
+        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .close-menu:hover { background: #e2e8f0; color: var(--text-dark); }
         
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
@@ -134,22 +146,30 @@
 
     <div id="searchResults" class="search-results"></div>
 
+    <!-- UPDATED MENU -->
     <div class="mobile-menu" id="mobileMenu">
-        <button class="close-menu" onclick="window.toggleMenu()">✕</button>
-        <ul style="padding-top: 1rem;">
-            <li><a href="/">Home</a></li>
-            <li><a href="/services">Clinical Services</a></li>
-            <li><a href="/doctors">Clinical Team</a></li>
-            <li><a href="/products">Wellness Products</a></li>
-            <li><a href="/articles">Health Articles</a></li>
-            <li><a href="/exercises">Rehabilitation Exercises</a></li>
-            <li><a href="/prescription">Patient Records</a></li>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border);">
+            <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); margin: 0;">Menu</h2>
+            <button class="close-menu" onclick="window.toggleMenu()"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <ul>
+            <li><a href="/" class="main-nav-link"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Home</a></li>
+            <li><a href="/services" class="main-nav-link"><i class="ph-bold ph-first-aid" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Services</a></li>
+            <li><a href="/doctors" class="main-nav-link"><i class="ph-bold ph-stethoscope" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Team</a></li>
+            <li><a href="/products" class="main-nav-link"><i class="ph-bold ph-shopping-bag" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Wellness Products</a></li>
+            <li><a href="/articles" class="main-nav-link"><i class="ph-bold ph-article" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Health Articles</a></li>
+            <li><a href="/exercises" class="main-nav-link"><i class="ph-bold ph-person-simple-walk" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Rehabilitation Exercises</a></li>
+            <li><a href="/prescription" class="main-nav-link"><i class="ph-bold ph-folder-open" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Patient Records</a></li>
             
-            <li style="padding: 2rem 1.5rem 0.5rem;">
-                <a href="/doctor-dashboard" style="color: white; background: #1e293b; border-radius: 8px; text-align: center; border: none; font-weight: 600; padding: 12px; display: block; letter-spacing: 0.5px;">Staff Portal (DOC)</a>
-            </li>
-            <li style="padding: 0.5rem 1.5rem 2rem;">
-                <a href="/admin" style="color: #475569; background: #f1f5f9; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; padding: 12px; display: block;">Admin Panel</a>
+            <!-- Slick & Subtle Internal Links -->
+            <li style="padding: 2.5rem 1.5rem 0.5rem; border-bottom: none; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Internal Links</div>
+                <a href="/doctor-dashboard" style="color: #64748b; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; transition: color 0.2s; text-decoration: none;">
+                    <i class="ph-fill ph-activity" style="margin-right: 6px; font-size: 1rem;"></i> Staff Portal
+                </a>
+                <a href="/admin" style="color: #64748b; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; transition: color 0.2s; text-decoration: none;">
+                    <i class="ph-fill ph-shield-check" style="margin-right: 6px; font-size: 1rem;"></i> Admin Panel
+                </a>
             </li>
         </ul>
     </div>
