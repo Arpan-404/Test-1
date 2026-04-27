@@ -6,12 +6,14 @@
     <title>Admin Panel - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
+    <!-- React & Tailwind -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
@@ -20,7 +22,7 @@
         theme: {
           extend: {
             colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f4f7fb', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)', 'float': '0 -4px 15px rgba(0,0,0,0.05)' }
+            boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)' }
           }
         }
       }
@@ -38,10 +40,20 @@
         
         .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* Quill Editor Overrides */
-        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
-        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; font-family: inherit; font-size: 15px; }
-        .ql-editor { min-height: 250px; }
+        /* Quill Editor Edge-to-Edge Overrides for Mobile */
+        .ql-toolbar { background: #f8fafc; border-color: #e2e8f0 !important; }
+        .ql-container { border-color: #e2e8f0 !important; background: #ffffff; font-family: inherit; font-size: 16px; }
+        .ql-editor { min-height: 300px; padding: 1rem; }
+        
+        @media (max-width: 639px) {
+            /* Remove borders on extreme edges for mobile to save space */
+            .mobile-edge-editor .ql-toolbar { border-left: none !important; border-right: none !important; border-top: 1px solid #e2e8f0 !important; border-radius: 0 !important; }
+            .mobile-edge-editor .ql-container { border-left: none !important; border-right: none !important; border-radius: 0 !important; border-bottom: 1px solid #e2e8f0 !important; }
+        }
+        @media (min-width: 640px) {
+            .ql-toolbar { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+            .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -59,15 +71,12 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // App 1: Clinic Site Data
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
             databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
             projectId: "clinic-bdf92"
         };
-
-        // App 2: Exercises Database
         const recordsConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -78,25 +87,22 @@
         const appSite = initializeApp(siteConfig, "AppSite");
         const auth = getAuth(appSite);
         const dbSite = getDatabase(appSite);
-        
         const appRecords = initializeApp(recordsConfig, "AppRecords");
         const dbRecords = getDatabase(appRecords);
-
         const googleProvider = new GoogleAuthProvider();
         const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
-        // Inject Undo/Redo SVG Icons into Quill
+        // Add Custom Undo/Redo Icons to Quill
         const icons = Quill.import('ui/icons');
         icons['undo'] = '<svg viewBox="0 0 18 18"><path class="ql-fill ql-stroke" d="M3,8A5,5,0,1,1,12.2,12.6L10.8,11.2A3,3,0,1,0,5,8Z"></path><polygon class="ql-fill ql-stroke" points="5.5 4 5.5 8 1.5 8"></polygon></svg>';
         icons['redo'] = '<svg viewBox="0 0 18 18"><path class="ql-fill ql-stroke" d="M15,8A5,5,0,1,0,5.8,12.6L7.2,11.2A3,3,0,1,1,13,8Z"></path><polygon class="ql-fill ql-stroke" points="12.5 4 12.5 8 16.5 8"></polygon></svg>';
 
-        // --- CLOUDINARY WYSIWYG RICH TEXT EDITOR (FIXED CURSOR & UNDO/REDO) ---
+        // --- CLOUDINARY WYSIWYG RICH TEXT EDITOR ---
         function RichTextEditor({ initialValue, onChange, placeholder }) {
             const editorRef = useRef(null);
             const quillRef = useRef(null);
 
             useEffect(() => {
-                // Initialize Quill only ONCE
                 if (!quillRef.current && editorRef.current) {
                     quillRef.current = new Quill(editorRef.current, {
                         theme: 'snow',
@@ -110,7 +116,7 @@
                                     [{ 'color': [] }, { 'background': [] }],
                                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                                     ['link', 'image', 'video'],
-                                    ['undo', 'redo'], // Added custom buttons
+                                    ['undo', 'redo'],
                                     ['clean']
                                 ],
                                 handlers: {
@@ -121,12 +127,11 @@
                         }
                     });
 
-                    // Set initial value only on mount to prevent keyboard closing/cursor jumping
                     if (initialValue) {
                         quillRef.current.clipboard.dangerouslyPasteHTML(initialValue);
                     }
 
-                    // Custom Cloudinary Image Handler
+                    // Cloudinary Image Handler
                     quillRef.current.getModule('toolbar').addHandler('image', () => {
                         const input = document.createElement('input');
                         input.setAttribute('type', 'file');
@@ -146,12 +151,8 @@
                                 try {
                                     const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/image/upload`, { method: 'POST', body: formData });
                                     const data = await res.json();
-                                    
                                     quillRef.current.deleteText(range.index, 18);
-                                    
-                                    if (data.secure_url) {
-                                        quillRef.current.insertEmbed(range.index, 'image', data.secure_url, 'user');
-                                    }
+                                    if (data.secure_url) quillRef.current.insertEmbed(range.index, 'image', data.secure_url, 'user');
                                 } catch (err) {
                                     quillRef.current.deleteText(range.index, 18);
                                     alert("Image upload failed.");
@@ -160,14 +161,13 @@
                         };
                     });
 
-                    // Listen for user typing
                     quillRef.current.on('text-change', (delta, oldDelta, source) => {
                         if (source === 'user') {
                             onChange(quillRef.current.root.innerHTML);
                         }
                     });
                 }
-            }, []); // Empty dependency array -> runs exactly once.
+            }, []); 
 
             return <div ref={editorRef} className="bg-white"></div>;
         }
@@ -194,8 +194,8 @@
 
             return (
                 <div className="w-full">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</label>
-                    <div className={`relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-24 h-24' : 'w-full h-32'}`}>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+                    <div className={`relative border border-dashed border-slate-300 sm:rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-24 h-24 rounded-lg' : 'w-full h-40 rounded-lg'}`}>
                         {isUploading ? (
                             <div className="flex flex-col items-center"><i className="ph-bold ph-spinner animate-spin text-azure text-2xl"></i></div>
                         ) : url ? (
@@ -207,8 +207,8 @@
                             </>
                         ) : (
                             <div className="flex flex-col items-center text-slate-400">
-                                <i className="ph-bold ph-image text-2xl mb-1"></i>
-                                <span className="text-[10px] font-bold">Click to Upload</span>
+                                <i className="ph-bold ph-image text-3xl mb-1"></i>
+                                <span className="text-[11px] font-bold">Tap to Upload</span>
                             </div>
                         )}
                         <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -217,33 +217,203 @@
             );
         }
 
-        // --- MAIN ADMIN APP ---
+        // ============================================================================
+        // ISOLATED FORM COMPONENT: Fixes keyboard crash by stopping App re-renders
+        // ============================================================================
+        function ItemEditForm({ item, formType, onSave, onCancel }) {
+            // Local state so typing doesn't trigger the main App to re-render
+            const [d, setD] = useState(item || {});
+            
+            const updateField = (field, val) => setD(prev => ({ ...prev, [field]: val }));
+            
+            const handleSave = () => {
+                let finalData = { ...d };
+                if (formType === 'article' && !finalData.title) return alert("Title required");
+                if (formType === 'article' && !finalData.id) finalData.date = new Date().toISOString();
+                
+                if (formType === 'exercise') {
+                    const tagsArray = typeof finalData.tags === 'string' ? finalData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (finalData.tags || []);
+                    finalData.tags = tagsArray;
+                }
+                
+                onSave(finalData, formType);
+            };
+
+            const headerTitle = {
+                'doctor': d.id ? "Edit Specialist" : "Add Specialist",
+                'exercise': d.id ? "Edit Exercise" : "Add Exercise",
+                'product': d.id ? "Edit Product" : "Add Product",
+                'service': d.id ? "Edit Service" : "Add Service",
+                'article': d.id ? "Edit Article" : "Write Article",
+                'clinicInfo': "Website Details"
+            }[formType];
+
+            // Edge-to-Edge Form Wrapper
+            const FormWrapper = ({ children }) => (
+                <div className="bg-white sm:rounded-2xl sm:shadow-soft sm:border border-slate-200 flex flex-col h-[calc(100vh-56px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 absolute inset-0 sm:relative z-40">
+                    <div className="px-3 sm:px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50 sm:rounded-t-2xl shrink-0">
+                        <h2 className="text-lg font-bold text-navy flex items-center gap-2"><button onClick={onCancel} className="flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-navy"><i className="ph-bold ph-arrow-left"></i></button> {headerTitle}</h2>
+                        <button onClick={handleSave} className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-azure hover:bg-navy shadow-sm transition flex items-center gap-1"><i className="ph-bold ph-floppy-disk text-lg"></i> Save</button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-0 sm:p-6 bg-white sm:rounded-b-2xl">
+                        <div className="max-w-3xl mx-auto space-y-5 p-4 sm:p-0">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // FIELD RENDERING
+            if (formType === 'doctor') {
+                return (
+                    <FormWrapper>
+                        <ImageUploader label="Profile Photo" url={d.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Qualifications</label><input type="text" value={d.qualification||''} onChange={e=>updateField('qualification', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2"><label className="text-[11px] font-bold text-slate-500 uppercase">Biography</label><textarea rows="3" value={d.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2 mt-2">
+                                <label className="text-[11px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-base"></i> Custom WhatsApp Message</label>
+                                <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to book an appointment with {doctor_name}." className="w-full p-3 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
+                                <p className="text-[11px] text-slate-500 font-medium">Use tag: <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{`{doctor_name}`}</span></p>
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+
+            if (formType === 'exercise') {
+                return (
+                    <FormWrapper>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Exercise Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(d.tags)?d.tags.join(', '):(d.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, stretch" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                        </div>
+                        <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Video URL (Optional)</label><input type="url" value={d.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube Link" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                        <div className="pt-2"><ImageUploader label="Exercise Illustration" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} /></div>
+                        
+                        {/* EDGE-TO-EDGE EDITOR CONTAINER ON MOBILE */}
+                        <div className="space-y-1.5 pt-2">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase">Description / Instructions</label>
+                            <div className="-mx-4 sm:mx-0 mobile-edge-editor">
+                                <RichTextEditor initialValue={d.description||''} onChange={html => updateField('description', html)} placeholder="Write instructions..." />
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+
+            if (formType === 'product') {
+                return (
+                    <FormWrapper>
+                        <ImageUploader label="Product Photo" url={d.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Product Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Price</label><input type="text" value={d.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2"><label className="text-[11px] font-bold text-slate-500 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2 mt-2">
+                                <label className="text-[11px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-base"></i> Custom WhatsApp Message</label>
+                                <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to purchase {product_name}." className="w-full p-3 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
+                                <p className="text-[11px] text-slate-500 font-medium">Use tags: <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{`{product_name}`}</span> <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{`{price}`}</span></p>
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+
+            if (formType === 'service') {
+                return (
+                    <FormWrapper>
+                        <ImageUploader label="Banner Image (Optional)" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Service Title</label><input type="text" value={d.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Icon (Emoji)</label><input type="text" value={d.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2"><label className="text-[11px] font-bold text-slate-500 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                            <div className="space-y-1.5 sm:col-span-2 mt-2">
+                                <label className="text-[11px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-base"></i> Custom WhatsApp Message</label>
+                                <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to book the {service_title} service." className="w-full p-3 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
+                                <p className="text-[11px] text-slate-500 font-medium">Use tag: <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{`{service_title}`}</span></p>
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+
+            if (formType === 'article') {
+                return (
+                    <FormWrapper>
+                        <ImageUploader label="Cover Image" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
+                        <div className="space-y-1.5 mt-2">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase">Article Title</label>
+                            <input type="text" value={d.title||''} onChange={e=> { updateField('title', e.target.value); if(!d.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-3 text-base bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure font-bold" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase">URL Slug (Auto)</label>
+                            <input type="text" readOnly value={d.slug||''} className="w-full p-2.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-500" />
+                        </div>
+                        
+                        {/* EDGE-TO-EDGE EDITOR CONTAINER ON MOBILE */}
+                        <div className="space-y-1.5 pt-2">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase">Article Content (Rich Text)</label>
+                            <div className="-mx-4 sm:mx-0 mobile-edge-editor">
+                                <RichTextEditor initialValue={d.content||''} onChange={html => updateField('content', html)} />
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+
+            if (formType === 'clinicInfo') {
+                return (
+                    <FormWrapper>
+                        <div>
+                            <h3 className="font-bold text-sm text-navy mb-3 border-b pb-2">Branding</h3>
+                            <ImageUploader label="Clinic Logo" url={d.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
+                            <div className="mt-4"><ImageUploader label="Main Hero Banner" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} /></div>
+                        </div>
+                        
+                        <div className="pt-4">
+                            <h3 className="font-bold text-sm text-navy mb-3 border-b pb-2">Contact Details</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">Clinic Name</label><input type="text" value={d.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-500 uppercase">WhatsApp Number</label><input type="text" value={d.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                
+                                <div className="space-y-1.5 sm:col-span-2 mt-2">
+                                    <label className="text-[11px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-base"></i> Global Default WhatsApp Message</label>
+                                    <textarea rows="2" value={d.defaultWhatsAppMsg||''} onChange={e=>updateField('defaultWhatsAppMsg', e.target.value)} placeholder="Hello, I want to inquire about your services." className="w-full p-3 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
+                                    <p className="text-[11px] text-slate-500 font-medium">This message is used if a specific product/doctor doesn't have a custom message set.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </FormWrapper>
+                );
+            }
+            
+            return null;
+        }
+
+        // --- ROOT COMPONENT ---
         function AdminApp() {
             const [user, setUser] = useState(null);
             const [isConnecting, setIsConnecting] = useState(true);
             const [activeTab, setActiveTab] = useState('overview');
             const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             
-            // Databases
             const [siteData, setSiteData] = useState({ hero: {}, doctors: [], services: [], products: [], articles: [] });
             const [exercises, setExercises] = useState([]);
 
-            // Form States
             const [editingItem, setEditingItem] = useState(null); 
             const [formType, setFormType] = useState(null); 
             const [searchQuery, setSearchQuery] = useState("");
 
-            // Toast
             const [toast, setToast] = useState({ show: false, msg: '' });
             const showToast = (msg) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: '' }), 3000); };
 
-            // Initialize Hash Routing & Auth
             useEffect(() => {
                 const handleHashChange = () => {
                     const hash = window.location.hash.replace('#/', '');
-                    if (hash) { setActiveTab(hash); }
+                    if (hash && hash !== activeTab) { setActiveTab(hash); }
                 };
-                
                 window.addEventListener('hashchange', handleHashChange);
                 handleHashChange(); 
 
@@ -251,16 +421,11 @@
                     setUser(currentUser);
                     setIsConnecting(false);
                 });
-                
-                return () => {
-                    window.removeEventListener('hashchange', handleHashChange);
-                    unsubscribe();
-                }
+                return () => { window.removeEventListener('hashchange', handleHashChange); unsubscribe(); }
             }, []);
 
             useEffect(() => {
                 if (!user) return;
-                
                 const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
@@ -282,32 +447,37 @@
             const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
             const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
 
-            // Data Mutators
-            const saveSiteData = async (node, data) => {
-                try { await set(ref(dbSite, `site/${node}`), data); showToast('Saved Successfully!'); setEditingItem(null); } 
-                catch (e) { alert("Error saving data"); }
+            const handleSaveItem = async (finalData, type) => {
+                if (type === 'exercise') {
+                    try {
+                        if (finalData.id) { await set(ref(dbRecords, `exercises/${finalData.id}`), finalData); } 
+                        else { await set(push(ref(dbRecords, 'exercises')), finalData); }
+                        showToast('Exercise Saved!');
+                        setEditingItem(null);
+                    } catch (e) { alert("Error saving exercise"); }
+                } else if (type === 'clinicInfo') {
+                    try { await set(ref(dbSite, `site/hero`), finalData); showToast('Saved Successfully!'); setEditingItem(null); } 
+                    catch (e) { alert("Error saving data"); }
+                } else {
+                    const nodeName = type + 's'; // doctor -> doctors
+                    const arr = [...siteData[nodeName]];
+                    if (!finalData.id) { finalData.id = Date.now(); arr.push(finalData); } 
+                    else { const idx = arr.findIndex(x=>x.id===finalData.id); arr[idx]=finalData; }
+                    try { await set(ref(dbSite, `site/${nodeName}`), arr); showToast('Saved Successfully!'); setEditingItem(null); } 
+                    catch (e) { alert("Error saving data"); }
+                }
             };
 
             const deleteSiteItem = async (node, arr, id) => {
                 if(confirm("Are you sure you want to delete this?")) {
                     const newArr = arr.filter(item => item.id !== id);
-                    saveSiteData(node, newArr);
+                    try { await set(ref(dbSite, `site/${node}`), newArr); showToast('Deleted!'); } catch(e){}
                 }
-            };
-
-            const saveExercise = async (data) => {
-                try {
-                    if (data.id) { await set(ref(dbRecords, `exercises/${data.id}`), data); } 
-                    else { await set(push(ref(dbRecords, 'exercises')), data); }
-                    showToast('Exercise Saved!');
-                    setEditingItem(null);
-                } catch (e) { alert("Error saving exercise"); }
             };
 
             const deleteExercise = async (id) => {
                 if(confirm("Delete this exercise permanently?")) {
-                    try { await remove(ref(dbRecords, `exercises/${id}`)); showToast('Deleted!'); } 
-                    catch(e) { alert("Error deleting."); }
+                    try { await remove(ref(dbRecords, `exercises/${id}`)); showToast('Deleted!'); } catch(e){}
                 }
             };
 
@@ -328,7 +498,6 @@
                 );
             }
 
-            // --- TABS & NAVIGATION ---
             const navItems = [
                 { id: 'overview', icon: 'ph-squares-four', label: 'Overview' },
                 { id: 'clinic', icon: 'ph-buildings', label: 'Website Details' },
@@ -370,7 +539,7 @@
                 </>
             );
 
-            // --- COMPACT LIST VIEW ---
+            // COMPACT LIST VIEW
             const renderList = (title, data, renderRow, onAdd) => {
                 const filteredData = data.filter(item => (item.name || item.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
                 return (
@@ -466,172 +635,8 @@
                 </div>
             );
 
-            // --- FORM WRAPPER ---
-            const FormWrapper = ({ title, onSave, onCancel, children }) => (
-                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 flex flex-col h-full md:h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
-                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
-                        <h2 className="text-lg font-bold text-navy flex items-center gap-2"><button onClick={onCancel} className="flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-navy"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
-                        <button onClick={onSave} className="px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-azure hover:bg-navy shadow-sm transition flex items-center gap-1"><i className="ph-bold ph-floppy-disk"></i> Save</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-white rounded-b-2xl">
-                        <div className="max-w-3xl mx-auto space-y-4">
-                            {children}
-                        </div>
-                    </div>
-                </div>
-            );
-
-            // --- SPECIFIC FORMS ---
-            const renderEditForm = () => {
-                if (!editingItem) return null;
-                const d = editingItem;
-                const updateField = (field, val) => setEditingItem({ ...d, [field]: val });
-
-                if (formType === 'doctor') {
-                    return (
-                        <FormWrapper title={d.id ? "Edit Specialist" : "Add Specialist"} onCancel={() => setEditingItem(null)} onSave={() => {
-                            const arr = [...siteData.doctors];
-                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
-                            saveSiteData('doctors', arr);
-                        }}>
-                            <ImageUploader label="Profile Photo" url={d.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" value={d.qualification||''} onChange={e=>updateField('qualification', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="3" value={d.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2 mt-2">
-                                    <label className="text-[10px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-sm"></i> Custom WhatsApp Message</label>
-                                    <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to book an appointment with {doctor_name}." className="w-full p-2.5 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
-                                    <p className="text-[10px] text-slate-400">Use tag: <span className="font-mono bg-slate-100 px-1 rounded">{`{doctor_name}`}</span></p>
-                                </div>
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-
-                if (formType === 'exercise') {
-                    return (
-                        <FormWrapper title={d.id ? "Edit Exercise" : "Add Exercise"} onCancel={() => setEditingItem(null)} onSave={() => {
-                            const tagsArray = typeof d.tags === 'string' ? d.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (d.tags||[]);
-                            saveExercise({ ...d, tags: tagsArray });
-                        }}>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Exercise Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(d.tags)?d.tags.join(', '):(d.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, stretch" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                            </div>
-                            <div className="space-y-1 mt-3"><label className="text-[10px] font-bold text-slate-400 uppercase">Video URL (Optional)</label><input type="url" value={d.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube Link" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                            <div className="mt-3"><ImageUploader label="Exercise Illustration" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} /></div>
-                            <div className="space-y-1 mt-3">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Description / Instructions</label>
-                                {/* USE KEY TO FORCE QUILL TO REMOUNT PROPERLY */}
-                                <RichTextEditor key={d.id || 'new_exercise'} initialValue={d.description||''} onChange={html => updateField('description', html)} placeholder="Write instructions..." />
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-
-                if (formType === 'product') {
-                    return (
-                        <FormWrapper title={d.id ? "Edit Product" : "Add Product"} onCancel={() => setEditingItem(null)} onSave={() => {
-                            const arr = [...siteData.products];
-                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
-                            saveSiteData('products', arr);
-                        }}>
-                            <ImageUploader label="Product Photo" url={d.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Product Name</label><input type="text" value={d.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" value={d.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2 mt-2">
-                                    <label className="text-[10px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-sm"></i> Custom WhatsApp Message</label>
-                                    <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to purchase {product_name}." className="w-full p-2.5 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
-                                    <p className="text-[10px] text-slate-400">Use tags: <span className="font-mono bg-slate-100 px-1 rounded">{`{product_name}`}</span> <span className="font-mono bg-slate-100 px-1 rounded">{`{price}`}</span></p>
-                                </div>
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-
-                if (formType === 'service') {
-                    return (
-                        <FormWrapper title={d.id ? "Edit Service" : "Add Service"} onCancel={() => setEditingItem(null)} onSave={() => {
-                            const arr = [...siteData.services];
-                            if(!d.id) { d.id = Date.now(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
-                            saveSiteData('services', arr);
-                        }}>
-                            <ImageUploader label="Banner Image (Optional)" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Service Title</label><input type="text" value={d.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" value={d.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2"><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={d.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div className="space-y-1 sm:col-span-2 mt-2">
-                                    <label className="text-[10px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-sm"></i> Custom WhatsApp Message</label>
-                                    <textarea rows="2" value={d.whatsappMsg||''} onChange={e=>updateField('whatsappMsg', e.target.value)} placeholder="Hello, I want to book the {service_title} service." className="w-full p-2.5 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
-                                    <p className="text-[10px] text-slate-400">Use tag: <span className="font-mono bg-slate-100 px-1 rounded">{`{service_title}`}</span></p>
-                                </div>
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-
-                if (formType === 'article') {
-                    return (
-                        <FormWrapper title={d.id ? "Edit Article" : "Write Article"} onCancel={() => setEditingItem(null)} onSave={() => {
-                            if(!d.title) return alert("Title required");
-                            const arr = [...siteData.articles];
-                            if(!d.id) { d.id = Date.now(); d.date = new Date().toISOString(); arr.push(d); } else { const idx = arr.findIndex(x=>x.id===d.id); arr[idx]=d; }
-                            saveSiteData('articles', arr);
-                        }}>
-                            <ImageUploader label="Cover Image" url={d.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
-                            <div className="space-y-1 mt-4">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Article Title</label>
-                                <input type="text" value={d.title||''} onChange={e=> { updateField('title', e.target.value); if(!d.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure font-bold" />
-                            </div>
-                            <div className="space-y-1 mt-3">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">URL Slug (Auto)</label>
-                                <input type="text" readOnly value={d.slug||''} className="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-500" />
-                            </div>
-                            <div className="space-y-1 mt-3">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Article Content (Rich Text)</label>
-                                {/* USE KEY TO FORCE QUILL TO REMOUNT PROPERLY */}
-                                <RichTextEditor key={d.id || 'new_article'} initialValue={d.content||''} onChange={html => updateField('content', html)} />
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-
-                if (formType === 'clinicInfo') {
-                    return (
-                        <FormWrapper title="Website Details" onCancel={() => setEditingItem(null)} onSave={() => saveSiteData('hero', d)}>
-                            <div>
-                                <h3 className="font-bold text-sm text-navy mb-3 border-b pb-1">Branding</h3>
-                                <ImageUploader label="Clinic Logo" url={d.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
-                                <div className="mt-3"><ImageUploader label="Main Hero Banner" url={d.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} /></div>
-                            </div>
-                            
-                            <div className="pt-4">
-                                <h3 className="font-bold text-sm text-navy mb-3 border-b pb-1">Contact Details</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</label><input type="text" value={d.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</label><input type="text" value={d.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                    
-                                    <div className="space-y-1 sm:col-span-2 mt-2">
-                                        <label className="text-[10px] font-bold text-[#25D366] uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo text-sm"></i> Global Default WhatsApp Message</label>
-                                        <textarea rows="2" value={d.defaultWhatsAppMsg||''} onChange={e=>updateField('defaultWhatsAppMsg', e.target.value)} placeholder="Hello, I want to inquire about your services." className="w-full p-2.5 text-sm bg-green-50 border border-green-200 rounded-lg outline-none focus:border-[#25D366]" />
-                                        <p className="text-[10px] text-slate-400">This message is used if a specific product/doctor doesn't have a custom message set.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </FormWrapper>
-                    );
-                }
-            };
-
-            // --- MAIN RENDER ---
             return (
                 <div className="flex h-screen overflow-hidden bg-appbg relative">
-                    
-                    {/* Toast Notification */}
                     <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
                         <div className="bg-slate-800 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2">
                             <i className="ph-bold ph-check-circle text-emerald-400"></i> {toast.msg}
@@ -641,14 +646,20 @@
                     {renderSidebar()}
 
                     <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
-                        {/* Top Header Mobile */}
                         <header className="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30 relative shadow-sm">
                             <h1 className="font-bold text-navy flex items-center gap-2 text-lg"><i className="ph-fill ph-shield-check text-azure"></i> Admin</h1>
-                            <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 text-slate-600 bg-slate-50 rounded"><i className="ph-bold ph-list text-xl"></i></button>
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 text-slate-600 bg-slate-50 rounded border border-slate-200"><i className="ph-bold ph-list text-xl"></i></button>
                         </header>
 
-                        <main className="flex-1 overflow-y-auto p-3 md:p-6 relative">
-                            {editingItem ? renderEditForm() : (
+                        <main className={`flex-1 overflow-y-auto relative ${editingItem ? 'p-0 sm:p-6' : 'p-3 md:p-6'}`}>
+                            {editingItem ? (
+                                <ItemEditForm 
+                                    item={editingItem} 
+                                    formType={formType} 
+                                    onSave={handleSaveItem} 
+                                    onCancel={() => setEditingItem(null)} 
+                                />
+                            ) : (
                                 <>
                                     {activeTab === 'overview' && (
                                         <div className="animate-in fade-in space-y-4 md:space-y-6">
@@ -718,3 +729,4 @@
     </script>
 </body>
 </html>
+
