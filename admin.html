@@ -46,10 +46,11 @@
         
         /* Mobile Edge-to-Edge Quill Overrides */
         @media (max-width: 639px) {
-            .mobile-edge-quill .ql-toolbar { border-left: none !important; border-right: none !important; border-radius: 0 !important; }
-            .mobile-edge-quill .ql-container { border-left: none !important; border-right: none !important; border-radius: 0 !important; border-bottom: none !important; }
+            .mobile-edge-quill .ql-toolbar { border-left: none !important; border-right: none !important; border-radius: 0 !important; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+            .mobile-edge-quill .ql-toolbar .ql-formats { display: inline-block; margin-right: 15px; }
+            .mobile-edge-quill .ql-container { border-left: none !important; border-right: none !important; border-radius: 0 !important; border-bottom: none !important; min-height: 50vh; }
             .form-edge { padding-left: 0 !important; padding-right: 0 !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
-            .field-pad { padding-left: 1rem; padding-right: 1rem; }
+            .field-pad { padding-left: 1.25rem; padding-right: 1.25rem; }
         }
         
         /* Clean Quill Container */
@@ -445,16 +446,16 @@
             };
 
             const RowItem = ({ img, fallback, title, subtitle, onEdit, onDelete }) => (
-                <div className="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onClick={onEdit}>
-                    <div className="w-10 h-10 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                        {img ? <img src={img} className="w-full h-full object-cover" /> : <span className="text-lg">{fallback}</span>}
+                <div className="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer active:bg-slate-100" onClick={onEdit}>
+                    <div className="w-12 h-12 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <span className="text-xl">{fallback}</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-slate-800 truncate leading-tight">{title}</h4>
-                        <p className="text-xs text-slate-500 truncate mt-0.5">{subtitle}</p>
+                        <h4 className="font-bold text-[15px] text-slate-800 truncate leading-tight">{title}</h4>
+                        <p className="text-xs text-slate-500 truncate mt-1">{subtitle}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0 pl-2">
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 text-slate-300 hover:text-red-500 rounded"><i className="ph-bold ph-trash"></i></button>
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-3 text-slate-300 hover:text-red-500 active:bg-red-50 rounded-lg transition-colors"><i className="ph-bold ph-trash text-xl"></i></button>
                     </div>
                 </div>
             );
@@ -482,13 +483,16 @@
                 };
 
                 return (
-                    <div className="bg-white form-edge rounded-xl shadow-soft border border-slate-200 flex flex-col h-[calc(100vh-80px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 relative z-20">
-                        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-                            <h2 className="text-base font-black text-navy flex items-center gap-2"><button onClick={onCancel} className="text-slate-400 hover:text-navy mr-1"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
-                            <button onClick={handleSave} className="bg-azure text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-navy">Save</button>
+                    <div className="bg-white form-edge sm:rounded-xl shadow-soft sm:border border-slate-200 flex flex-col fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-20 sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
+                        <div className="px-4 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-30">
+                            <h2 className="text-base sm:text-lg font-black text-navy flex items-center gap-2">
+                                <button onClick={onCancel} className="text-slate-400 hover:text-navy mr-1 p-2 -ml-2 rounded-full active:bg-slate-100"><i className="ph-bold ph-arrow-left text-xl"></i></button> 
+                                <span className="truncate max-w-[180px] sm:max-w-xs">{title}</span>
+                            </h2>
+                            <button onClick={handleSave} className="bg-azure text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy active:scale-95 transition-transform">Save</button>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4 field-pad bg-slate-50/30 space-y-5">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 field-pad bg-slate-50/50 space-y-6 pb-32">
                             
                             {type === 'doctor' && (
                                 <>
