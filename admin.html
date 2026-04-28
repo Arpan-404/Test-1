@@ -154,15 +154,16 @@
                                     }
                                 }
                             }
-                        });
+                        } // FIXED: Added this missing closing brace
+                    });
 
-                        if (value) quillInstance.current.root.innerHTML = value;
+                    if (value) quillInstance.current.root.innerHTML = value;
 
-                        quillInstance.current.on('text-change', () => {
-                            onChange(quillInstance.current.root.innerHTML);
-                        });
-                    }
-                }, []);
+                    quillInstance.current.on('text-change', () => {
+                        onChange(quillInstance.current.root.innerHTML);
+                    });
+                }
+            }, []);
 
             return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
         }
@@ -717,3 +718,4 @@
     </script>
 </body>
 </html>
+
