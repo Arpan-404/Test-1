@@ -7,6 +7,7 @@
     <meta name="description" content="Expert healthcare and physiotherapy services at Therapeutic Hub.">
     <link rel="icon" type="image/png" href="/favicon.png">
     
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     
@@ -29,7 +30,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
         a { text-decoration: none; color: inherit; }
 
         /* HEADER & SEARCH */
@@ -86,7 +87,7 @@
         .test-item:hover { border-color: var(--primary-light); background: #ffffff; box-shadow: var(--shadow-soft); }
         .test-name { font-weight: 700; color: var(--text-dark); font-size: 1.05rem; }
 
-        /* PRODUCT LAYOUT (Clinical Store Vibe) */
+        /* PRODUCT LAYOUT */
         .prod-detail-main { max-width: 100%; margin: 60px auto 0; padding-bottom: 80px; background: var(--app-bg); }
         .prod-image-section { background: var(--surface); padding: 1.5rem 0; border-bottom: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .prod-main-img { width: 100%; height: 350px; object-fit: contain; }
@@ -110,14 +111,22 @@
         .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.2s;}
         .btn-buy-now:active { transform: scale(0.98); }
         
-        /* ARTICLE LAYOUT (Modern Medical Journal) */
-        .wiki-article-container { max-width: 800px; margin: 80px auto 2rem; background: var(--surface); padding: 3rem 2.5rem; color: #334155; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
+        /* WIKIPEDIA / PHYSIOPEDIA ARTICLE & EXERCISE LAYOUT */
+        .wiki-article-container { max-width: 900px; margin: 80px auto 2rem; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); overflow: hidden; }
+        
+        /* EXACT RICH TEXT STYLING SUPPLIED BY USER */
+        .wiki-content { font-size: 1.05rem; line-height: 1.7; color: #334155; }
+        .wiki-content h2 { font-size: 1.5rem; font-weight: 800; color: #1e3a8a; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .wiki-content h3 { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .wiki-content p { margin-bottom: 1.25rem; }
+        .wiki-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.25rem; }
+        .wiki-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.25rem; }
+        .wiki-content a { color: #1d4ed8; text-decoration: underline; }
+        .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* Old Article Styles kept for standard articles */
         .wiki-article-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
         .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
-        .wiki-content { font-size: 1.05rem; line-height: 1.7; }
-        .wiki-content p { margin-bottom: 1.25rem; }
-        .wiki-content h2, .wiki-content h3 { font-weight: 800; color: #1e293b; margin-top: 2rem; margin-bottom: 1rem; }
-        .wiki-content a { color: var(--primary); text-decoration: underline; font-weight: 500; }
         
         .wiki-related-box { margin-top: 3rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
         .wiki-related-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;}
@@ -130,7 +139,7 @@
         
         @media (max-width: 768px) { 
             .main { padding: 1.5rem; margin: 80px 1rem 2rem; } 
-            .wiki-article-container { padding: 2rem 1.5rem; margin: 80px 1rem 2rem; }
+            .wiki-article-container { margin: 80px 1rem 2rem; }
             .wiki-article-title { font-size: 1.8rem; }
             .wiki-article-cover { float: none; width: 100%; max-width: 100%; margin: 1rem 0 1.5rem; }
             .entity-price { width: 100%; }
@@ -224,7 +233,7 @@
         } else {
             Promise.all([
                 fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json').then(r => r.json()),
-                reqType === 'exercise' ? fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json').then(r => r.json()) : Promise.resolve(null)
+                reqType === 'exercise' ? fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/exercises.json').then(r => r.json()) : Promise.resolve(null)
             ]).then(([siteData, exercisesData]) => {
                 document.getElementById('loading').style.display = 'none';
                 window.siteData = siteData || {};
@@ -236,38 +245,57 @@
                 let found = false;
 
                 if (reqType === 'exercise') {
-                    const exData = exercisesData || {};
-                    const exList = Object.keys(exData).map(k => ({...exData[k], id: k}));
+                    // Normalize Exercise Data Array
+                    let exList = [];
+                    if (Array.isArray(exercisesData)) {
+                        exList = exercisesData.filter(Boolean);
+                    } else if (exercisesData) {
+                        exList = Object.keys(exercisesData).map(k => ({...exercisesData[k], id: exercisesData[k].id || k}));
+                    }
+                    
                     const exercise = exList.find(e => window.slugify(e.name) === reqSlug);
                     
                     if(exercise) {
                         found = true;
                         updateSEO(exercise.name, exercise.description);
 
+                        const getYoutubeEmbedUrl = (url) => {
+                            if (!url) return null;
+                            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                            const match = url.match(regExp);
+                            return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+                        };
+
+                        const embedUrl = getYoutubeEmbedUrl(exercise.videoUrl);
                         let videoHtml = '';
-                        if (exercise.videoUrl) {
-                            if (exercise.videoUrl.includes('youtube') || exercise.videoUrl.includes('youtu.be')) {
-                                let videoId = exercise.videoUrl.split('v=')[1] || exercise.videoUrl.split('youtu.be/')[1];
-                                if(videoId) {
-                                    const ampersandPosition = videoId.indexOf('&');
-                                    if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition);
-                                    videoHtml = `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                        if (embedUrl || exercise.videoUrl) {
+                            videoHtml = `
+                            <div style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                                <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                    <i class="ph-fill ph-video-camera" style="color: #1d4ed8;"></i> Video Demonstration
+                                </h3>
+                                ${embedUrl ? 
+                                    `<div class="video-container" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); aspect-ratio: 16/9; overflow: hidden;"><iframe src="${embedUrl}" style="width: 100%; height: 100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : 
+                                    `<div class="video-container" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); aspect-ratio: 16/9; overflow: hidden;"><video src="${exercise.videoUrl}" style="width: 100%; height: 100%;" controls poster="${exercise.imageUrl}"></video></div>`
                                 }
-                            } else {
-                                videoHtml = `<div class="video-container"><video src="${exercise.videoUrl}" controls playsinline poster="${exercise.imageUrl}"></video></div>`;
-                            }
+                            </div>`;
                         }
 
-                        const tagsHtml = (exercise.tags || []).map(t => `<span style="background:var(--primary-light); color:var(--primary-dark); padding:4px 12px; border-radius:100px; font-size:0.8rem; font-weight:800; text-transform: uppercase;">${t}</span>`).join('');
-
+                        // --- NEW WIKIPEDIA / PHYSIOPEDIA EXACT LAYOUT ---
                         wrapper.innerHTML = `
-                        <main class="main">
-                            ${videoHtml || (exercise.imageUrl ? `<img src="${exercise.imageUrl}" class="entity-img">` : '')}
-                            <h1 class="title">${exercise.name}</h1>
-                            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom: 1.5rem;">${tagsHtml}</div>
-                            <p class="content">${exercise.description}</p>
-                            <a href="/exercises" class="btn" style="background:var(--primary-light); color:var(--primary-dark); margin-top: 1rem;"><i class="ph-bold ph-arrow-left"></i> Back to Exercises</a>
-                        </main>`;
+                        <div class="wiki-article-container">
+                            ${exercise.imageUrl ? `
+                            <div style="width: 100%; background: #f8fafc; border-bottom: 1px solid var(--border); padding: 1rem;">
+                                <div style="height: 350px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <img src="${exercise.imageUrl}" alt="${exercise.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
+                                </div>
+                            </div>` : ''}
+                            <div style="padding: 2.5rem 3rem;">
+                                <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: inline-block;">${exercise.name}</h1>
+                                <div class="wiki-content ql-editor">${exercise.description || '<p>No description provided.</p>'}</div>
+                                ${videoHtml}
+                            </div>
+                        </div>`;
                     }
                 }
                 else if (reqType === 'service') {
@@ -344,7 +372,7 @@
                         if(article.linkedProducts && window.siteData.products) { window.siteData.products.filter(p => article.linkedProducts.includes(p.id)).forEach(p => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${p.name}</div><div style="font-size:0.85rem; color:var(--text-muted);">Wellness Product</div></div><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button></div>`; }); }
 
                         wrapper.innerHTML = `
-                        <div class="wiki-article-container">
+                        <div class="wiki-article-container" style="padding: 2.5rem 3rem;">
                             <h1 class="wiki-article-title">${article.title}</h1>
                             <div class="wiki-content ql-editor">${article.imageUrl ? `<img src="${article.imageUrl}" class="wiki-article-cover" alt="${article.title}">` : ''}${article.content}</div>
                             ${relatedHtml ? `<div class="wiki-related-box"><div class="wiki-related-title"><i class="ph-bold ph-link text-primary"></i> Related Resources</div><div class="wiki-related-grid">${relatedHtml}</div></div>` : ''}
