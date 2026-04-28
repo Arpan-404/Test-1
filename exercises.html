@@ -6,10 +6,12 @@
     <title>Rehabilitation Exercises - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
+    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Tailwind & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -41,10 +43,10 @@
         .wiki-content a { color: #1d4ed8; text-decoration: underline; }
         .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        /* Smooth Sidebar Menu */
+        /* Smooth, Solid Sidebar Menu */
         .mobile-menu { 
             position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
-            background: var(--surface); z-index: 1001; 
+            background: #ffffff; z-index: 1001; 
             transform: translateX(100%); 
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
@@ -58,7 +60,7 @@
         .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .close-menu:hover { background: #e2e8f0; color: #0f172a; }
         
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
         .overlay.active { visibility: visible; opacity: 1; }
 
         /* Masonry Utilities */
@@ -158,35 +160,35 @@
             if (isLoading) return null;
 
             const renderHeader = () => (
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-4 max-w-6xl mx-auto w-full">
-                    {/* Logo */}
+                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full">
                     <a href="/" className="flex items-center shrink-0">
                         {siteData.hero.logoUrl ? 
-                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-9 h-9 rounded-xl object-contain" /> : 
-                            <div className="w-9 h-9 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
+                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
+                            <div className="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
                         }
                     </a>
                     
-                    {/* Unified Universal Search Bar */}
-                    <div className="flex-1 max-w-md mx-3 relative">
-                        <i className="ph-bold ph-magnifying-glass absolute left-3 top-2 sm:top-2.5 text-slate-400 text-sm sm:text-base"></i>
+                    {/* Unified Search Bar for Mobile and Desktop */}
+                    <div className="flex-1 mx-3 sm:mx-6 relative">
+                        <i className="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
                         <input 
                             type="text" 
                             value={searchQuery} 
                             onChange={handleSearchChange} 
                             placeholder="Search exercises..." 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-full py-1.5 sm:py-2 pl-9 pr-4 outline-none focus:border-azure focus:ring-1 focus:ring-azure text-sm transition" 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-full py-2 pl-9 pr-4 outline-none focus:border-azure focus:ring-1 focus:ring-azure text-sm transition" 
                         />
                     </div>
 
-                    {/* Hamburger Menu */}
-                    <button onClick={() => setIsMenuOpen(true)} className="p-1 sm:p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition shrink-0">
-                        <i className="ph-bold ph-list text-2xl"></i>
-                    </button>
+                    <div className="flex items-center shrink-0">
+                        <button onClick={() => setIsMenuOpen(true)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
+                            <i className="ph-bold ph-list text-2xl"></i>
+                        </button>
+                    </div>
                 </header>
             );
 
-            // Menu identical to index.html
+            // Menu identical to index.html (Solid background)
             const renderMenu = () => (
                 <>
                     <div className={`overlay ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}></div>
@@ -337,4 +339,3 @@
     </script>
 </body>
 </html>
-
