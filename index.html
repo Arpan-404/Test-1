@@ -282,12 +282,19 @@
             }
         });
 
-        // 2. Fetch Exercise Data 
-        fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json')
+        // 2. Fetch Exercise Data (UPDATED TO PUBLIC SITE DATABASE)
+        fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/exercises.json')
             .then(res => res.json())
             .then(data => {
                 if(data) {
-                    window.exercisesData = Object.keys(data).map(key => ({id: key, ...data[key]})).reverse();
+                    // Safe parser to handle array or object from Firebase
+                    let exList = [];
+                    if (Array.isArray(data)) {
+                        exList = data.filter(Boolean);
+                    } else {
+                        exList = Object.keys(data).map(key => ({id: key, ...data[key]}));
+                    }
+                    window.exercisesData = exList.reverse();
                     
                     document.getElementById('exercisesPreview').innerHTML = window.exercisesData.slice(0, 6).map(ex => `
                         <a href="/exercise/${window.slugify(ex.name)}" class="card-ex">
