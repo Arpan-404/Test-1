@@ -65,8 +65,8 @@
     <script type="text/babel" data-type="module">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ADDED signInWithCredential to authenticate across multiple databases
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // --- FIREBASE CONFIG (STRICTLY SEPARATED) ---
@@ -91,7 +91,9 @@
         const dbSite = getDatabase(appSite);
         
         const appRecords = initializeApp(recordsConfig, "AppRecords");
+        const authRecords = getAuth(appRecords); // Important: Initialize Auth for the second database
         const dbRecords = getDatabase(appRecords);
+        
         const googleProvider = new GoogleAuthProvider();
 
         const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -100,12 +102,11 @@
         const uploadToCloudinary = async (file, type = 'image') => {
             const formData = new FormData(); 
             formData.append('file', file); 
-            formData.append('upload_preset', 'Physio_uploads'); // Admin Panel specific preset
+            formData.append('upload_preset', 'Physio_uploads'); 
             try {
                 const res = await fetch(`https://api.cloudinary.com/v1_1/dyuni0dx5/${type}/upload`, { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.secure_url) {
-                    // Optimize images automatically
                     if(type === 'image') return data.secure_url.replace('/upload/', '/upload/q_auto,f_auto/');
                     return data.secure_url;
                 }
@@ -154,16 +155,15 @@
                                     }
                                 }
                             }
-                        } // FIXED: Added this missing closing brace
-                    });
+                        });
 
-                    if (value) quillInstance.current.root.innerHTML = value;
+                        if (value) quillInstance.current.root.innerHTML = value;
 
-                    quillInstance.current.on('text-change', () => {
-                        onChange(quillInstance.current.root.innerHTML);
-                    });
-                }
-            }, []);
+                        quillInstance.current.on('text-change', () => {
+                            onChange(quillInstance.current.root.innerHTML);
+                        });
+                    }
+                }, []);
 
             return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
         }
@@ -181,7 +181,7 @@
                     onChange([...images, url]);
                 }
                 setIsUploading(false);
-                e.target.value = ''; // Reset input so same file can be selected again if needed
+                e.target.value = ''; 
             };
 
             const removeImage = (idx) => {
@@ -325,13 +325,41 @@
                 return () => { unsubSite(); unsubEx(); };
             }, [user]);
 
-            const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
-            const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
+            // --- AUTHENTICATION FIX ---
+            // Sign in to BOTH databases simultaneously so writes are never blocked
+            const handleLogin = async () => { 
+                try { 
+                    const result = await signInWithPopup(auth, googleProvider); 
+                    const credential = GoogleAuthProvider.credentialFromResult(result);
+                    if (credential) {
+                        // Secretly authenticate to the second database too
+                        await signInWithCredential(authRecords, credential);
+                    }
+                } catch (e) { 
+                    alert("Login failed: " + e.message); 
+                } 
+            };
+            
+            const handleLogout = async () => { 
+                try { 
+                    await signOut(auth); 
+                    await signOut(authRecords);
+                } catch (e) {} 
+            };
 
-            // Data Mutators
+            // --- DATA SANITIZATION & MUTATORS ---
             const saveSiteData = async (node, data) => {
-                try { await set(ref(dbSite, `site/${node}`), data); showToast('Saved Successfully!'); setEditingItem(null); } 
-                catch (e) { alert("Error saving data"); }
+                try { 
+                    // Sanitize: removes undefined fields which break Firebase
+                    const cleanData = JSON.parse(JSON.stringify(data));
+                    await set(ref(dbSite, `site/${node}`), cleanData); 
+                    showToast('Saved Successfully!'); 
+                    setEditingItem(null); 
+                } 
+                catch (e) { 
+                    console.error(e);
+                    alert(`Error saving ${node}: ${e.message}`); 
+                }
             };
 
             const deleteSiteItem = async (node, arr, id) => {
@@ -342,17 +370,43 @@
 
             const saveExercise = async (data) => {
                 try {
-                    if (data.id) { await set(ref(dbRecords, `exercises/${data.id}`), data); } 
-                    else { await set(push(ref(dbRecords, 'exercises')), data); }
+                    // Sanitize: removes undefined fields and empty arrays to prevent crashes
+                    const cleanData = JSON.parse(JSON.stringify(data, (k, v) => {
+                        if (v === undefined) return null;
+                        if (Array.isArray(v) && v.length === 0) return null; // Firebase drops empty arrays
+                        return v;
+                    }));
+                    
+                    // Clean up any nulls created by JSON stringifier
+                    Object.keys(cleanData).forEach(key => {
+                        if (cleanData[key] === null) delete cleanData[key];
+                    });
+
+                    const exerciseId = cleanData.id;
+                    delete cleanData.id; // Keys are IDs in Firebase, so don't save it inside the object
+
+                    if (exerciseId) { 
+                        await set(ref(dbRecords, `exercises/${exerciseId}`), cleanData); 
+                    } else { 
+                        await push(ref(dbRecords, 'exercises'), cleanData); 
+                    }
                     showToast('Exercise Saved!');
                     setEditingItem(null);
-                } catch (e) { alert("Error saving exercise"); }
+                } catch (e) { 
+                    console.error("Firebase Save Error:", e);
+                    alert(`Error saving exercise: ${e.message}`); 
+                }
             };
 
             const deleteExercise = async (id) => {
                 if(confirm("Delete this exercise permanently?")) {
-                    try { await remove(ref(dbRecords, `exercises/${id}`)); showToast('Deleted!'); } 
-                    catch(e) { alert("Error deleting."); }
+                    try { 
+                        await remove(ref(dbRecords, `exercises/${id}`)); 
+                        showToast('Deleted!'); 
+                    } catch(e) { 
+                        console.error(e);
+                        alert(`Error deleting: ${e.message}`); 
+                    }
                 }
             };
 
@@ -467,10 +521,14 @@
                     if (type === 'article' && !localData.title) return alert("Title required");
                     if (type === 'article' && !localData.slug) localData.slug = slugify(localData.title);
                     
+                    const dataToSave = { ...localData };
+                    
                     if (type === 'exercise') {
-                        localData.tags = typeof localData.tags === 'string' ? localData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (localData.tags||[]);
+                        dataToSave.tags = typeof dataToSave.tags === 'string' 
+                            ? dataToSave.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) 
+                            : (dataToSave.tags || []);
                     }
-                    onSave(localData);
+                    onSave(dataToSave);
                 };
 
                 return (
@@ -574,7 +632,6 @@
 
                             {/* Website Details Form */}
                             {type === 'clinicInfo' && (() => {
-                                // Automatically initialize sliderImages from bannerImageUrl if needed
                                 const currentSliderImages = localData.sliderImages || (localData.bannerImageUrl ? [localData.bannerImageUrl] : []);
                                 
                                 return (
@@ -589,7 +646,6 @@
                                             images={currentSliderImages} 
                                             onChange={(newImages) => {
                                                 updateField('sliderImages', newImages);
-                                                // Sync fallback banner image
                                                 if (newImages.length > 0) updateField('bannerImageUrl', newImages[0]);
                                                 else updateField('bannerImageUrl', '');
                                             }} 
@@ -615,7 +671,7 @@
             // --- SAVE HANDLERS FOR LISTS ---
             const saveListItem = (node, arr, item) => {
                 const newArr = [...arr];
-                if (!item.id) { item.id = Date.now(); newArr.push(item); } 
+                if (!item.id) { item.id = Date.now().toString(); newArr.push(item); } 
                 else { const idx = newArr.findIndex(x => x.id === item.id); newArr[idx] = item; }
                 saveSiteData(node, newArr);
             };
@@ -718,4 +774,3 @@
     </script>
 </body>
 </html>
-
