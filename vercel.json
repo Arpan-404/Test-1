@@ -1,14 +1,20 @@
 {
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/exercise/:path*",
+      "destination": "/exercises#/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/doctor/:path*", "destination": "/details.html" },
     { "source": "/service/:path*", "destination": "/details.html" },
     { "source": "/product/:path*", "destination": "/details.html" },
     { "source": "/articles/:path*", "destination": "/details.html" },
-    { "source": "/exercise/:path*", "destination": "/details.html" },
     { "source": "/prescription", "destination": "/prescription.html" },
+    { "source": "/doctor-dashboard", "destination": "/doctor_dashboard.html" },
     { "source": "/exercises", "destination": "/exercises.html" },
-    { "source": "/exercises/:path*", "destination": "/exercises.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/services", "destination": "/services.html" },
     { "source": "/doctors", "destination": "/doctors.html" },
