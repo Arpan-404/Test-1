@@ -46,17 +46,30 @@
         
         /* Mobile Edge-to-Edge Quill Overrides */
         @media (max-width: 639px) {
-            .mobile-edge-quill .ql-toolbar { border-left: none !important; border-right: none !important; border-radius: 0 !important; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
-            .mobile-edge-quill .ql-toolbar .ql-formats { display: inline-block; margin-right: 15px; }
-            .mobile-edge-quill .ql-container { border-left: none !important; border-right: none !important; border-radius: 0 !important; border-bottom: none !important; min-height: 50vh; }
+            .mobile-edge-quill .ql-toolbar { border-left: none !important; border-right: none !important; border-radius: 0 !important; }
+            .mobile-edge-quill .ql-container { border-left: none !important; border-right: none !important; border-radius: 0 !important; border-bottom: none !important; }
             .form-edge { padding-left: 0 !important; padding-right: 0 !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
-            .field-pad { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .field-pad { padding-left: 1rem; padding-right: 1rem; }
         }
         
         /* Clean Quill Container */
         .ql-editor { min-height: 250px; font-size: 16px; font-family: inherit; line-height: 1.6; }
         .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
         .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
+
+        /* --- MOBILE TOUCH-FRIENDLY RESIZE HANDLES --- */
+        .ql-container div[style*="cursor: nwse-resize"],
+        .ql-container div[style*="cursor: nesw-resize"] {
+            width: 32px !important;
+            height: 32px !important;
+            background-color: #1d4ed8 !important; /* Azure Blue */
+            border: 3px solid #ffffff !important;
+            border-radius: 50% !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+            margin-top: -16px !important;
+            margin-left: -16px !important;
+            opacity: 1 !important; /* Force visibility */
+        }
     </style>
 </head>
 <body>
@@ -106,7 +119,7 @@
         };
 
 
-        // --- COMPONENT: QUILL EDITOR WITH IMAGE RESIZE ---
+        // --- COMPONENT: QUILL EDITOR WITH MOBILE TOUCH PATCHES ---
         function QuillEditor({ value, onChange, placeholder }) {
             const editorRef = useRef(null);
             const quillInstance = useRef(null);
@@ -118,7 +131,7 @@
                         placeholder: placeholder || 'Write content here...',
                         modules: {
                             imageResize: {
-                                displaySize: true, // Shows the dimensions when resizing
+                                displaySize: true, 
                                 modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
                             },
                             toolbar: {
@@ -158,7 +171,74 @@
                     quillInstance.current.on('text-change', () => {
                         onChange(quillInstance.current.root.innerHTML);
                     });
+
+                    // --- MOBILE PATCH IMPLEMENTATION ---
+                    const editorRoot = quillInstance.current.container.parentElement;
+                    
+                    // 1. Touch Polyfill for Resize Handles
+                    const handleTouch = (e) => {
+                        if (e.target && e.target.style && e.target.style.cursor && e.target.style.cursor.includes('resize')) {
+                            const touch = e.changedTouches[0];
+                            const type = e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup';
+                            const mouseEvent = new MouseEvent(type, {
+                                bubbles: true, cancelable: true, view: window,
+                                clientX: touch.clientX, clientY: touch.clientY,
+                                screenX: touch.screenX, screenY: touch.screenY
+                            });
+                            e.target.dispatchEvent(mouseEvent);
+                            // Prevent scrolling while dragging the handle
+                            if (e.type === 'touchmove') e.preventDefault(); 
+                        }
+                    };
+
+                    editorRoot.addEventListener('touchstart', handleTouch, { passive: false });
+                    editorRoot.addEventListener('touchmove', handleTouch, { passive: false });
+                    editorRoot.addEventListener('touchend', handleTouch, { passive: false });
+
+                    // 2. Double-Tap / Double-Click to Link Image Function
+                    const promptImageLink = (imgNode) => {
+                        const parent = imgNode.closest('a');
+                        const currentLink = parent ? parent.href : '';
+                        const newLink = prompt("🔗 Enter URL to make this image clickable\n(Leave blank to remove existing link):", currentLink);
+                        
+                        if (newLink !== null) {
+                            const blot = Quill.find(imgNode);
+                            if (blot) {
+                                const index = quillInstance.current.getIndex(blot);
+                                quillInstance.current.setSelection(index, 1);
+                                if (newLink.trim()) {
+                                    quillInstance.current.format('link', newLink.trim());
+                                } else {
+                                    quillInstance.current.format('link', false); // removes link
+                                }
+                            }
+                        }
+                    };
+
+                    // Double-tap detector for mobile
+                    let lastTap = 0;
+                    const handleDoubleTap = (e) => {
+                        if(e.target.tagName === 'IMG') {
+                            const now = new Date().getTime();
+                            if(now - lastTap < 400 && now - lastTap > 0) {
+                                promptImageLink(e.target);
+                                e.preventDefault(); // Stop zoom
+                            }
+                            lastTap = now;
+                        }
+                    };
+
+                    // Double-click detector for desktop
+                    const handleDblClick = (e) => {
+                        if(e.target.tagName === 'IMG') {
+                            promptImageLink(e.target);
+                        }
+                    };
+
+                    editorRoot.addEventListener('touchend', handleDoubleTap, { passive: false });
+                    editorRoot.addEventListener('dblclick', handleDblClick);
                 }
+            // eslint-disable-next-line
             }, []);
 
             return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
@@ -446,16 +526,16 @@
             };
 
             const RowItem = ({ img, fallback, title, subtitle, onEdit, onDelete }) => (
-                <div className="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer active:bg-slate-100" onClick={onEdit}>
-                    <div className="w-12 h-12 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                        {img ? <img src={img} className="w-full h-full object-cover" /> : <span className="text-xl">{fallback}</span>}
+                <div className="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onClick={onEdit}>
+                    <div className="w-10 h-10 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <span className="text-lg">{fallback}</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-[15px] text-slate-800 truncate leading-tight">{title}</h4>
-                        <p className="text-xs text-slate-500 truncate mt-1">{subtitle}</p>
+                        <h4 className="font-bold text-sm text-slate-800 truncate leading-tight">{title}</h4>
+                        <p className="text-xs text-slate-500 truncate mt-0.5">{subtitle}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0 pl-2">
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-3 text-slate-300 hover:text-red-500 active:bg-red-50 rounded-lg transition-colors"><i className="ph-bold ph-trash text-xl"></i></button>
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 text-slate-300 hover:text-red-500 rounded"><i className="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
             );
@@ -483,16 +563,13 @@
                 };
 
                 return (
-                    <div className="bg-white form-edge sm:rounded-xl shadow-soft sm:border border-slate-200 flex flex-col fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-20 sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4">
-                        <div className="px-4 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-30">
-                            <h2 className="text-base sm:text-lg font-black text-navy flex items-center gap-2">
-                                <button onClick={onCancel} className="text-slate-400 hover:text-navy mr-1 p-2 -ml-2 rounded-full active:bg-slate-100"><i className="ph-bold ph-arrow-left text-xl"></i></button> 
-                                <span className="truncate max-w-[180px] sm:max-w-xs">{title}</span>
-                            </h2>
-                            <button onClick={handleSave} className="bg-azure text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy active:scale-95 transition-transform">Save</button>
+                    <div className="bg-white form-edge rounded-xl shadow-soft border border-slate-200 flex flex-col h-[calc(100vh-80px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 relative z-20">
+                        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                            <h2 className="text-base font-black text-navy flex items-center gap-2"><button onClick={onCancel} className="text-slate-400 hover:text-navy mr-1"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
+                            <button onClick={handleSave} className="bg-azure text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-navy">Save</button>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 field-pad bg-slate-50/50 space-y-6 pb-32">
+                        <div className="flex-1 overflow-y-auto p-4 field-pad bg-slate-50/30 space-y-5">
                             
                             {type === 'doctor' && (
                                 <>
@@ -552,7 +629,10 @@
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(localData.tags)?localData.tags.join(', '):(localData.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, stretch" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div><label className="text-[10px] font-bold text-slate-400 uppercase">Video Link</label><input type="url" value={localData.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube URL" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Rich Description</label>
+                                            <div className="flex justify-between items-end mb-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Rich Description</label>
+                                                <span className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to add links!</span>
+                                            </div>
                                             <QuillEditor value={localData.description||''} onChange={val => updateField('description', val)} placeholder="Detailed exercise instructions..." />
                                         </div>
                                     </div>
@@ -572,7 +652,10 @@
                                             <input type="text" value={localData.slug||''} onChange={e=>updateField('slug', e.target.value)} className="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded outline-none" />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Article Body (Click images to resize!)</label>
+                                            <div className="flex justify-between items-end mb-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Article Body</label>
+                                                <span className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to add links!</span>
+                                            </div>
                                             <QuillEditor value={localData.content||''} onChange={val => updateField('content', val)} placeholder="Write your health article here..." />
                                         </div>
 
@@ -760,3 +843,4 @@
     </script>
 </body>
 </html>
+
