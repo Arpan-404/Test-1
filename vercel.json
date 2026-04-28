@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
     {
@@ -8,18 +9,20 @@
     }
   ],
   "rewrites": [
-    { "source": "/doctor/:path*", "destination": "/details.html" },
-    { "source": "/service/:path*", "destination": "/details.html" },
-    { "source": "/product/:path*", "destination": "/details.html" },
-    { "source": "/articles/:path*", "destination": "/details.html" },
     { "source": "/prescription", "destination": "/prescription.html" },
-    { "source": "/doctor-dashboard", "destination": "/doctor_dashboard.html" },
+    { "source": "/doctor-dashboard", "destination": "/doctor-dashboard.html" },
     { "source": "/exercises", "destination": "/exercises.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/services", "destination": "/services.html" },
     { "source": "/doctors", "destination": "/doctors.html" },
     { "source": "/products", "destination": "/products.html" },
     { "source": "/articles", "destination": "/articles.html" },
+    
+    { "source": "/doctor/:path*", "destination": "/details.html" },
+    { "source": "/service/:path*", "destination": "/details.html" },
+    { "source": "/product/:path*", "destination": "/details.html" },
+    { "source": "/articles/:path*", "destination": "/details.html" },
+    
     { "source": "/:path*", "destination": "/details.html" }
   ]
 }
