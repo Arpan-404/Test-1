@@ -1,12 +1,5 @@
 {
   "trailingSlash": false,
-  "redirects": [
-    {
-      "source": "/exercise/:path*",
-      "destination": "/exercises#/:path*",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     
@@ -23,6 +16,7 @@
     { "source": "/service/:path*", "destination": "/details.html" },
     { "source": "/product/:path*", "destination": "/details.html" },
     { "source": "/articles/:path*", "destination": "/details.html" },
+    { "source": "/exercise/:path*", "destination": "/details.html" },
     
     { "source": "/:path*", "destination": "/details.html" }
   ]
