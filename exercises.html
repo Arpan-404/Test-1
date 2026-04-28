@@ -2,158 +2,242 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rehabilitation Exercises - Therapeutic Hub</title>
-    <meta name="description" content="Browse our library of physiotherapy and rehabilitation exercises.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rehabilitation Exercises - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <!-- Phosphor Icons & Tailwind -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Tailwind & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' } } }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
+            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
+          }
         }
+      }
     </script>
+
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #0f172a; overflow-x: hidden;}
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #0f172a; overflow-x: hidden; padding-bottom: 4rem;}
         
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 50; height: 60px; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: var(--surface); z-index: 100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid #e2e8f0; }
+        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+
+        /* Smooth, Solid Sidebar Menu */
+        .mobile-menu { 
+            position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
+            background: #ffffff; z-index: 1001; 
+            transform: translateX(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
+            overflow-y: auto; border-left: 1px solid #e2e8f0;
+        }
         .mobile-menu.active { transform: translateX(0); } 
-        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); z-index: 90; visibility: hidden; opacity: 0; transition: 0.3s;}
+        .mobile-menu ul { list-style: none; }
+        .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: #0f172a; transition: color 0.2s;}
+        .mobile-menu ul li a.main-nav-link:hover { color: #1d4ed8; }
+        
+        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .close-menu:hover { background: #e2e8f0; color: #0f172a; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
         .overlay.active { visibility: visible; opacity: 1; }
-        
-        /* Grid Layout */
-        .masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-        
-        .ex-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(15,23,42,0.04); display: flex; flex-direction: column; text-decoration: none; color: inherit;}
-        .ex-card:hover { transform: translateY(-4px); box-shadow: 0 12px 25px rgba(15,23,42,0.08); border-color: #bfdbfe; }
-        .ex-img-wrap { width: 100%; aspect-ratio: 16/9; background: #f1f5f9; position: relative; overflow: hidden; }
-        .ex-img { width: 100%; height: 100%; object-fit: cover; }
-        .play-overlay { position: absolute; inset: 0; background: rgba(30,58,138,0.2); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
-        .ex-card:hover .play-overlay { opacity: 1; }
-        .play-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1d4ed8; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: scale(0.8); transition: 0.3s; }
-        .ex-card:hover .play-btn { transform: scale(1); }
-        
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #1d4ed8; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 100px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Masonry Utilities */
+        .masonry-col { display: flex; flex-direction: column; gap: 1rem; }
     </style>
 </head>
-<body class="bg-appbg pt-[60px]">
-
-    <!-- Header -->
-    <header class="header">
-        <a href="/" class="flex items-center"><img src="/favicon.png" alt="Logo" class="w-9 h-9 rounded-lg object-cover" id="topLogo"></a>
-        <div class="font-black text-navy text-lg tracking-tight">Exercise Library</div>
-        <button onclick="document.getElementById('mobileMenu').classList.add('active'); document.getElementById('overlay').classList.add('active');" class="p-1"><i class="ph-bold ph-list text-2xl text-navy"></i></button>
-    </header>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <div class="flex justify-between items-center px-6 pb-4 border-b border-slate-100">
-            <h2 class="text-lg font-black text-navy">Menu</h2>
-            <button onclick="document.getElementById('mobileMenu').classList.remove('active'); document.getElementById('overlay').classList.remove('active');" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500"><i class="ph-bold ph-x"></i></button>
-        </div>
-        <ul class="py-2">
-            <li><a href="/" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-house mr-3 text-xl text-slate-400"></i> Home</a></li>
-            <li><a href="/services" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-first-aid mr-3 text-xl text-slate-400"></i> Services</a></li>
-            <li><a href="/doctors" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-stethoscope mr-3 text-xl text-slate-400"></i> Doctors</a></li>
-            <li><a href="/products" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-shopping-bag mr-3 text-xl text-slate-400"></i> Products</a></li>
-            <li><a href="/articles" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-article mr-3 text-xl text-slate-400"></i> Articles</a></li>
-            <li><a href="/prescription" class="flex items-center px-6 py-3 font-bold text-slate-700 hover:text-azure"><i class="ph-bold ph-folder-open mr-3 text-xl text-slate-400"></i> Patient Records</a></li>
-        </ul>
-    </div>
-    <div class="overlay" id="overlay" onclick="document.getElementById('mobileMenu').classList.remove('active'); this.classList.remove('active');"></div>
-
-    <!-- Search Bar -->
-    <div class="max-w-[1200px] mx-auto px-6 pt-8 pb-2">
-        <div class="relative">
-            <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-            <input type="text" id="searchInput" placeholder="Search for 'knee', 'shoulder', 'stretch'..." class="w-full bg-white border border-slate-200 rounded-full py-3.5 pl-12 pr-4 outline-none focus:border-azure focus:ring-2 focus:ring-ice transition shadow-sm font-medium" oninput="filterExercises()">
+<body>
+    <div id="root">
+        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
+            <div class="native-loader"></div>
+            <div style="font-weight: bold;">Loading Exercise Library...</div>
         </div>
     </div>
 
-    <!-- Loading & Grid -->
-    <div id="loader" class="loader"></div>
-    <div class="masonry-grid" id="exerciseGrid" style="display: none;"></div>
-    <div id="noResults" class="hidden text-center py-12 text-slate-500 font-medium"><i class="ph-fill ph-warning-circle text-4xl mb-2 text-slate-300 block"></i> No exercises found matching your search.</div>
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect } = React;
 
-    <script>
-        let allExercises = [];
-        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
 
-        // Fetch Clinic Logo (Optional flair)
-        fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/hero.json').then(r=>r.json()).then(data => {
-            if(data && data.logoUrl) document.getElementById('topLogo').src = data.logoUrl;
-        }).catch(e=>{});
+        // --- FIREBASE CONFIG ---
+        const siteConfig = {
+            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
+            authDomain: "clinic-bdf92.firebaseapp.com",
+            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
+            projectId: "clinic-bdf92"
+        };
+        const appSite = initializeApp(siteConfig, "AppSite");
+        const dbSite = getDatabase(appSite);
 
-        // Fetch Exercises
-        fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('exerciseGrid').style.display = 'grid';
-                if (!data) { document.getElementById('noResults').classList.remove('hidden'); return; }
-                
-                allExercises = Object.keys(data).map(k => ({...data[k], id: k})).filter(ex => ex.name);
-                allExercises.sort((a,b) => a.name.localeCompare(b.name));
-                renderGrid(allExercises);
-            })
-            .catch(err => {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('noResults').innerHTML = "Failed to load exercises. Please try again.";
-                document.getElementById('noResults').classList.remove('hidden');
-            });
+        const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
-        function renderGrid(exercises) {
-            const grid = document.getElementById('exerciseGrid');
-            grid.innerHTML = '';
-            
-            if(exercises.length === 0) {
-                grid.style.display = 'none';
-                document.getElementById('noResults').classList.remove('hidden');
-                return;
-            }
-            
-            document.getElementById('noResults').classList.add('hidden');
-            grid.style.display = 'grid';
+        function App() {
+            const [siteData, setSiteData] = useState({ hero: {}, exercises: [] });
+            const [isLoading, setIsLoading] = useState(true);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [colCount, setColCount] = useState(2);
 
-            exercises.forEach(ex => {
-                const slug = slugify(ex.name);
-                const tagsHtml = (ex.tags || []).slice(0,3).map(t => `<span class="bg-ice text-azure px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">${t}</span>`).join('');
-                
-                // NEW: Links directly to the path-based SEO URL!
-                grid.innerHTML += `
-                    <a href="/exercise/${slug}" class="ex-card">
-                        <div class="ex-img-wrap">
-                            <img src="${ex.imageUrl || '/favicon.png'}" class="ex-img" alt="${ex.name}" loading="lazy" onerror="this.src='/favicon.png'">
-                            <div class="play-overlay"><div class="play-btn"><i class="ph-fill ph-play"></i></div></div>
-                        </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <h3 class="font-black text-navy text-lg leading-tight mb-2">${ex.name}</h3>
-                            <div class="flex flex-wrap gap-1.5 mb-3">${tagsHtml}</div>
-                            <div class="mt-auto pt-3 border-t border-slate-100 text-azure text-sm font-bold flex items-center justify-between">
-                                <span>View Details</span>
-                                <i class="ph-bold ph-arrow-right"></i>
-                            </div>
-                        </div>
+            // --- RESPONSIVE MASONRY COLUMNS ---
+            useEffect(() => {
+                const handleResize = () => {
+                    if (window.innerWidth >= 1024) setColCount(4);
+                    else if (window.innerWidth >= 768) setColCount(3);
+                    else setColCount(2);
+                };
+                handleResize();
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            // --- DATA FETCHING ---
+            useEffect(() => {
+                const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        setSiteData({
+                            hero: data.hero || {},
+                            exercises: data.exercises || [] 
+                        });
+                    }
+                    setIsLoading(false);
+                });
+                return () => unsubSite();
+            }, []);
+
+            // --- SEARCH HANDLER ---
+            const handleSearchChange = (e) => {
+                setSearchQuery(e.target.value);
+            };
+
+            // --- RENDERERS ---
+            if (isLoading) return null;
+
+            const renderHeader = () => (
+                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full">
+                    <a href="/" className="flex items-center shrink-0">
+                        {siteData.hero.logoUrl ? 
+                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
+                            <div className="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
+                        }
                     </a>
-                `;
+                    
+                    <div className="flex-1 mx-3 sm:mx-6 relative">
+                        <i className="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                        <input 
+                            type="text" 
+                            value={searchQuery} 
+                            onChange={handleSearchChange} 
+                            placeholder="Search exercises..." 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-full py-2 pl-9 pr-4 outline-none focus:border-azure focus:ring-1 focus:ring-azure text-sm transition" 
+                        />
+                    </div>
+
+                    <div className="flex items-center shrink-0">
+                        <button onClick={() => setIsMenuOpen(true)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
+                            <i className="ph-bold ph-list text-2xl"></i>
+                        </button>
+                    </div>
+                </header>
+            );
+
+            const renderMenu = () => (
+                <>
+                    <div className={`overlay ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}></div>
+                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
+                        <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-black text-navy m-0">Menu</h2>
+                            <button className="close-menu" onClick={() => setIsMenuOpen(false)}><i className="ph-bold ph-x"></i></button>
+                        </div>
+                        <ul>
+                            <li><a href="/" className="main-nav-link"><i className="ph-bold ph-house" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Home</a></li>
+                            <li><a href="/services" className="main-nav-link"><i className="ph-bold ph-first-aid" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Services</a></li>
+                            <li><a href="/doctors" className="main-nav-link"><i className="ph-bold ph-stethoscope" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Team</a></li>
+                            <li><a href="/products" className="main-nav-link"><i className="ph-bold ph-shopping-bag" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Wellness Products</a></li>
+                            <li><a href="/articles" className="main-nav-link"><i className="ph-bold ph-article" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Health Articles</a></li>
+                            <li><a href="/exercises" className="main-nav-link" style={{color: '#1d4ed8', backgroundColor: '#eff6ff'}}><i className="ph-bold ph-person-simple-walk" style={{marginRight: '12px', fontSize: '1.3rem', color: '#1d4ed8'}}></i> Rehabilitation Exercises</a></li>
+                            <li><a href="/prescription" className="main-nav-link"><i className="ph-bold ph-folder-open" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Patient Records</a></li>
+                            
+                            <li style={{padding: '2.5rem 1.5rem 0.5rem', borderBottom: 'none', display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                <div style={{fontSize: '10px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px'}}>Internal Links</div>
+                                <a href="/doctor-dashboard" style={{color: '#64748b', fontSize: '0.85rem', fontWeight: '500', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s', textDecoration: 'none'}}>
+                                    <i className="ph-fill ph-activity" style={{marginRight: '6px', fontSize: '1rem'}}></i> Staff Portal
+                                </a>
+                                <a href="/admin" style={{color: '#64748b', fontSize: '0.85rem', fontWeight: '500', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s', textDecoration: 'none'}}>
+                                    <i className="ph-fill ph-shield-check" style={{marginRight: '6px', fontSize: '1rem'}}></i> Admin Panel
+                                </a>
+                            </li>
+                        </ul>
+                    </aside>
+                </>
+            );
+
+            // --- LIBRARY GRID VIEW (MASONRY) ---
+            const filteredExercises = siteData.exercises.filter(ex => 
+                (ex.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                (ex.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
+
+            const masonryColumns = Array.from({ length: colCount }, () => []);
+            filteredExercises.forEach((ex, index) => {
+                masonryColumns[index % colCount].push(ex);
             });
+
+            return (
+                <>
+                    {renderHeader()}
+                    {renderMenu()}
+                    <div className="max-w-6xl mx-auto px-4 pt-24 pb-12 animate-in fade-in">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl sm:text-4xl font-black text-navy mb-4">Rehabilitation Exercises</h1>
+                        </div>
+
+                        {filteredExercises.length === 0 ? (
+                            <div className="text-center text-slate-400 py-10 font-medium bg-white rounded-2xl border border-slate-200">No exercises found matching your search.</div>
+                        ) : (
+                            <div className="flex gap-4 items-start w-full">
+                                {masonryColumns.map((column, colIndex) => (
+                                    <div key={colIndex} className="masonry-col flex-1">
+                                        {column.map(ex => (
+                                            <a key={ex.id} href={`/exercise/${slugify(ex.name)}`} className="w-full bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 hover:shadow-float transition-all duration-300 flex flex-col">
+                                                
+                                                <div className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-100">
+                                                    {ex.imageUrl ? (
+                                                        <img src={ex.imageUrl} alt={ex.name || 'Exercise'} className="w-full h-auto block object-cover mix-blend-multiply" />
+                                                    ) : (
+                                                        <div className="w-full aspect-square flex items-center justify-center text-slate-300">
+                                                            <i className="ph-bold ph-person-simple-walk text-5xl"></i>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-4 bg-white flex flex-col text-left">
+                                                    <h3 className="font-bold text-[15px] text-navy leading-tight line-clamp-2 group-hover:text-azure transition">{ex.name || 'Unnamed Exercise'}</h3>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </>
+            );
         }
 
-        function filterExercises() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allExercises.filter(ex => {
-                const nameMatch = ex.name.toLowerCase().includes(query);
-                const tagMatch = (ex.tags || []).some(t => t.toLowerCase().includes(query));
-                return nameMatch || tagMatch;
-            });
-            renderGrid(filtered);
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
