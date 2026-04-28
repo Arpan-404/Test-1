@@ -63,14 +63,13 @@
     </div>
 
     <script type="text/babel" data-type="module">
-        const { useState, useEffect, useRef, useCallback } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // ADDED signInWithCredential to authenticate across multiple databases
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // --- FIREBASE CONFIG (STRICTLY SEPARATED) ---
-        // App 1: Public Website Data
+        // --- SINGLE FIREBASE CONFIG (PUBLIC DATA ONLY) ---
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -78,27 +77,14 @@
             projectId: "clinic-bdf92"
         };
 
-        // App 2: Private Patient/Exercise Records
-        const recordsConfig = {
-            apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
-            authDomain: "patient-records-arpan.firebaseapp.com",
-            projectId: "patient-records-arpan",
-            databaseURL: "https://patient-records-arpan-default-rtdb.firebaseio.com"
-        };
-
-        const appSite = initializeApp(siteConfig, "AppSite");
+        const appSite = initializeApp(siteConfig);
         const auth = getAuth(appSite);
         const dbSite = getDatabase(appSite);
-        
-        const appRecords = initializeApp(recordsConfig, "AppRecords");
-        const authRecords = getAuth(appRecords); // Important: Initialize Auth for the second database
-        const dbRecords = getDatabase(appRecords);
-        
         const googleProvider = new GoogleAuthProvider();
 
         const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
-        // --- CLOUDINARY UPLOAD HELPER (PUBLIC SITE CLOUDINARY) ---
+        // --- SINGLE CLOUDINARY UPLOAD HELPER (PUBLIC SITE CLOUDINARY) ---
         const uploadToCloudinary = async (file, type = 'image') => {
             const formData = new FormData(); 
             formData.append('file', file); 
@@ -155,15 +141,16 @@
                                     }
                                 }
                             }
-                        });
+                        }
+                    });
 
-                        if (value) quillInstance.current.root.innerHTML = value;
+                    if (value) quillInstance.current.root.innerHTML = value;
 
-                        quillInstance.current.on('text-change', () => {
-                            onChange(quillInstance.current.root.innerHTML);
-                        });
-                    }
-                }, []);
+                    quillInstance.current.on('text-change', () => {
+                        onChange(quillInstance.current.root.innerHTML);
+                    });
+                }
+            }, []);
 
             return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
         }
@@ -268,9 +255,8 @@
             const [activeHash, setActiveHash] = useState(window.location.hash || '#/overview');
             const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             
-            // Databases
-            const [siteData, setSiteData] = useState({ hero: {}, doctors: [], services: [], products: [], articles: [] });
-            const [exercises, setExercises] = useState([]);
+            // Single Database State
+            const [siteData, setSiteData] = useState({ hero: {}, doctors: [], services: [], products: [], articles: [], exercises: [] });
 
             // Form States
             const [editingItem, setEditingItem] = useState(null); 
@@ -281,12 +267,12 @@
             const [toast, setToast] = useState({ show: false, msg: '' });
             const showToast = (msg) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: '' }), 3000); };
 
-            // Handle Hash Routing manually
+            // Handle Hash Routing
             useEffect(() => {
                 const handleHashChange = () => {
                     const hash = window.location.hash || '#/overview';
                     setActiveHash(hash);
-                    setEditingItem(null); // Close forms on nav
+                    setEditingItem(null); 
                     setSearchQuery("");
                     setIsSidebarOpen(false);
                 };
@@ -294,6 +280,7 @@
                 return () => window.removeEventListener('hashchange', handleHashChange);
             }, []);
 
+            // Auth Listener
             useEffect(() => {
                 const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
                     setUser(currentUser);
@@ -302,6 +289,7 @@
                 return () => unsubscribe();
             }, []);
 
+            // Single Data Fetcher
             useEffect(() => {
                 if (!user) return;
                 const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
@@ -312,46 +300,34 @@
                             doctors: data.doctors || [],
                             services: data.services || [],
                             products: data.products || [],
-                            articles: data.articles || []
+                            articles: data.articles || [],
+                            exercises: data.exercises || [] // Exercises are now perfectly integrated here
                         });
                     }
                 });
-                const unsubEx = onValue(ref(dbRecords, 'exercises'), (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        setExercises(Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse());
-                    } else setExercises([]);
-                });
-                return () => { unsubSite(); unsubEx(); };
+                return () => unsubSite();
             }, [user]);
 
-            // --- AUTHENTICATION FIX ---
-            // Sign in to BOTH databases simultaneously so writes are never blocked
-            const handleLogin = async () => { 
-                try { 
-                    const result = await signInWithPopup(auth, googleProvider); 
-                    const credential = GoogleAuthProvider.credentialFromResult(result);
-                    if (credential) {
-                        // Secretly authenticate to the second database too
-                        await signInWithCredential(authRecords, credential);
-                    }
-                } catch (e) { 
-                    alert("Login failed: " + e.message); 
-                } 
-            };
-            
-            const handleLogout = async () => { 
-                try { 
-                    await signOut(auth); 
-                    await signOut(authRecords);
-                } catch (e) {} 
-            };
+            const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
+            const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
 
-            // --- DATA SANITIZATION & MUTATORS ---
+            // --- DATA SAVING LOGIC ---
             const saveSiteData = async (node, data) => {
                 try { 
-                    // Sanitize: removes undefined fields which break Firebase
-                    const cleanData = JSON.parse(JSON.stringify(data));
+                    // Sanitize data to prevent Firebase from crashing on undefined values
+                    const cleanData = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
+                    
+                    // Remove nulls safely
+                    if(Array.isArray(cleanData)) {
+                        cleanData.forEach(item => {
+                            if(typeof item === 'object') {
+                                Object.keys(item).forEach(key => { if(item[key] === null) delete item[key]; });
+                            }
+                        });
+                    } else if (typeof cleanData === 'object' && cleanData !== null) {
+                        Object.keys(cleanData).forEach(key => { if(cleanData[key] === null) delete cleanData[key]; });
+                    }
+
                     await set(ref(dbSite, `site/${node}`), cleanData); 
                     showToast('Saved Successfully!'); 
                     setEditingItem(null); 
@@ -362,51 +338,27 @@
                 }
             };
 
+            // Generic list saver for ALL items (Doctors, Products, Exercises, etc.)
+            const saveListItem = (node, arr, item) => {
+                const newArr = [...arr];
+                if (!item.id) { 
+                    item.id = Date.now().toString(); 
+                    newArr.push(item); 
+                } else { 
+                    const idx = newArr.findIndex(x => x.id === item.id); 
+                    if(idx > -1) newArr[idx] = item; 
+                    else newArr.push(item);
+                }
+                // Reverse exercises automatically to show newest first if saving to exercises
+                if (node === 'exercises') {
+                    // Sorting logic can go here, but array appending is fine for now
+                }
+                saveSiteData(node, newArr);
+            };
+
             const deleteSiteItem = async (node, arr, id) => {
                 if(confirm("Are you sure you want to delete this?")) {
                     saveSiteData(node, arr.filter(item => item.id !== id));
-                }
-            };
-
-            const saveExercise = async (data) => {
-                try {
-                    // Sanitize: removes undefined fields and empty arrays to prevent crashes
-                    const cleanData = JSON.parse(JSON.stringify(data, (k, v) => {
-                        if (v === undefined) return null;
-                        if (Array.isArray(v) && v.length === 0) return null; // Firebase drops empty arrays
-                        return v;
-                    }));
-                    
-                    // Clean up any nulls created by JSON stringifier
-                    Object.keys(cleanData).forEach(key => {
-                        if (cleanData[key] === null) delete cleanData[key];
-                    });
-
-                    const exerciseId = cleanData.id;
-                    delete cleanData.id; // Keys are IDs in Firebase, so don't save it inside the object
-
-                    if (exerciseId) { 
-                        await set(ref(dbRecords, `exercises/${exerciseId}`), cleanData); 
-                    } else { 
-                        await push(ref(dbRecords, 'exercises'), cleanData); 
-                    }
-                    showToast('Exercise Saved!');
-                    setEditingItem(null);
-                } catch (e) { 
-                    console.error("Firebase Save Error:", e);
-                    alert(`Error saving exercise: ${e.message}`); 
-                }
-            };
-
-            const deleteExercise = async (id) => {
-                if(confirm("Delete this exercise permanently?")) {
-                    try { 
-                        await remove(ref(dbRecords, `exercises/${id}`)); 
-                        showToast('Deleted!'); 
-                    } catch(e) { 
-                        console.error(e);
-                        alert(`Error deleting: ${e.message}`); 
-                    }
                 }
             };
 
@@ -427,7 +379,6 @@
                 );
             }
 
-            // --- TABS & NAVIGATION ---
             const navItems = [
                 { id: '#/overview', icon: 'ph-squares-four', label: 'Overview' },
                 { id: '#/clinic', icon: 'ph-buildings', label: 'Website Details' },
@@ -461,7 +412,6 @@
                 </>
             );
 
-            // --- COMPACT LIST VIEWS (Inbox Style) ---
             const renderInboxList = (title, data, renderRow, onAdd) => {
                 const filteredData = data.filter(item => (item.name || item.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
                 return (
@@ -472,7 +422,6 @@
                         </div>
                         
                         <div className="bg-white rounded-xl shadow-soft border border-slate-200 overflow-hidden flex flex-col">
-                            {/* Sticky Search Bar */}
                             <div className="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
                                 <div className="relative">
                                     <i className="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
@@ -485,7 +434,8 @@
                                     <div className="text-center py-10 text-slate-400 text-sm font-medium">No items found.</div>
                                 ) : (
                                     <div className="flex flex-col">
-                                        {filteredData.map(item => renderRow(item))}
+                                        {/* Show latest items first by reversing the filtered array */}
+                                        {[...filteredData].reverse().map(item => renderRow(item))}
                                     </div>
                                 )}
                             </div>
@@ -540,7 +490,6 @@
                         
                         <div className="flex-1 overflow-y-auto p-4 field-pad bg-slate-50/30 space-y-5">
                             
-                            {/* Doctor Form */}
                             {type === 'doctor' && (
                                 <>
                                     <ImageUploader label="Profile Photo" url={localData.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
@@ -557,7 +506,6 @@
                                 </>
                             )}
 
-                            {/* Service Form */}
                             {type === 'service' && (
                                 <>
                                     <ImageUploader label="Banner Image" url={localData.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
@@ -574,7 +522,6 @@
                                 </>
                             )}
 
-                            {/* Product Form */}
                             {type === 'product' && (
                                 <>
                                     <ImageUploader label="Product Photo" url={localData.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
@@ -593,7 +540,6 @@
                                 </>
                             )}
 
-                            {/* Exercise Form */}
                             {type === 'exercise' && (
                                 <>
                                     <ImageUploader label="Illustration" url={localData.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
@@ -609,7 +555,6 @@
                                 </>
                             )}
 
-                            {/* Article Form */}
                             {type === 'article' && (
                                 <>
                                     <ImageUploader label="Cover Image" url={localData.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
@@ -630,7 +575,6 @@
                                 </>
                             )}
 
-                            {/* Website Details Form */}
                             {type === 'clinicInfo' && (() => {
                                 const currentSliderImages = localData.sliderImages || (localData.bannerImageUrl ? [localData.bannerImageUrl] : []);
                                 
@@ -668,15 +612,6 @@
                 );
             };
 
-            // --- SAVE HANDLERS FOR LISTS ---
-            const saveListItem = (node, arr, item) => {
-                const newArr = [...arr];
-                if (!item.id) { item.id = Date.now().toString(); newArr.push(item); } 
-                else { const idx = newArr.findIndex(x => x.id === item.id); newArr[idx] = item; }
-                saveSiteData(node, newArr);
-            };
-
-            // --- MAIN RENDER ---
             return (
                 <div className="flex h-screen overflow-hidden bg-appbg">
                     
@@ -688,7 +623,6 @@
                     {renderSidebar()}
 
                     <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
-                        {/* Mobile Header */}
                         <header className="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30">
                             <h1 className="font-black text-navy flex items-center gap-2"><i className="ph-fill ph-shield-check text-azure"></i> Admin Hub</h1>
                             <button onClick={() => setIsSidebarOpen(true)} className="p-1 text-slate-600"><i className="ph-bold ph-list text-2xl"></i></button>
@@ -706,7 +640,7 @@
                                         else if(formType === 'service') saveListItem('services', siteData.services, data);
                                         else if(formType === 'product') saveListItem('products', siteData.products, data);
                                         else if(formType === 'article') { if(!data.date) data.date = new Date().toISOString(); saveListItem('articles', siteData.articles, data); }
-                                        else if(formType === 'exercise') saveExercise(data);
+                                        else if(formType === 'exercise') saveListItem('exercises', siteData.exercises, data); // FIXED: Exercises save to the same DB now
                                         else if(formType === 'clinicInfo') saveSiteData('hero', data);
                                     }} 
                                 />
@@ -717,7 +651,7 @@
                                             <h2 className="text-xl font-black text-navy mb-4">Overview</h2>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                 {[
-                                                    { h: '#/exercises', i: 'ph-person-simple-walk', c: 'text-blue-500', num: exercises.length, label: 'Exercises' },
+                                                    { h: '#/exercises', i: 'ph-person-simple-walk', c: 'text-blue-500', num: siteData.exercises.length, label: 'Exercises' }, // Linked to siteData.exercises
                                                     { h: '#/doctors', i: 'ph-stethoscope', c: 'text-emerald-500', num: siteData.doctors.length, label: 'Doctors' },
                                                     { h: '#/products', i: 'ph-shopping-bag', c: 'text-purple-500', num: siteData.products.length, label: 'Products' },
                                                     { h: '#/articles', i: 'ph-article', c: 'text-orange-500', num: siteData.articles.length, label: 'Articles' }
@@ -760,7 +694,7 @@
                                     {activeHash === '#/services' && renderInboxList("Services", siteData.services, s => <RowItem key={s.id} img={s.bannerImageUrl} fallback={s.icon||"⚕️"} title={s.title} subtitle={s.description} onEdit={()=>{setEditingItem(s); setFormType('service');}} onDelete={()=>deleteSiteItem('services', siteData.services, s.id)} />, () => {setEditingItem({title:''}); setFormType('service');})}
                                     {activeHash === '#/products' && renderInboxList("Products", siteData.products, p => <RowItem key={p.id} img={p.profilePhoto} fallback="📦" title={p.name} subtitle={p.price} onEdit={()=>{setEditingItem(p); setFormType('product');}} onDelete={()=>deleteSiteItem('products', siteData.products, p.id)} />, () => {setEditingItem({name:'', price:''}); setFormType('product');})}
                                     {activeHash === '#/articles' && renderInboxList("Articles", siteData.articles, a => <RowItem key={a.id||a.slug} img={a.imageUrl} fallback="📄" title={a.title} subtitle={`/${a.slug}`} onEdit={()=>{setEditingItem(a); setFormType('article');}} onDelete={()=>deleteSiteItem('articles', siteData.articles, a.id)} />, () => {setEditingItem({title:''}); setFormType('article');})}
-                                    {activeHash === '#/exercises' && renderInboxList("Exercises", exercises, ex => <RowItem key={ex.id} img={ex.imageUrl} fallback="🏃" title={ex.name} subtitle={ex.tags ? ex.tags.join(', ') : ''} onEdit={()=>{setEditingItem(ex); setFormType('exercise');}} onDelete={()=>deleteExercise(ex.id)} />, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
+                                    {activeHash === '#/exercises' && renderInboxList("Exercises", siteData.exercises, ex => <RowItem key={ex.id} img={ex.imageUrl} fallback="🏃" title={ex.name} subtitle={ex.tags ? ex.tags.join(', ') : ''} onEdit={()=>{setEditingItem(ex); setFormType('exercise');}} onDelete={()=>deleteSiteItem('exercises', siteData.exercises, ex.id)} />, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
                                 </>
                             )}
                         </main>
@@ -774,3 +708,4 @@
     </script>
 </body>
 </html>
+
