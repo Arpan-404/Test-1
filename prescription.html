@@ -2,629 +2,189 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Prescription - Physio Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Records - Therapeutic Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
-          }
-        }
-      }
+        tailwind.config = { theme: { extend: { colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' } } } }
     </script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #0f172a; overflow-x: hidden; padding-bottom: 4rem;}
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--appbg); color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; }
         
-        .h-scroll::-webkit-scrollbar { display: none; }
-        .h-scroll { scrollbar-width: none; }
-        
-        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
-
-        /* Smooth, Solid Sidebar Menu */
-        .mobile-menu { 
-            position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
-            background: #ffffff; z-index: 1001; 
-            transform: translateX(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
-            overflow-y: auto; border-left: 1px solid #e2e8f0;
-        }
-        .mobile-menu.active { transform: translateX(0); } 
-        .mobile-menu ul { list-style: none; }
-        .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: #0f172a; transition: color 0.2s;}
-        .mobile-menu ul li a.main-nav-link:hover { color: #1d4ed8; }
-        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .close-menu:hover { background: #e2e8f0; color: #0f172a; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
-        .overlay.active { visibility: visible; opacity: 1; }
-
-        /* Read-Only Table Overrides */
-        .editable-cell { min-width: 30px; max-width: 100%; word-break: break-word; white-space: pre-wrap; cursor: default; }
-
-        /* Print Layout Rules for Master Document */
-        @page { size: A4; margin: 10mm; }
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; }
-            .print-hidden { display: none !important; }
-            .print-shadow-none { box-shadow: none !important; border: none !important; }
-            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-            .print-break-after-always { page-break-after: always; }
-            thead.print-table-header { display: table-header-group; }
-            table.main-print-table { page-break-inside: auto; width: 100%; }
-            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
-        }
+        /* Loading Spinner */
+        .spinner { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
-            <div class="native-loader"></div>
-            <div style="font-weight: bold;">Verifying Records...</div>
+    <header class="glass-header fixed top-0 left-0 right-0 h-[60px] flex items-center justify-between px-4 z-50">
+        <a href="/" class="flex items-center gap-2 text-navy font-black text-lg">
+            <i class="ph-fill ph-folder-open text-azure text-2xl"></i> Patient Portal
+        </a>
+        <button id="logoutBtn" onclick="location.reload()" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition">
+            <i class="ph-bold ph-sign-out"></i> Logout
+        </button>
+    </header>
+
+    <main class="pt-[80px] pb-10 px-4 max-w-lg mx-auto min-h-screen flex flex-col" id="mainContainer">
+        
+        <!-- LOGIN SCREEN -->
+        <div id="loginSection" class="flex-1 flex flex-col justify-center animate-in fade-in zoom-in duration-300">
+            <div class="bg-surface rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+                <div class="w-16 h-16 bg-ice rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph-fill ph-lock-key text-azure text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-black text-navy mb-2">Access Your Records</h1>
+                <p class="text-sm text-slate-500 mb-6">Enter your registered phone number to view your clinical prescriptions and exercises.</p>
+                
+                <div class="relative mb-4">
+                    <i class="ph-bold ph-phone absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="tel" id="phoneInput" placeholder="e.g. 9876543210" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-azure focus:ring-2 focus:ring-ice transition font-medium" onkeypress="if(event.key === 'Enter') fetchPrescription()">
+                </div>
+                
+                <button onclick="fetchPrescription()" id="fetchBtn" class="w-full bg-azure text-white rounded-xl py-3 font-bold shadow-[0_4px_15px_rgba(29,78,216,0.25)] hover:bg-navy hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-magnifying-glass"></i> View My Records
+                </button>
+                <div id="loginError" class="text-red-500 text-sm font-bold mt-3 hidden"></div>
+            </div>
         </div>
-    </div>
 
-    <script type="text/babel" data-type="module">
-        const { useState, useEffect } = React;
+        <!-- LOADING SPINNER -->
+        <div id="loadingSection" class="hidden flex-1 flex flex-col items-center justify-center">
+            <div class="spinner mb-4"></div>
+            <p class="text-slate-500 font-medium">Securely fetching records...</p>
+        </div>
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        <!-- RECORDS VIEW -->
+        <div id="recordsSection" class="hidden animate-in slide-in-from-bottom-4 duration-300 space-y-4">
+            <!-- Populated via JS -->
+        </div>
 
-        // ==========================================
-        // DUAL DATABASE ARCHITECTURE
-        // ==========================================
-        
-        // 1. PRIVATE DATABASE (Patient Records)
-        const recordsConfig = {
-            apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
-            authDomain: "patient-records-arpan.firebaseapp.com",
-            projectId: "patient-records-arpan",
-            storageBucket: "patient-records-arpan.firebasestorage.app",
-            messagingSenderId: "599041105903",
-            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
-        };
-        const appRecords = initializeApp(recordsConfig, "AppRecords");
-        const authRecords = getAuth(appRecords);
-        const dbRecords = getFirestore(appRecords);
-        
-        // 2. PUBLIC DATABASE (Site Info & Exercises)
-        const siteConfig = {
-            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
-            authDomain: "clinic-bdf92.firebaseapp.com",
-            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
-            projectId: "clinic-bdf92"
-        };
-        const appSite = initializeApp(siteConfig, "AppSite");
-        const dbSite = getDatabase(appSite);
+    </main>
 
-        const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    <script>
+        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+        let globalExercises = {};
 
-        // Reusable Read-Only Custom Table Component
-        function ReadOnlyCustomTable({ table }) {
-            return (
-                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg overflow-x-auto print:border-none print:overflow-visible">
-                    {table.title && (
-                        <div className="bg-ice/30 px-3 py-2 border-b border-slate-200 font-bold text-[13px] text-navy print:bg-transparent print:px-0 print:border-[#1e40af] print:text-[18px]">
-                            {table.title}
-                        </div>
-                    )}
-                    <div className="p-1.5 print:p-0 print:mt-2">
-                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
-                            <thead>
-                                <tr>
-                                    {table.headers.map((h, i) => (
-                                        <th key={i} className="border border-slate-200 p-2 bg-slate-50 font-bold text-navy text-[11px] print:border-[#1e40af] print:bg-blue-50/30 print:text-[16px]">
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {table.rows.map((row, rIdx) => (
-                                    <tr key={rIdx} className="print-break-inside-avoid">
-                                        {row.map((cell, cIdx) => (
-                                            <td key={cIdx} className="border border-slate-200 p-2 text-slate-700 text-[11px] align-top whitespace-pre-wrap print:border-[#1e40af] print:text-[16px]">
-                                                {cell}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            );
-        }
-
-        function App() {
-            const [siteData, setSiteData] = useState({ hero: {}, exercises: [] });
-            const [patientData, setPatientData] = useState(null);
+        async function fetchPrescription() {
+            let phone = document.getElementById('phoneInput').value.trim();
+            const errDiv = document.getElementById('loginError');
             
-            const [loginId, setLoginId] = useState("");
-            const [loginPhone, setLoginPhone] = useState("");
-            const [loginError, setLoginError] = useState("");
-            const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            if(!phone) { errDiv.innerText = "Please enter your phone number."; errDiv.classList.remove('hidden'); return; }
+            phone = phone.replace(/[^0-9]/g, '');
+            
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
 
-            // Fetch Public Site Data & Exercises
-            useEffect(() => {
-                const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        let exArray = [];
-                        if (data.exercises) {
-                            if (Array.isArray(data.exercises)) exArray = data.exercises.filter(Boolean);
-                            else exArray = Object.keys(data.exercises).map(key => ({ ...data.exercises[key], id: data.exercises[key].id || key }));
-                        }
-                        setSiteData({ hero: data.hero || {}, exercises: exArray });
-                    }
-                });
-                return () => unsubSite();
-            }, []);
+            try {
+                // Fetch both patients and master exercises
+                const [ptsRes, exRes] = await Promise.all([
+                    fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/patients.json'),
+                    fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json')
+                ]);
+                
+                const ptsData = await ptsRes.json() || {};
+                globalExercises = await exRes.json() || {};
 
-            // Handle Authentication and Secure Links
-            useEffect(() => {
-                const initializePatientAuth = async () => {
-                    try {
-                        // Ensure anonymous auth for Firestore read access
-                        await signInAnonymously(authRecords);
-                        
-                        // Check if a secure ID is passed via URL Hash (e.g. from QR code or WhatsApp link)
-                        const hash = window.location.hash.replace('#/', '');
-                        if (hash && hash.length > 10) { // IDs are generally long strings
-                            const docRef = doc(dbRecords, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', hash);
-                            const docSnap = await getDoc(docRef);
-                            if (docSnap.exists() && docSnap.data().isPublished) {
-                                setPatientData({ id: docSnap.id, ...docSnap.data() });
-                            } else {
-                                setLoginError("Record not found or not published.");
-                                window.location.hash = '';
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Auth error:", e);
-                    } finally {
-                        setIsCheckingAuth(false);
-                    }
-                };
-                initializePatientAuth();
-            }, []);
+                const patientId = Object.keys(ptsData).find(k => ptsData[k].phone === phone);
+                
+                document.getElementById('loadingSection').classList.add('hidden');
 
-            // Fuzzy Login Handler (Forgiving formatting)
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                setLoginError("");
-                setIsCheckingAuth(true);
-
-                try {
-                    // Normalize inputs
-                    const cleanInput = loginId.toLowerCase().replace(/\s+/g, '');
-                    const cleanPhone = loginPhone.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-
-                    // Fetch all published patients (since we need to fuzzy match)
-                    const querySnapshot = await getDocs(collection(dbRecords, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'));
-                    let match = null;
-
-                    querySnapshot.forEach((doc) => {
-                        const p = doc.data();
-                        if (p.isPublished) {
-                            const dbName = (p.name || '').toLowerCase().replace(/\s+/g, '');
-                            const dbIpId = (p.ipId || '').toLowerCase().replace(/\s+/g, '');
-                            const dbPhone = (p.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
-
-                            if ((dbName === cleanInput || dbIpId === cleanInput) && dbPhone === cleanPhone) {
-                                match = { id: doc.id, ...p };
-                            }
-                        }
-                    });
-
-                    if (match) {
-                        setPatientData(match);
-                        window.location.hash = `#/${match.id}`; // Update URL for easy refreshing
-                    } else {
-                        setLoginError("Could not find a matching published record. Please check your details.");
-                    }
-                } catch (err) {
-                    setLoginError("Database connection error. Please try again.");
-                } finally {
-                    setIsCheckingAuth(false);
+                if (!patientId) {
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    document.getElementById('logoutBtn').classList.add('hidden');
+                    errDiv.innerText = "No records found for this number.";
+                    errDiv.classList.remove('hidden');
+                    return;
                 }
-            };
 
-            const handleLogout = () => {
-                setPatientData(null);
-                setLoginId("");
-                setLoginPhone("");
-                window.location.hash = '';
-            };
+                renderRecords(ptsData[patientId]);
 
-            if (isCheckingAuth) return null;
-
-            // --- HEADER & MENU RENDERS ---
-            const renderHeader = () => (
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full print-hidden">
-                    <a href="/" className="flex items-center shrink-0">
-                        {siteData.hero.logoUrl ? 
-                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
-                            <div className="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
-                        }
-                    </a>
-                    {patientData && (
-                        <div className="flex items-center gap-3 ml-auto">
-                            <button onClick={() => window.print()} className="bg-slate-100 text-navy font-bold px-4 py-1.5 rounded-full text-sm hover:bg-slate-200 transition flex items-center gap-1.5">
-                                <i className="ph-bold ph-printer text-lg"></i> Print All
-                            </button>
-                            <button onClick={handleLogout} className="text-slate-500 hover:text-red-500 transition font-bold text-sm">Logout</button>
-                        </div>
-                    )}
-                    <div className="flex items-center shrink-0 ml-4">
-                        <button onClick={() => setIsMenuOpen(true)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
-                            <i className="ph-bold ph-list text-2xl"></i>
-                        </button>
-                    </div>
-                </header>
-            );
-
-            const renderMenu = () => (
-                <>
-                    <div className={`overlay ${isMenuOpen ? 'active' : ''} print-hidden`} onClick={() => setIsMenuOpen(false)}></div>
-                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''} print-hidden`}>
-                        <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
-                            <h2 className="text-lg font-black text-navy m-0">Menu</h2>
-                            <button className="close-menu" onClick={() => setIsMenuOpen(false)}><i className="ph-bold ph-x"></i></button>
-                        </div>
-                        <ul>
-                            <li><a href="/" className="main-nav-link"><i className="ph-bold ph-house" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Home</a></li>
-                            <li><a href="/services" className="main-nav-link"><i className="ph-bold ph-first-aid" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Services</a></li>
-                            <li><a href="/doctors" className="main-nav-link"><i className="ph-bold ph-stethoscope" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Team</a></li>
-                            <li><a href="/products" className="main-nav-link"><i className="ph-bold ph-shopping-bag" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Wellness Products</a></li>
-                            <li><a href="/articles" className="main-nav-link"><i className="ph-bold ph-article" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Health Articles</a></li>
-                            <li><a href="/exercises" className="main-nav-link"><i className="ph-bold ph-person-simple-walk" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Rehabilitation Exercises</a></li>
-                            <li><a href="/prescription" className="main-nav-link" style={{color: '#1d4ed8', backgroundColor: '#eff6ff'}}><i className="ph-bold ph-folder-open" style={{marginRight: '12px', fontSize: '1.3rem', color: '#1d4ed8'}}></i> Patient Records</a></li>
-                        </ul>
-                    </aside>
-                </>
-            );
-
-            // --- LOGIN VIEW ---
-            if (!patientData) {
-                return (
-                    <div className="min-h-screen bg-appbg font-sans">
-                        {renderHeader()}
-                        {renderMenu()}
-                        <div className="pt-32 flex flex-col items-center justify-center p-4">
-                            <div className="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8">
-                                <div className="text-center mb-6">
-                                    <i className="ph-fill ph-folder-user text-5xl text-azure mb-3"></i>
-                                    <h1 className="text-2xl font-black text-navy tracking-tight">Access Records</h1>
-                                    <p className="text-xs text-slate-500 mt-2 font-medium">Enter your details to securely view your prescriptions and exercise charts.</p>
-                                </div>
-                                
-                                <form onSubmit={handleLogin} className="space-y-5">
-                                    {loginError && <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 text-center">{loginError}</div>}
-                                    
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Patient Name or UPID</label>
-                                        <input type="text" required value={loginId} onChange={e => setLoginId(e.target.value)} placeholder="e.g. John Doe or 4092" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
-                                    </div>
-                                    
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Registered Mobile Number</label>
-                                        <input type="tel" required value={loginPhone} onChange={e => setLoginPhone(e.target.value)} placeholder="9876543210" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
-                                    </div>
-                                    
-                                    <button type="submit" className="w-full bg-azure text-white font-bold py-3.5 rounded-xl hover:bg-navy shadow-md hover:shadow-lg transition-all mt-2">
-                                        View Medical Records
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                );
+            } catch (error) {
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
+                errDiv.innerText = "System error. Please try again later.";
+                errDiv.classList.remove('hidden');
             }
-
-            // --- SECURE DASHBOARD & COMBINED PRINT VIEW ---
-            
-            const prescribedExData = (patientData.prescribedExercises || []).map(id => siteData.exercises.find(e => e.id === id)).filter(Boolean);
-            const formattedDate = patientData.date ? new Date(patientData.date).toLocaleDateString('en-GB') : '';
-
-            return (
-                <div className="min-h-screen bg-appbg font-sans">
-                    {renderHeader()}
-                    {renderMenu()}
-                    
-                    <main className="max-w-4xl mx-auto px-4 pt-24 pb-12 animate-in fade-in print:p-0 print:m-0">
-                        
-                        {/* ======================= 1. WEB UI WRAPPER ======================= */}
-                        <div className="print-hidden space-y-6">
-                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
-                                <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-4">
-                                    <div>
-                                        <h1 className="text-2xl font-black text-navy">{patientData.name}</h1>
-                                        <p className="text-sm font-bold text-slate-500 mt-1">UPID: #{patientData.ipId} • {patientData.age} Yrs • {patientData.gender}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</div>
-                                        <div className="font-bold text-navy">{formattedDate}</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="p-6 space-y-6">
-                                    {(patientData.chiefComplaints || patientData.history) && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {patientData.chiefComplaints && (
-                                                <div>
-                                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chief Complaints</h3>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{patientData.chiefComplaints}</p>
-                                                </div>
-                                            )}
-                                            {patientData.history && (
-                                                <div>
-                                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Medical History</h3>
-                                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{patientData.history}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {patientData.assessmentNote && (
-                                        <div className="border-t border-slate-100 pt-6">
-                                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment</h3>
-                                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{patientData.assessmentNote}</p>
-                                        </div>
-                                    )}
-                                    {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (
-                                        <div className="flex flex-wrap gap-4">
-                                            {patientData.customTables.filter(t => t.section === 'assessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                        </div>
-                                    )}
-
-                                    {patientData.diagnosis && (
-                                        <div className="border-t border-slate-100 pt-6">
-                                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</h3>
-                                            <p className="text-lg font-bold text-azure">{patientData.diagnosis}</p>
-                                        </div>
-                                    )}
-
-                                    {patientData.treatmentNote && (
-                                        <div className="border-t border-slate-100 pt-6">
-                                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Treatment Plan / Advice</h3>
-                                            <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{patientData.treatmentNote}</p>
-                                        </div>
-                                    )}
-                                    {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (
-                                        <div className="flex flex-wrap gap-4">
-                                            {patientData.customTables.filter(t => t.section === 'treatment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Tracking Tables Web View */}
-                            {(patientData.reassessmentTables?.length > 0 && patientData.reassessmentTables[0].records?.length > 0) && (
-                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
-                                    <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Tracking & Reassessment</h3>
-                                    <div className="space-y-6">
-                                        {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (
-                                            <div className="flex flex-wrap gap-4">
-                                                {patientData.customTables.filter(t => t.section === 'reassessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                            </div>
-                                        )}
-
-                                        {patientData.reassessmentTables.map(rtable => rtable.trackedMetrics?.length > 0 && rtable.records?.length > 0 ? (
-                                            <div key={rtable.id} className="border border-slate-200 rounded-xl overflow-hidden">
-                                                <div className="bg-slate-50 px-4 py-2 font-bold text-sm text-navy border-b border-slate-200">{rtable.title}</div>
-                                                <div className="overflow-x-auto p-2">
-                                                    <table className="w-full table-auto border-collapse text-xs border border-slate-200 bg-white">
-                                                        <thead>
-                                                            <tr>
-                                                                <th className="p-2 text-left font-bold text-navy border border-slate-200 bg-slate-50 w-24">Date</th>
-                                                                {rtable.trackedMetrics.map(m => (
-                                                                    <th key={m.id} className="p-0 border border-slate-200 bg-slate-50">
-                                                                        <div className="p-1.5 text-center font-bold text-navy">
-                                                                            <span className="text-[9px] text-slate-400 uppercase block">{m.type}</span>
-                                                                            {m.title}
-                                                                        </div>
-                                                                        {m.isBilateral && <div className="flex w-full border-t border-slate-200 text-[10px]"><div className="flex-1 py-1 text-center border-r border-slate-200">R</div><div className="flex-1 py-1 text-center">L</div></div>}
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {rtable.records.map(rec => (
-                                                                <tr key={rec.id}>
-                                                                    <td className="p-2 border border-slate-200 font-bold">{rec.date ? new Date(rec.date).toLocaleDateString('en-GB') : ''}</td>
-                                                                    {rtable.trackedMetrics.map(m => {
-                                                                        const v = rec.values[m.id];
-                                                                        if (m.isBilateral) return <td key={m.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[30px]"><div className="flex-1 border-r border-slate-200 flex items-center justify-center p-1">{v?.r||'-'}</div><div className="flex-1 flex items-center justify-center p-1">{v?.l||'-'}</div></div></td>;
-                                                                        return <td key={m.id} className="p-2 border border-slate-200 text-center">{v||'-'}</td>;
-                                                                    })}
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        ) : null)}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Prescribed Exercises Web View */}
-                            {prescribedExData.length > 0 && (
-                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
-                                    <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Prescribed Exercises</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {prescribedExData.map(ex => {
-                                            const params = patientData.exerciseParams?.[ex.id] || {};
-                                            return (
-                                                <a key={ex.id} href={`/exercises#/${slugify(ex.name)}`} className="border border-slate-200 rounded-xl overflow-hidden group hover:border-azure transition hover:shadow-md flex flex-col cursor-pointer bg-white">
-                                                    <div className="w-full h-40 bg-slate-50 flex items-center justify-center p-3 border-b border-slate-100 relative">
-                                                        <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-300" />
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 backdrop-blur-sm">
-                                                            <span className="bg-white text-navy font-bold text-xs px-3 py-1.5 rounded-full shadow-sm">View Instructions</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-4 flex-1 flex flex-col">
-                                                        <h4 className="font-bold text-navy text-sm mb-2 leading-tight">{ex.name}</h4>
-                                                        <div className="flex flex-wrap gap-2 text-[11px] font-bold text-slate-500 mb-2">
-                                                            {params.reps && <span className="bg-slate-100 px-2 py-0.5 rounded">Reps: <span className="text-navy">{params.reps}</span></span>}
-                                                            {params.sets && <span className="bg-slate-100 px-2 py-0.5 rounded">Sets: <span className="text-navy">{params.sets}</span></span>}
-                                                            {params.freq && <span className="bg-slate-100 px-2 py-0.5 rounded">Freq: <span className="text-navy">{params.freq}</span></span>}
-                                                        </div>
-                                                        {params.note && <p className="text-[11px] text-slate-600 italic bg-blue-50/50 p-2 rounded-lg border border-blue-100 mt-auto">{params.note}</p>}
-                                                    </div>
-                                                </a>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* ======================= 2. COMBINED MASTER PRINT VIEW ======================= */}
-                        <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full">
-                            
-                            {/* Document Header */}
-                            <div className="flex justify-between items-start pb-2 text-left">
-                                <div>
-                                    <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                                    <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                                    <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                                    <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                                </div>
-                                
-                                <div className="flex flex-col items-center justify-center pt-2 px-6">
-                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${window.location.origin}/prescription%23/${patientData.id}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                                    <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
-                                </div>
-
-                                <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                                    <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
-                                    <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedDate}</span></div>
-                                </div>
-                            </div>
-                            
-                            <div className="border-b border-[#1e40af] mb-1.5"></div>
-                            
-                            <table className="main-print-table">
-                                <thead className="print-table-header">
-                                    <tr><td className="pb-4 pt-2">
-                                            <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                                <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{patientData.name}</span></div>
-                                                <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.age}</span></div>
-                                                <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.gender}</span></div>
-                                                <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.ipId}</span></div>
-                                            </div>
-                                            <div className="border-b border-[#1e40af]"></div>
-                                    </td></tr>
-                                </thead>
-                                <tbody>
-                                    {/* Medical Notes */}
-                                    <tr className="main-print-row"><td className="pt-2 px-2 pb-4">
-                                        {(patientData.chiefComplaints || patientData.history) && (
-                                            <>
-                                                {patientData.chiefComplaints && <div className="text-[#1e40af] mb-4"><span className="font-bold text-[20px]">Chief Complaint :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{patientData.chiefComplaints}</p></div>}
-                                                {patientData.history && <div className="text-[#1e40af]"><span className="font-bold text-[20px]">History :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{patientData.history}</p></div>}
-                                            </>
-                                        )}
-                                    </td></tr>
-                                    
-                                    <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
-                                            <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Assessment :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{patientData.assessmentNote || "\u00A0"}</p>
-                                                {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{patientData.customTables.filter(t => t.section === 'assessment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div>)}
-                                            </div>
-                                    </td></tr>
-                                    
-                                    {patientData.diagnosis && (<tr className="main-print-row"><td className="px-2 pb-6"><div className="text-[#1e40af]"><span className="font-bold text-[20px]">Diagnosis:</span><span className="ml-2 text-slate-900 font-bold text-[19px]">{patientData.diagnosis}</span></div></td></tr>)}
-                                    
-                                    <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
-                                            <div className="text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Treatment Plan / Advice :-</span><p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{patientData.treatmentNote || "\u00A0"}</p>
-                                                {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">{patientData.customTables.filter(t => t.section === 'treatment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div>)}
-                                            </div>
-                                    </td></tr>
-                                    
-                                    {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (<tr className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span><div className="flex flex-wrap items-start gap-4 pl-4 pr-2">{patientData.customTables.filter(t => t.section === 'reassessment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div></td></tr>)}
-                                    
-                                    {patientData.reassessmentTables?.map((rtable) => (
-                                        <tr key={rtable.id} className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]">
-                                                <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
-                                                {rtable.trackedMetrics?.length > 0 ? (
-                                                  <div className="pl-4 pr-2 w-full">
-                                                      <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
-                                                          <thead><tr><th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>{rtable.trackedMetrics.map(metric => (<th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div className="flex flex-col h-full justify-between"><span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>{metric.isBilateral && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}{metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}</div></th>))}</tr></thead>
-                                                          <tbody>{rtable.records?.map(record => (<tr key={record.id} className="print-break-inside-avoid"><td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>{rtable.trackedMetrics.map(metric => { const cellValue = record.values[metric.id]; if (metric.isBilateral) return ( <td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div></div></td> ); if (metric.type === 'Custom 2-Column') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full min-h-[32px]"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div><div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div></div></td>); return ( <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> ); })}</tr>))}</tbody>
-                                                      </table>
-                                                  </div>
-                                                ) : null }
-                                        </td></tr>
-                                    ))}
-
-                                    {/* Page Break before exercises if there are any */}
-                                    {prescribedExData.length > 0 && (
-                                        <tr className="print-break-after-always"><td></td></tr>
-                                    )}
-                                    
-                                    {/* Exercises Section appended directly to print */}
-                                    {prescribedExData.length > 0 && (
-                                        <tr className="main-print-row-allow-break"><td className="pt-8 px-0 pb-4">
-                                            <div className="text-[#1e40af] mb-6 border-b-2 border-[#1e40af] inline-block pr-6"><span className="font-bold text-[24px]">Prescribed Exercises</span></div>
-                                            <div className="flex-1 w-full">
-                                                <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
-                                                    {prescribedExData.map((ex) => {
-                                                        const params = patientData.exerciseParams?.[ex.id] || {};
-                                                        const customNote = params.note;
-                                                        return (
-                                                            <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
-                                                                <div className="h-32 w-full flex items-center justify-center mb-2">
-                                                                    <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                                </div>
-                                                                <div className="w-full text-left">
-                                                                    <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
-                                                                    <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
-                                                                        {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                                        {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                                        {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                                    </div>
-                                                                    {customNote && (
-                                                                        <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </td></tr>
-                                    )}
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </main>
-                </div>
-            );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        function renderRecords(patient) {
+            const container = document.getElementById('recordsSection');
+            container.innerHTML = `
+                <div class="bg-surface rounded-2xl p-5 shadow-sm border border-slate-200 mb-6 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-ice rounded-full flex items-center justify-center shrink-0">
+                        <span class="text-2xl text-azure font-black">${patient.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-navy leading-tight">${patient.name}</h2>
+                        <p class="text-sm text-slate-500 font-medium">Verified Patient</p>
+                    </div>
+                </div>
+            `;
+
+            if (!patient.prescriptions || Object.keys(patient.prescriptions).length === 0) {
+                container.innerHTML += `
+                    <div class="text-center py-10 bg-surface rounded-2xl border border-slate-200">
+                        <i class="ph-fill ph-file-dashed text-4xl text-slate-300 mb-2 block"></i>
+                        <p class="text-slate-500 font-medium">No prescriptions added yet.</p>
+                    </div>`;
+            } else {
+                const sortedRx = Object.values(patient.prescriptions).sort((a,b) => new Date(b.date) - new Date(a.date));
+                
+                sortedRx.forEach(rx => {
+                    const dateStr = new Date(rx.date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+                    
+                    let html = `
+                    <div class="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-azure"></div>
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div class="font-black text-navy"><i class="ph-bold ph-calendar-blank text-azure mr-1"></i> ${dateStr}</div>
+                            <span class="bg-ice text-azure text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide">Clinical Rx</span>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            ${rx.diagnosis ? `<div><p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Diagnosis</p><p class="font-semibold text-slate-800">${rx.diagnosis}</p></div>` : ''}
+                            ${rx.notes ? `<div><p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Clinical Notes</p><p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 whitespace-pre-wrap">${rx.notes}</p></div>` : ''}
+                    `;
+
+                    if (rx.exercises && rx.exercises.length > 0) {
+                        html += `<div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Prescribed Exercises</p><div class="grid grid-cols-2 gap-2">`;
+                        
+                        rx.exercises.forEach(exId => {
+                            const exData = globalExercises[exId];
+                            if(exData) {
+                                // NEW: Links to the absolute SEO URL and opens in a new tab so they don't lose the prescription
+                                html += `
+                                <a href="/exercise/${slugify(exData.name)}" target="_blank" class="block border border-slate-200 rounded-lg overflow-hidden group hover:border-azure transition bg-white">
+                                    <div class="aspect-video bg-slate-100 relative">
+                                        <img src="${exData.imageUrl || '/favicon.png'}" class="w-full h-full object-cover" onerror="this.src='/favicon.png'">
+                                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition flex items-center justify-center">
+                                            <div class="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-azure shadow-sm transform scale-90 group-hover:scale-100 transition"><i class="ph-fill ph-play text-sm"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 text-center">
+                                        <p class="text-xs font-bold text-slate-800 truncate">${exData.name}</p>
+                                    </div>
+                                </a>`;
+                            }
+                        });
+                        html += `</div></div>`;
+                    }
+                    html += `</div></div>`;
+                    container.innerHTML += html;
+                });
+            }
+            container.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
+
