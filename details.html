@@ -137,7 +137,6 @@
         .wiki-content h2 { font-size: 1.5rem; font-weight: 800; color: #1e3a8a; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
         .wiki-content h3 { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-top: 1.5rem; margin-bottom: 0.75rem; }
         .wiki-content p { margin-bottom: 1.25rem; }
-        /* Removed custom ul/ol margins so Quill CSS can handle indentation perfectly without doubling up */
         .wiki-content a { color: #1d4ed8; text-decoration: underline; }
         .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
@@ -275,7 +274,8 @@
         } else {
             Promise.all([
                 fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json').then(r => r.json()),
-                reqType === 'exercise' ? fetch('https://patient-records-arpan-default-rtdb.firebaseio.com/exercises.json').then(r => r.json()) : Promise.resolve(null)
+                // FIXED FIREBASE URL FOR EXERCISES
+                reqType === 'exercise' ? fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/exercises.json').then(r => r.json()) : Promise.resolve(null)
             ]).then(([siteData, exercisesData]) => {
                 document.getElementById('loading').style.display = 'none';
                 window.siteData = siteData || {};
@@ -464,3 +464,4 @@
     </script>
 </body>
 </html>
+
