@@ -41,7 +41,7 @@
         .wiki-content a { color: #1d4ed8; text-decoration: underline; }
         .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        /* Smooth Sidebar */
+        /* Smooth Sidebar Menu */
         .mobile-menu { 
             position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
             background: var(--surface); z-index: 1001; 
@@ -50,17 +50,19 @@
             padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
             overflow-y: auto; border-left: 1px solid #e2e8f0;
         }
-        .mobile-menu.active { transform: translateX(0); }
+        .mobile-menu.active { transform: translateX(0); } 
+        .mobile-menu ul { list-style: none; }
+        .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: #0f172a; transition: color 0.2s;}
+        .mobile-menu ul li a.main-nav-link:hover { color: #1d4ed8; }
+        
+        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .close-menu:hover { background: #e2e8f0; color: #0f172a; }
+        
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
         .overlay.active { visibility: visible; opacity: 1; }
 
-        @media print {
-            body { background: white !important; }
-            .print-hidden { display: none !important; }
-            .print-shadow-none { box-shadow: none !important; border: none !important; }
-            .wiki-content { font-size: 12pt; color: black; }
-            .wiki-content h2 { color: black; }
-        }
+        /* Masonry Utilities */
+        .masonry-col { display: flex; flex-direction: column; gap: 1rem; }
     </style>
 </head>
 <body>
@@ -95,6 +97,19 @@
             const [isMenuOpen, setIsMenuOpen] = useState(false);
             const [searchQuery, setSearchQuery] = useState("");
             const [activeHash, setActiveHash] = useState(window.location.hash || '');
+            const [colCount, setColCount] = useState(2);
+
+            // --- RESPONSIVE MASONRY COLUMNS ---
+            useEffect(() => {
+                const handleResize = () => {
+                    if (window.innerWidth >= 1024) setColCount(4);
+                    else if (window.innerWidth >= 768) setColCount(3);
+                    else setColCount(2);
+                };
+                handleResize();
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
 
             // --- DATA FETCHING ---
             useEffect(() => {
@@ -103,7 +118,7 @@
                         const data = snapshot.val();
                         setSiteData({
                             hero: data.hero || {},
-                            exercises: data.exercises || [] // Fetching exercises from unified DB
+                            exercises: data.exercises || [] 
                         });
                     }
                     setIsLoading(false);
@@ -129,39 +144,75 @@
                 return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
             };
 
+            // --- SEARCH HANDLER ---
+            const handleSearchChange = (e) => {
+                setSearchQuery(e.target.value);
+                // If user is currently looking at a specific exercise and starts typing, 
+                // instantly take them back to the main library to show the filtered results.
+                if (window.location.hash && window.location.hash !== '') {
+                    window.location.hash = '';
+                }
+            };
+
             // --- RENDERERS ---
             if (isLoading) return null;
 
             const renderHeader = () => (
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full print-hidden">
-                    <a href="/" className="flex items-center gap-3">
+                <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-4 max-w-6xl mx-auto w-full">
+                    {/* Logo */}
+                    <a href="/" className="flex items-center shrink-0">
                         {siteData.hero.logoUrl ? 
-                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
-                            <div className="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
+                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-9 h-9 rounded-xl object-contain" /> : 
+                            <div className="w-9 h-9 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
                         }
                     </a>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setIsMenuOpen(true)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
-                            <i className="ph-bold ph-list text-2xl"></i>
-                        </button>
+                    
+                    {/* Unified Universal Search Bar */}
+                    <div className="flex-1 max-w-md mx-3 relative">
+                        <i className="ph-bold ph-magnifying-glass absolute left-3 top-2 sm:top-2.5 text-slate-400 text-sm sm:text-base"></i>
+                        <input 
+                            type="text" 
+                            value={searchQuery} 
+                            onChange={handleSearchChange} 
+                            placeholder="Search exercises..." 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-full py-1.5 sm:py-2 pl-9 pr-4 outline-none focus:border-azure focus:ring-1 focus:ring-azure text-sm transition" 
+                        />
                     </div>
+
+                    {/* Hamburger Menu */}
+                    <button onClick={() => setIsMenuOpen(true)} className="p-1 sm:p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition shrink-0">
+                        <i className="ph-bold ph-list text-2xl"></i>
+                    </button>
                 </header>
             );
 
+            // Menu identical to index.html
             const renderMenu = () => (
                 <>
-                    <div className={`overlay ${isMenuOpen ? 'active' : ''} print-hidden`} onClick={() => setIsMenuOpen(false)}></div>
-                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''} print-hidden`}>
+                    <div className={`overlay ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}></div>
+                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
                         <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
                             <h2 className="text-lg font-black text-navy m-0">Menu</h2>
-                            <button onClick={() => setIsMenuOpen(false)} className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-navy hover:bg-slate-200 transition"><i className="ph-bold ph-x text-lg"></i></button>
+                            <button className="close-menu" onClick={() => setIsMenuOpen(false)}><i className="ph-bold ph-x"></i></button>
                         </div>
-                        <ul className="mt-2">
-                            <li><a href="/" className="flex items-center px-6 py-4 border-b border-slate-50 font-bold text-slate-700 hover:text-azure transition"><i className="ph-bold ph-house mr-3 text-xl text-slate-400"></i> Home</a></li>
-                            <li><a href="/services" className="flex items-center px-6 py-4 border-b border-slate-50 font-bold text-slate-700 hover:text-azure transition"><i className="ph-bold ph-first-aid mr-3 text-xl text-slate-400"></i> Services</a></li>
-                            <li><a href="/doctors" className="flex items-center px-6 py-4 border-b border-slate-50 font-bold text-slate-700 hover:text-azure transition"><i className="ph-bold ph-stethoscope mr-3 text-xl text-slate-400"></i> Team</a></li>
-                            <li><a href="/products" className="flex items-center px-6 py-4 border-b border-slate-50 font-bold text-slate-700 hover:text-azure transition"><i className="ph-bold ph-shopping-bag mr-3 text-xl text-slate-400"></i> Products</a></li>
-                            <li><a href="/exercises" className="flex items-center px-6 py-4 border-b border-slate-50 font-bold text-azure bg-ice/50"><i className="ph-bold ph-person-simple-walk mr-3 text-xl text-azure"></i> Exercises</a></li>
+                        <ul>
+                            <li><a href="/" className="main-nav-link"><i className="ph-bold ph-house" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Home</a></li>
+                            <li><a href="/services" className="main-nav-link"><i className="ph-bold ph-first-aid" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Services</a></li>
+                            <li><a href="/doctors" className="main-nav-link"><i className="ph-bold ph-stethoscope" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Team</a></li>
+                            <li><a href="/products" className="main-nav-link"><i className="ph-bold ph-shopping-bag" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Wellness Products</a></li>
+                            <li><a href="/articles" className="main-nav-link"><i className="ph-bold ph-article" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Health Articles</a></li>
+                            <li><a href="/exercises" className="main-nav-link" style={{color: '#1d4ed8', backgroundColor: '#eff6ff'}}><i className="ph-bold ph-person-simple-walk" style={{marginRight: '12px', fontSize: '1.3rem', color: '#1d4ed8'}}></i> Rehabilitation Exercises</a></li>
+                            <li><a href="/prescription" className="main-nav-link"><i className="ph-bold ph-folder-open" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Patient Records</a></li>
+                            
+                            <li style={{padding: '2.5rem 1.5rem 0.5rem', borderBottom: 'none', display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                <div style={{fontSize: '10px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px'}}>Internal Links</div>
+                                <a href="/doctor-dashboard" style={{color: '#64748b', fontSize: '0.85rem', fontWeight: '500', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s', textDecoration: 'none'}}>
+                                    <i className="ph-fill ph-activity" style={{marginRight: '6px', fontSize: '1rem'}}></i> Staff Portal
+                                </a>
+                                <a href="/admin" style={{color: '#64748b', fontSize: '0.85rem', fontWeight: '500', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s', textDecoration: 'none'}}>
+                                    <i className="ph-fill ph-shield-check" style={{marginRight: '6px', fontSize: '1rem'}}></i> Admin Panel
+                                </a>
+                            </li>
                         </ul>
                     </aside>
                 </>
@@ -181,39 +232,16 @@
                     
                     content = (
                         <div className="max-w-4xl mx-auto px-4 pt-24 pb-12 animate-in fade-in">
-                            <div className="flex justify-between items-center mb-6 print-hidden">
-                                <a href="#" className="flex items-center gap-2 text-slate-500 font-bold hover:text-navy transition px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
-                                    <i className="ph-bold ph-arrow-left text-lg"></i> Back to Library
-                                </a>
-                                <button onClick={() => window.print()} className="flex items-center gap-2 bg-azure text-white px-4 py-2 rounded-full font-bold shadow-sm hover:bg-navy transition">
-                                    <i className="ph-bold ph-printer text-lg"></i> Print
-                                </button>
-                            </div>
-
-                            <article className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden print-shadow-none">
-                                {/* Media Header */}
-                                {(embedUrl || exercise.videoUrl || exercise.imageUrl) && (
-                                    <div className="w-full bg-slate-100 border-b border-slate-200 relative print-hidden">
-                                        {embedUrl ? (
-                                            <div className="aspect-video w-full">
-                                                <iframe src={embedUrl} className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                                            </div>
-                                        ) : exercise.videoUrl ? (
-                                            <div className="aspect-video w-full">
-                                                <video src={exercise.videoUrl} className="w-full h-full" controls poster={exercise.imageUrl}></video>
-                                            </div>
-                                        ) : exercise.imageUrl ? (
-                                            <div className="h-64 sm:h-96 w-full flex items-center justify-center p-4">
-                                                <img src={exercise.imageUrl} alt={exercise.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                            </div>
-                                        ) : null}
+                            <article className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
+                                
+                                {/* Always Show Main Image Header */}
+                                {exercise.imageUrl && (
+                                    <div className="w-full bg-slate-50 border-b border-slate-200 relative p-4">
+                                        <div className="h-64 sm:h-96 w-full flex items-center justify-center">
+                                            <img src={exercise.imageUrl} alt={exercise.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                        </div>
                                     </div>
                                 )}
-
-                                {/* Print-only Image */}
-                                <div className="hidden print:block text-center mb-4 border-b border-slate-300 pb-4">
-                                    {exercise.imageUrl && <img src={exercise.imageUrl} style={{maxHeight: '300px'}} />}
-                                </div>
 
                                 {/* Article Body */}
                                 <div className="p-6 sm:p-10">
@@ -221,17 +249,21 @@
                                     
                                     <div className="wiki-content" dangerouslySetInnerHTML={{ __html: exercise.description || '<p>No description provided.</p>' }} />
                                     
-                                    {/* Categories/Tags */}
-                                    {exercise.tags && exercise.tags.length > 0 && (
-                                        <div className="mt-10 pt-6 border-t border-slate-200 print-hidden">
-                                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Categories</h4>
-                                            <div className="flex flex-wrap gap-2">
-                                                {exercise.tags.map((tag, i) => (
-                                                    <span key={i} className="bg-ice text-azure px-3 py-1 rounded-full text-xs font-bold capitalize shadow-sm">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                    {/* Separate Video Section */}
+                                    {(embedUrl || exercise.videoUrl) && (
+                                        <div className="mt-10 pt-8 border-t border-slate-200">
+                                            <h3 className="text-xl font-bold text-navy mb-4 flex items-center gap-2">
+                                                <i className="ph-fill ph-video-camera text-azure"></i> Video Demonstration
+                                            </h3>
+                                            {embedUrl ? (
+                                                <div className="aspect-video w-full rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                                                    <iframe src={embedUrl} className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                                </div>
+                                            ) : exercise.videoUrl ? (
+                                                <div className="aspect-video w-full rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                                                    <video src={exercise.videoUrl} className="w-full h-full" controls poster={exercise.imageUrl}></video>
+                                                </div>
+                                            ) : null}
                                         </div>
                                     )}
                                 </div>
@@ -242,49 +274,48 @@
                     content = <div className="pt-32 text-center text-slate-500 font-bold">Exercise not found.</div>;
                 }
             } else {
-                // --- LIBRARY GRID VIEW ---
+                // --- LIBRARY GRID VIEW (MASONRY) ---
                 const filteredExercises = siteData.exercises.filter(ex => 
                     (ex.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
                     (ex.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
                 );
 
+                // Build Masonry Columns
+                const masonryColumns = Array.from({ length: colCount }, () => []);
+                filteredExercises.forEach((ex, index) => {
+                    masonryColumns[index % colCount].push(ex);
+                });
+
                 content = (
                     <div className="max-w-6xl mx-auto px-4 pt-24 pb-12 animate-in fade-in">
                         <div className="text-center mb-10">
-                            <span className="text-azure font-bold text-xs tracking-widest uppercase mb-2 block">Clinical Database</span>
                             <h1 className="text-3xl sm:text-4xl font-black text-navy mb-4">Rehabilitation Exercises</h1>
-                            
-                            <div className="max-w-md mx-auto relative mt-6">
-                                <i className="ph-bold ph-magnifying-glass absolute left-4 top-3 text-slate-400 text-lg"></i>
-                                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search for exercises, muscles, tags..." className="w-full bg-white shadow-soft border border-slate-200 rounded-full py-3 pl-12 pr-4 outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
-                            </div>
                         </div>
 
                         {filteredExercises.length === 0 ? (
                             <div className="text-center text-slate-400 py-10 font-medium bg-white rounded-2xl border border-slate-200">No exercises found matching your search.</div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {filteredExercises.map(ex => (
-                                    <a key={ex.id} href={`#/${slugify(ex.name)}`} className="bg-white rounded-2xl shadow-soft border border-slate-200 flex flex-col hover:shadow-float hover:-translate-y-1 transition duration-300 overflow-hidden group">
-                                        <div className="w-full h-48 bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                                            {ex.imageUrl ? 
-                                                <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-500" /> :
-                                                <i className="ph-bold ph-person-simple-walk text-5xl text-slate-300"></i>
-                                            }
-                                        </div>
-                                        <div className="p-5 flex-1 flex flex-col">
-                                            <h3 className="font-black text-navy text-lg leading-tight group-hover:text-azure transition line-clamp-2 mb-2">{ex.name}</h3>
-                                            
-                                            <div className="mt-auto pt-3 flex flex-wrap gap-1.5">
-                                                {ex.tags && ex.tags.slice(0, 3).map((tag, i) => (
-                                                    <span key={i} className="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-1 rounded">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                                {ex.tags && ex.tags.length > 3 && <span className="text-[9px] font-bold text-slate-400 py-1">+{ex.tags.length - 3}</span>}
-                                            </div>
-                                        </div>
-                                    </a>
+                            <div className="flex gap-4 items-start w-full">
+                                {masonryColumns.map((column, colIndex) => (
+                                    <div key={colIndex} className="masonry-col flex-1">
+                                        {column.map(ex => (
+                                            <a key={ex.id} href={`#/${slugify(ex.name)}`} className="w-full bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden cursor-pointer group hover:-translate-y-1 hover:shadow-float transition-all duration-300 flex flex-col">
+                                                
+                                                <div className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-100">
+                                                    {ex.imageUrl ? (
+                                                        <img src={ex.imageUrl} alt={ex.name || 'Exercise'} className="w-full h-auto block object-cover mix-blend-multiply" />
+                                                    ) : (
+                                                        <div className="w-full aspect-square flex items-center justify-center text-slate-300">
+                                                            <i className="ph-bold ph-person-simple-walk text-5xl"></i>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-4 bg-white flex flex-col text-left">
+                                                    <h3 className="font-bold text-[15px] text-navy leading-tight line-clamp-2 group-hover:text-azure transition">{ex.name || 'Unnamed Exercise'}</h3>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -306,3 +337,4 @@
     </script>
 </body>
 </html>
+
