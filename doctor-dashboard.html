@@ -628,32 +628,6 @@
               }));
           };
 
-          // --- DATE HANDLER FOR NEW RX MODAL (If you add a new sub-prescription inside the dashboard)
-          const handleAddRx = (e) => {
-              e.preventDefault();
-              const fd = new FormData(e.target);
-              const dateInput = fd.get('date');
-              
-              // Process Date safely
-              let isoDate = new Date().toISOString();
-              if (dateInput) {
-                  const d = new Date();
-                  const parts = dateInput.split('-');
-                  d.setFullYear(parts[0], parts[1]-1, parts[2]);
-                  isoDate = d.toISOString();
-              }
-
-              const selectedExs = Array.from(e.target.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-              const rx = {
-                  date: isoDate,
-                  diagnosis: fd.get('diagnosis'),
-                  notes: fd.get('notes'),
-                  exercises: selectedExs
-              };
-              // Add to prescriptions logic if you were keeping that sub-array
-              // push(ref(db, `patients/${selectedPatient.id}/prescriptions`), rx).then(() => setShowRxModal(false));
-          };
-
           const handleFileUpload = async (e) => {
               const file = e.target.files[0];
               if (!file) return;
@@ -976,10 +950,9 @@
                               <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
                           </div>
                           
-                          {/* QR CODE - URL ENCODED FOR INSTANT BYPASS LOGIN */}
                           {formData.id && (
                           <div className="flex flex-col items-center justify-center pt-2 px-6">
-                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent('https://therapeutichub.in/prescription#/' + formData.id)}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription#/${formData.id}`} alt="QR Code" className="w-[70px] h-[70px]" />
                               <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
                           </div>
                           )}
@@ -1099,18 +1072,17 @@
                                           <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
                                           {rtable.trackedMetrics.length > 0 ? (
                                             <div className="pl-4 pr-2 w-full">
-                                                {/* HIGH DENSITY PRINT TABLE - FONT SIZE REDUCED SIGNIFICANTLY TO FIT 30+ COLUMNS */}
-                                                <table className="w-full table-auto border-collapse text-[8px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
+                                                <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
                                                     <thead>
                                                         <tr>
-                                                            <th className="p-1 text-left border border-[#1e40af] w-16 text-[#1e40af] font-bold">Date</th>
+                                                            <th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>
                                                             {rtable.trackedMetrics.map(metric => (
-                                                                <th key={metric.id} className="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
+                                                                <th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
                                                                     <div className="flex flex-col h-full justify-between">
-                                                                        <span className="leading-tight px-0.5 mb-0.5 pt-0.5 text-[9px]">{metric.title}</span>
-                                                                        {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[7px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-0.5 font-bold">L</div></div> )}
-                                                                        {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[7px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-0.5 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
-                                                                        {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[7px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-0.5 font-bold">{metric.col2}</div></div> )}
+                                                                        <span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>
+                                                                        {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}
+                                                                        {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
+                                                                        {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}
                                                                     </div>
                                                                 </th>
                                                             ))}
@@ -1119,15 +1091,15 @@
                                                     <tbody>
                                                         {rtable.records.map(record => (
                                                             <tr key={record.id} className="print-break-inside-avoid">
-                                                                <td className="p-1 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[8px]">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
+                                                                <td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
                                                                 {rtable.trackedMetrics.map(metric => {
                                                                     const cellValue = record.values[metric.id];
                                                                     if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) {
                                                                         return ( 
                                                                             <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[16px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div>
+                                                                                <div className="flex h-full min-h-[32px]">
+                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div>
+                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div>
                                                                                 </div>
                                                                             </td> 
                                                                         );
@@ -1135,9 +1107,9 @@
                                                                     if (metric.type === 'ROM with VAS') {
                                                                         return (
                                                                             <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[16px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div>
+                                                                                <div className="flex h-full min-h-[32px]">
+                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div>
+                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div>
                                                                                 </div>
                                                                             </td>
                                                                         );
@@ -1145,20 +1117,20 @@
                                                                     if (metric.type === 'Custom 2-Column') {
                                                                         return (
                                                                             <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[16px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-0.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div>
+                                                                                <div className="flex h-full min-h-[32px]">
+                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div>
+                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div>
                                                                                 </div>
                                                                             </td>
                                                                         );
                                                                     }
                                                                     return ( 
-                                                                        <td key={metric.id} className="p-0.5 border border-[#1e40af] text-center align-middle whitespace-pre-wrap text-[8px]">{cellValue || '-'}</td> 
+                                                                        <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> 
                                                                     );
                                                                 })}
                                                             </tr>
                                                         ))}
-                                                        {rtable.records.length === 0 && ( <tr className="print-break-inside-avoid"><td colSpan={rtable.trackedMetrics.length + 1} className="p-1 border border-[#1e40af] text-center italic text-slate-500 text-[8px]">No records added.</td></tr> )}
+                                                        {rtable.records.length === 0 && ( <tr className="print-break-inside-avoid"><td colSpan={rtable.trackedMetrics.length + 1} className="p-3 border border-[#1e40af] text-center italic text-slate-500">No records added.</td></tr> )}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -1184,10 +1156,9 @@
                               <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
                           </div>
                           
-                          {/* QR CODE - URL ENCODED FOR INSTANT BYPASS LOGIN */}
                           {formData.id && (
                           <div className="flex flex-col items-center justify-center pt-2 px-6">
-                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent('https://therapeutichub.in/prescription#/' + formData.id)}`} alt="QR Code" className="w-[70px] h-[70px]" />
+                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription#/${formData.id}`} alt="QR Code" className="w-[70px] h-[70px]" />
                               <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
                           </div>
                           )}
