@@ -45,7 +45,7 @@
         const { useState, useEffect } = React;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -107,6 +107,7 @@
             const [exercises, setExercises] = useState([]);
             const [error, setError] = useState("");
             const [isReady, setIsReady] = useState(false);
+            const [isIframe, setIsIframe] = useState(false);
 
             useEffect(() => {
                 const loadData = async () => {
@@ -114,10 +115,23 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         const patientId = urlParams.get('id');
                         
+                        // Check if we are running in the hidden iframe
+                        if (urlParams.get('iframe') === 'true') {
+                            setIsIframe(true);
+                        }
+                        
                         if (!patientId) throw new Error("No Patient ID provided in URL.");
 
-                        // 1. Authenticate anonymously
-                        await signInAnonymously(authRecords);
+                        // 1. Authenticate SAFELY (Don't overwrite Doctor login)
+                        await new Promise((resolve) => {
+                            const unsubscribe = onAuthStateChanged(authRecords, async (user) => {
+                                unsubscribe();
+                                if (!user) {
+                                    try { await signInAnonymously(authRecords); } catch(e) {}
+                                }
+                                resolve();
+                            });
+                        });
 
                         // 2. Fetch Patient Data
                         const docRef = doc(dbRecords, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients', patientId);
@@ -138,7 +152,7 @@
                         setExercises(exArray);
                         setIsReady(true);
 
-                        // Auto-trigger print dialog after a brief delay to allow images to load
+                        // Auto-trigger print dialog after data renders
                         setTimeout(() => { window.print(); }, 1500);
 
                     } catch (err) {
@@ -154,12 +168,12 @@
                         <i className="ph-fill ph-warning-circle text-5xl text-red-500 mb-2"></i>
                         <h2 className="text-xl font-bold text-navy">Document Error</h2>
                         <p className="text-slate-500">{error}</p>
-                        <button onClick={() => window.close()} className="mt-4 bg-slate-200 px-4 py-2 rounded font-bold text-slate-700">Close Tab</button>
+                        {!isIframe && <button onClick={() => window.close()} className="mt-4 bg-slate-200 px-4 py-2 rounded font-bold text-slate-700">Close Tab</button>}
                     </div>
                 );
             }
 
-            if (!isReady) return null; // Let the native loader spin
+            if (!isReady) return null; 
 
             const prescribedExData = (patientData.prescribedExercises || []).map(id => exercises.find(e => e.id === id)).filter(Boolean);
             const formattedDate = patientData.date ? new Date(patientData.date).toLocaleDateString('en-GB') : '';
@@ -167,11 +181,13 @@
             return (
                 <div className="w-full max-w-4xl mx-auto bg-white p-8 print:p-0">
                     
-                    {/* Floating Print Button for Web UI */}
-                    <div className="print-hidden fixed top-4 right-4 flex gap-2">
-                        <button onClick={() => window.close()} className="bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded shadow font-bold hover:bg-slate-50">Close</button>
-                        <button onClick={() => window.print()} className="bg-azure text-white px-4 py-2 rounded shadow font-bold flex items-center gap-2 hover:bg-navy"><i className="ph-bold ph-printer"></i> Print Now</button>
-                    </div>
+                    {/* Hide buttons entirely if printing via invisible iframe */}
+                    {!isIframe && (
+                        <div className="print-hidden fixed top-4 right-4 flex gap-2">
+                            <button onClick={() => window.close()} className="bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded shadow font-bold hover:bg-slate-50">Close</button>
+                            <button onClick={() => window.print()} className="bg-azure text-white px-4 py-2 rounded shadow font-bold flex items-center gap-2 hover:bg-navy"><i className="ph-bold ph-printer"></i> Print Now</button>
+                        </div>
+                    )}
 
                     <div className="bg-white text-[#1e40af] text-[16px] font-sans h-full w-full">
                         {/* Header */}
@@ -235,7 +251,7 @@
                                 
                                 {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (<tr className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]"><span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span><div className="flex flex-wrap items-start gap-4 pl-4 pr-2">{patientData.customTables.filter(t => t.section === 'reassessment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div></td></tr>)}
                                 
-                                {/* REASSESSMENT TABLES - 10px FONT ADJUSTMENT */}
+                                {/* REASSESSMENT TABLES */}
                                 {patientData.reassessmentTables?.map((rtable) => (
                                     <tr key={rtable.id} className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]">
                                         <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
@@ -319,4 +335,3 @@
     </script>
 </body>
 </html>
-
