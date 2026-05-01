@@ -3,6 +3,7 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     
+    { "source": "/print", "destination": "/print.html" },
     { "source": "/prescription", "destination": "/prescription.html" },
     { "source": "/doctor-dashboard", "destination": "/doctor-dashboard.html" },
     { "source": "/exercises", "destination": "/exercises.html" },
