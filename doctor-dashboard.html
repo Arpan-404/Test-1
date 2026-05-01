@@ -28,19 +28,6 @@
     </script>
 
     <style>
-        /* Print Layout Rules (Critical for A4 PDF) */
-        @page { size: A4; margin: 10mm; }
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; }
-            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-            .print-break-after-auto { page-break-after: auto; }
-            thead.print-table-header { display: table-header-group; }
-            table.main-print-table { page-break-inside: auto; width: 100%; }
-            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
-            tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
-            .editable-cell:empty:before { content: none !important; display: none !important; }
-        }
-        
         /* General Styles */
         .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
         .editable-cell:not([contenteditable="false"]):empty:before { content: attr(data-placeholder); color: #cbd5e1; pointer-events: none; display: block; }
@@ -144,40 +131,40 @@
             const updateTitle = (val) => updateTable({ ...table, title: val });
 
             return (
-                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto print:overflow-visible print:border-none print:shadow-none print-break-inside-avoid">
-                    <div className={`bg-ice/30 px-2 py-1.5 flex items-center justify-between border-b border-slate-200 print:bg-transparent print:px-0 ${table.title ? 'print:border-b print:border-[#1e40af]' : 'print:border-none print:p-0'}`}>
-                        <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateTitle(e.currentTarget.innerText)} className={`font-bold text-[13px] text-navy outline-none editable-cell w-auto print:text-[#1e40af] print:text-[18px] ${!table.title && readOnly ? 'hidden' : ''}`} data-placeholder={readOnly ? '' : "Table Title"}>{table.title}</div>
+                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto">
+                    <div className={`bg-ice/30 px-2 py-1.5 flex items-center justify-between border-b border-slate-200`}>
+                        <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateTitle(e.currentTarget.innerText)} className={`font-bold text-[13px] text-navy outline-none editable-cell w-auto ${!table.title && readOnly ? 'hidden' : ''}`} data-placeholder={readOnly ? '' : "Table Title"}>{table.title}</div>
                         {!readOnly && (
-                            <div className="flex gap-1 print:hidden ml-3">
+                            <div className="flex gap-1 ml-3">
                                 <button onClick={addCol} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Col</button>
                                 <button onClick={addRow} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Row</button>
                                 <button onClick={removeTable} className="text-[10px] text-red-500 px-1.5 py-0.5"><i className="ph-bold ph-trash"></i></button>
                             </div>
                         )}
                     </div>
-                    <div className="p-1.5 print:p-0 print:mt-2">
-                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
+                    <div className="p-1.5">
+                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto">
                             <thead>
                                 <tr>
                                     {table.headers.map((h, i) => (
-                                        <th key={i} className="relative group border border-slate-200 p-0 bg-slate-50 print:border print:border-[#1e40af] print:bg-blue-50/30 print-break-inside-avoid">
-                                            <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateHeader(i, e.currentTarget.innerText)} className={`editable-cell font-bold text-navy text-[11px] p-1.5 print:text-[#1e40af] print:font-bold print:text-[16px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="Header">{h}</div>
-                                            {!readOnly && table.headers.length > 1 && ( <button onClick={() => removeCol(i)} className="absolute -top-1.5 -right-1.5 bg-red-100 text-red-600 rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity print:hidden text-[8px] z-10"><i className="ph-bold ph-x"></i></button> )}
+                                        <th key={i} className="relative group border border-slate-200 p-0 bg-slate-50">
+                                            <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateHeader(i, e.currentTarget.innerText)} className={`editable-cell font-bold text-navy text-[11px] p-1.5 ${readOnly ? 'cursor-default' : ''}`} data-placeholder="Header">{h}</div>
+                                            {!readOnly && table.headers.length > 1 && ( <button onClick={() => removeCol(i)} className="absolute -top-1.5 -right-1.5 bg-red-100 text-red-600 rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] z-10"><i className="ph-bold ph-x"></i></button> )}
                                         </th>
                                     ))}
-                                    {!readOnly && <th className="w-6 border-none print:hidden"></th>}
+                                    {!readOnly && <th className="w-6 border-none"></th>}
                                 </tr>
                             </thead>
                             <tbody>
                                 {table.rows.map((row, rIdx) => (
-                                    <tr key={rIdx} className="group print-break-inside-avoid">
+                                    <tr key={rIdx} className="group">
                                         {row.map((cell, cIdx) => (
-                                            <td key={cIdx} className="border border-slate-200 p-0 align-top print:border print:border-[#1e40af]">
-                                                <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateCell(rIdx, cIdx, e.currentTarget.innerText)} className={`editable-cell text-slate-700 text-[11px] p-1.5 min-h-[28px] print:text-slate-900 print:min-h-0 print:py-1.5 print:px-2.5 print:text-[16px] ${readOnly ? 'min-h-[auto] cursor-default' : ''}`}>{cell}</div>
+                                            <td key={cIdx} className="border border-slate-200 p-0 align-top">
+                                                <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateCell(rIdx, cIdx, e.currentTarget.innerText)} className={`editable-cell text-slate-700 text-[11px] p-1.5 min-h-[28px] ${readOnly ? 'min-h-[auto] cursor-default' : ''}`}>{cell}</div>
                                             </td>
                                         ))}
                                         {!readOnly && (
-                                            <td className="w-6 text-center border-none p-0 align-middle print:hidden">
+                                            <td className="w-6 text-center border-none p-0 align-middle">
                                                 {table.rows.length > 1 && ( <button onClick={() => removeRow(rIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"><i className="ph-bold ph-trash text-[10px]"></i></button> )}
                                             </td>
                                         )}
@@ -287,7 +274,7 @@
               fetchEx();
           }, [user]);
 
-          // Realtime Database Sync (Fetches INSTANTLY)
+          // Realtime Database Sync
           useEffect(() => {
             if (!user) return;
             const unsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'patients'), (snapshot) => {
@@ -450,11 +437,11 @@
 
           // --- MAIN RENDER (Home or Patient Detail) ---
           return (
-            <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
+            <div className="min-h-screen bg-appbg text-slate-800 font-sans">
               {viewMode === 'home' ? (
                   <>
                       {/* HOME HEADER */}
-                      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden">
+                      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center">
                         <div className="w-full max-w-6xl mx-auto px-3 flex justify-between items-center">
                           <div className="flex items-center gap-1.5 text-navy">
                             <i className="ph-bold ph-activity text-xl text-azure"></i>
@@ -466,7 +453,7 @@
                           </div>
                         </div>
                       </header>
-                      <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:p-0 print:m-0 print:max-w-none">
+                      <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4">
                           <HomeView patients={doctorPatients.filter(p => p.ipId?.toLowerCase().includes(searchQuery.toLowerCase()) || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.contact?.includes(searchQuery) || p.diagnosis?.toLowerCase().includes(searchQuery.toLowerCase()))} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onOpenPatient={(p) => { setActivePatientId(p.id); setViewMode('patient'); window.location.hash = `#/reports/${p.ipId}`; }} />
                       </main>
                   </>
@@ -492,7 +479,7 @@
         // --- COMPACT HOME VIEW (Doctor Only) ---
         function HomeView({ patients, searchQuery, setSearchQuery, onOpenPatient }) {
           return (
-            <div className="space-y-3 print:hidden animate-in fade-in">
+            <div className="space-y-3 animate-in fade-in">
               <div className="bg-surface p-2.5 rounded-xl shadow-soft border border-slate-200 flex items-center gap-2">
                 <i className="ph-bold ph-magnifying-glass text-slate-400 ml-1"></i>
                 <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search patients..." className="w-full bg-transparent outline-none text-sm text-slate-700" />
@@ -654,12 +641,10 @@
               window.open(`https://wa.me/91${formData.contact.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
           };
           
-          const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
-
           return (
             <div className="w-full relative">
               
-              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden px-3 -mt-4 mb-3 w-full">
+              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center px-3 -mt-4 mb-3 w-full">
                 <div className="w-full max-w-6xl mx-auto flex justify-between items-center">
                     
                     <button onClick={onCancel} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
@@ -672,7 +657,14 @@
                             <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-xs font-bold outline-none bg-transparent w-[95px] ${readOnly?'text-navy':'text-slate-800'}`} />
                         </div>
                         
-                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm" onClick={() => window.print()}>
+                        {/* 🌟 PRINT BUTTON - OPENS PRINT.HTML 🌟 */}
+                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm" onClick={() => {
+                            if (!formData.id) {
+                                alert("Please save the patient record first before printing.");
+                                return;
+                            }
+                            window.open('/print.html?id=' + formData.id, '_blank');
+                        }}>
                             <i className="ph-bold ph-printer text-sm"></i> Print
                         </button>
                         
@@ -685,7 +677,7 @@
                 </div>
               </header>
               
-              <div className="w-full space-y-3 animate-in fade-in print:hidden">
+              <div className="w-full space-y-3 animate-in fade-in">
                 
                 <div className="flex flex-wrap justify-between items-center gap-2 px-1 mb-2">
                     <div className="toggle-container w-[160px] sm:w-[200px]">
@@ -914,7 +906,6 @@
                                             <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
                                                 <div className="flex justify-between items-center mb-2">
                                                     
-                                                    {/* NEW: Clickable SEO Exercise Link integrated perfectly into existing code */}
                                                     <a href={`/exercise/${slugify(ex.name)}`} target="_blank" className="font-bold text-sm text-azure hover:text-navy hover:underline flex items-center gap-1" title="Preview Exercise">
                                                         {ex.name} <i className="ph-bold ph-arrow-square-out text-[10px]"></i>
                                                     </a>
@@ -936,289 +927,6 @@
                     </div>
                 )}
               </div>
-
-              {/* ========================================================================= */}
-              {/* PRINT VIEW: MAIN RX (Only renders when activeTab is 'rx')                  */}
-              {/* ========================================================================= */}
-              {activeTab === 'rx' && (
-                  <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
-                      <div className="flex justify-between items-start pb-2 text-left">
-                          <div>
-                              <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                              <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                              <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                              <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                          </div>
-                          
-                          {formData.id && (
-                          <div className="flex flex-col items-center justify-center pt-2 px-6">
-                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription#/${formData.id}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                              <span className="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
-                          </div>
-                          )}
-
-                          <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                              <div className="flex items-center gap-1.5 font-black text-2xl mb-6">
-                                  <i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109
-                              </div>
-                              <div className="text-[16px] flex items-center gap-2 font-semibold">
-                                  <span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span>
-                              </div>
-                          </div>
-                      </div>
-
-                      <div className="border-b border-[#1e40af] mb-1.5"></div>
-
-                      <table className="main-print-table">
-                          <thead className="print-table-header">
-                              <tr>
-                                  <td className="pb-4 pt-2">
-                                      <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                          <div className="flex-1 flex items-end">
-                                              <span className="whitespace-nowrap">Patient's name:</span> 
-                                              <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span>
-                                          </div>
-                                          <div className="w-24 flex items-end">
-                                              <span className="whitespace-nowrap">Age:</span> 
-                                              <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span>
-                                          </div>
-                                          <div className="w-36 flex items-end">
-                                              <span className="whitespace-nowrap">Gender:</span> 
-                                              <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span>
-                                          </div>
-                                          <div className="w-32 flex items-end">
-                                              <span className="whitespace-nowrap">UPID:</span> 
-                                              <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span>
-                                          </div>
-                                      </div>
-                                      <div className="border-b border-[#1e40af]"></div>
-                                  </td>
-                              </tr>
-                          </thead>
-
-                          <tbody>
-                              <tr className="main-print-row">
-                                  <td className="pt-2 px-2 pb-4">
-                                      <div className="text-[#1e40af] mb-4">
-                                          <span className="font-bold text-[20px]">Chief Complaint :-</span>
-                                          <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.chiefComplaints || "\u00A0"}</p>
-                                      </div>
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[20px]">History :-</span>
-                                          <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.history || "\u00A0"}</p>
-                                      </div>
-                                  </td>
-                              </tr>
-
-                              <tr className="main-print-row-allow-break">
-                                  <td className="px-2 pb-6">
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[20px] block mb-2">Assessment :-</span>
-                                          <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap">{formData.assessmentNote || "\u00A0"}</p>
-                                          {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
-                                              <div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">
-                                                  {formData.customTables.filter(t => t.section === 'assessment').map(table => (
-                                                      <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                                  ))}
-                                              </div>
-                                          )}
-                                      </div>
-                                  </td>
-                              </tr>
-
-                              {formData.diagnosis && (
-                                  <tr className="main-print-row">
-                                      <td className="px-2 pb-6">
-                                          <div className="text-[#1e40af]">
-                                              <span className="font-bold text-[20px]">Diagnosis:</span>
-                                              <span className="ml-2 text-slate-900 font-bold text-[19px]">{formData.diagnosis}</span>
-                                          </div>
-                                      </td>
-                                  </tr>
-                              )}
-
-                              <tr className="main-print-row-allow-break">
-                                  <td className="px-2 pb-6">
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[20px] block mb-2">Treatment Plan / Advice :-</span>
-                                          <p className="mt-1 ml-4 text-slate-900 text-[18px] whitespace-pre-wrap leading-relaxed">{formData.treatmentNote || "\u00A0"}</p>
-                                          {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
-                                              <div className="flex flex-wrap items-start gap-4 mt-4 pl-4 pr-2">
-                                                  {formData.customTables.filter(t => t.section === 'treatment').map(table => (
-                                                      <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                                  ))}
-                                              </div>
-                                          )}
-                                      </div>
-                                  </td>
-                              </tr>
-
-                              {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
-                                  <tr className="main-print-row">
-                                      <td className="px-2 pb-6 text-[#1e40af]">
-                                          <span className="font-bold text-[20px] block mb-2">Reassessment Data :-</span>
-                                          <div className="flex flex-wrap items-start gap-4 pl-4 pr-2">
-                                              {formData.customTables.filter(t => t.section === 'reassessment').map(table => (
-                                                  <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                              ))}
-                                          </div>
-                                      </td>
-                                  </tr>
-                              )}
-
-                              {formData.reassessmentTables.map((rtable, rIdx) => (
-                                  <tr key={rtable.id} className="main-print-row">
-                                      <td className="px-2 pb-6 text-[#1e40af]">
-                                          <span className="font-bold text-[20px] block mb-3">{rtable.title}</span>
-                                          {rtable.trackedMetrics.length > 0 ? (
-                                            <div className="pl-4 pr-2 w-full">
-                                                <table className="w-full table-auto border-collapse text-[16px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
-                                                    <thead>
-                                                        <tr>
-                                                            <th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold">Date</th>
-                                                            {rtable.trackedMetrics.map(metric => (
-                                                                <th key={metric.id} className="p-1 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
-                                                                    <div className="flex flex-col h-full justify-between">
-                                                                        <span className="leading-tight px-1 mb-1.5 pt-1">{metric.title}</span>
-                                                                        {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}
-                                                                        {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
-                                                                        {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}
-                                                                    </div>
-                                                                </th>
-                                                            ))}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {rtable.records.map(record => (
-                                                            <tr key={record.id} className="print-break-inside-avoid">
-                                                                <td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-medium">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
-                                                                {rtable.trackedMetrics.map(metric => {
-                                                                    const cellValue = record.values[metric.id];
-                                                                    if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) {
-                                                                        return ( 
-                                                                            <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[32px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.r || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.l || '-'}</div>
-                                                                                </div>
-                                                                            </td> 
-                                                                        );
-                                                                    }
-                                                                    if (metric.type === 'ROM with VAS') {
-                                                                        return (
-                                                                            <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[32px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.vas || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.rom || '-'}</div>
-                                                                                </div>
-                                                                            </td>
-                                                                        );
-                                                                    }
-                                                                    if (metric.type === 'Custom 2-Column') {
-                                                                        return (
-                                                                            <td key={metric.id} className="p-0 border border-[#1e40af] align-top">
-                                                                                <div className="flex h-full min-h-[32px]">
-                                                                                    <div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div>
-                                                                                    <div className="flex-1 flex items-center justify-center p-1.5 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div>
-                                                                                </div>
-                                                                            </td>
-                                                                        );
-                                                                    }
-                                                                    return ( 
-                                                                        <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> 
-                                                                    );
-                                                                })}
-                                                            </tr>
-                                                        ))}
-                                                        {rtable.records.length === 0 && ( <tr className="print-break-inside-avoid"><td colSpan={rtable.trackedMetrics.length + 1} className="p-3 border border-[#1e40af] text-center italic text-slate-500">No records added.</td></tr> )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                          ) : ( <p className="text-slate-500 italic ml-4 mt-2 hidden print:block text-[14px]">No core metrics tracked.</p> )}
-                                      </td>
-                                  </tr>
-                              ))}
-                          </tbody>
-                      </table>
-                  </div>
-              )}
-
-              {/* ========================================================================= */}
-              {/* PRINT VIEW: EXERCISE CHART (Only renders when activeTab is 'ex')           */}
-              {/* ========================================================================= */}
-              {activeTab === 'ex' && (
-                  <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative print-full-width">
-                      <div className="flex justify-between items-start pb-2 text-left">
-                          <div>
-                              <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                              <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
-                              <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                              <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
-                          </div>
-                          
-                          {formData.id && (
-                          <div className="flex flex-col items-center justify-center pt-2 px-6">
-                              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://therapeutichub.in/prescription#/${formData.id}`} alt="QR Code" className="w-[70px] h-[70px]" />
-                              <span className="text-[9px] font-bold mt-1 text-[#1e3a8a] text-center leading-tight">Scan for<br/>exercise video</span>
-                          </div>
-                          )}
-
-                          <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                              <div className="flex items-center gap-1.5 font-black text-2xl mb-6"><i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109</div>
-                              <div className="text-[16px] flex items-center gap-2 font-semibold"><span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span></div>
-                          </div>
-                      </div>
-                      <div className="border-b border-[#1e40af] mb-1.5"></div>
-                      <table className="main-print-table">
-                          <thead className="print-table-header">
-                              <tr><td className="pb-4 pt-2">
-                                      <div className="flex justify-between items-end pb-2 text-[16px] font-bold text-[#1e40af]">
-                                          <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{formData.name}</span></div>
-                                          <div className="w-24 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.age}</span></div>
-                                          <div className="w-36 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.gender}</span></div>
-                                          <div className="w-32 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{formData.ipId}</span></div>
-                                      </div>
-                                      <div className="border-b border-[#1e40af]"></div>
-                              </td></tr>
-                          </thead>
-                          <tbody>
-                              <tr className="main-print-row-allow-break"><td className="pt-2 px-0 pb-4">
-                                  
-                                  <div className="flex-1 w-full mt-4">
-                                      <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full">
-                                          {exercises.filter(ex => formData.prescribedExercises.includes(ex.id)).map((ex) => {
-                                              const params = formData.exerciseParams[ex.id] || {};
-                                              const customNote = params.note;
-                                              return (
-                                                  <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full">
-                                                      <div className="h-32 w-full flex items-center justify-center mb-2">
-                                                          {ex.imageUrl && ex.imageUrl.startsWith('blob:') ? (
-                                                              <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 p-2 text-center w-full">Image Broken.</div>
-                                                          ) : (
-                                                              <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                          )}
-                                                      </div>
-                                                      <div className="w-full text-left">
-                                                          <h4 className="font-bold text-slate-800 text-[12px] mb-1 text-left leading-tight">{ex.name}</h4>
-                                                          <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1 flex-wrap">
-                                                              {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                              {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                              {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                          </div>
-                                                          {customNote && (
-                                                              <p className="text-[10px] text-slate-600 leading-tight font-medium text-left mt-0.5">{customNote}</p>
-                                                          )}
-                                                      </div>
-                                                  </div>
-                                              );
-                                          })}
-                                      </div>
-                                  </div>
-                              </td></tr>
-                          </tbody>
-                      </table>
-                  </div>
-              )}
 
               {isMetricModalOpen && <AddMetricModal onClose={() => { setIsMetricModalOpen(false); setActiveReassessmentTableId(null); }} onAdd={(metricObj) => addMetricColumn(activeReassessmentTableId, metricObj)} />}
             </div>
@@ -1251,7 +959,7 @@
           const selectedMovement = currentMovements[selectedMovementIdx] || currentMovements[0]; 
 
           return (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-3 print:hidden">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-3">
               <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
                 <div className="flex justify-between items-center p-3 border-b border-slate-100 bg-slate-50"><h3 className="font-bold text-sm text-navy">New Column</h3><button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-200 rounded-full"><i className="ph-bold ph-x"></i></button></div>
                 <div className="p-4 space-y-4">
