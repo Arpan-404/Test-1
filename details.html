@@ -72,15 +72,13 @@
         .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; border-radius: 100px; font-weight: 700;}
         .btn-small:hover { background: #bfdbfe; }
 
-        /* DOCTORS & SERVICES LAYOUT */
+        /* SERVICES LAYOUT */
         .main { max-width: 800px; margin: 80px auto 2rem; background: var(--surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
         .title { color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
         .content { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;}
         
         .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 1px solid var(--border); }
-        .doc-avatar { width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; border: 4px solid var(--primary-light); color: var(--text-muted);}
         .entity-subtitle { color: var(--primary); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 1rem; }
-        .entity-price { color: var(--primary-dark); font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 2rem; background: var(--primary-light); display: inline-block; padding: 8px 24px; border-radius: 100px; margin-left: 50%; transform: translateX(-50%);}
         
         .test-list { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
         .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); transition: 0.2s;}
@@ -111,7 +109,7 @@
         .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.2s;}
         .btn-buy-now:active { transform: scale(0.98); }
         
-        /* WIKIPEDIA / PHYSIOPEDIA ARTICLE & EXERCISE LAYOUT */
+        /* WIKIPEDIA / BIOGRAPHY LAYOUT */
         .wiki-article-container { 
             max-width: 850px; 
             margin: 60px auto 0; 
@@ -137,6 +135,8 @@
         .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
         .wiki-article-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
+        
+        /* FLOATED IMAGE BEHAVES LIKE WIKIPEDIA INFOBOX ON DESKTOP */
         .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
         
         .wiki-related-box { margin-top: 3rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
@@ -152,7 +152,7 @@
             /* MAKE ENTIRE PAGE WHITE ON MOBILE FOR SEAMLESS EDGE-TO-EDGE */
             body { background: var(--surface) !important; padding-bottom: 2rem; }
             
-            /* EDGE-TO-EDGE PREMIUM LAYOUT FOR DOCTORS & SERVICES */
+            /* EDGE-TO-EDGE PREMIUM LAYOUT FOR SERVICES */
             .main { 
                 padding: 2rem 1.25rem !important; 
                 margin: 60px 0 0 !important; 
@@ -163,7 +163,7 @@
                 max-width: 100% !important;
             } 
             
-            /* EDGE TO EDGE FIX FOR ARTICLES & EXERCISES */
+            /* EDGE TO EDGE FIX FOR WIKI ARTICLES & DOCTORS */
             .wiki-article-container { 
                 margin: 60px 0 0 !important; 
                 width: 100% !important; 
@@ -178,7 +178,6 @@
             
             .wiki-article-title { font-size: 1.8rem !important; }
             .wiki-article-cover { float: none !important; width: 100% !important; max-width: 100% !important; margin: 1rem 0 1.5rem !important; }
-            .entity-price { width: 100% !important; }
             
             .prod-detail-main { margin: 60px 0 0 !important; }
         }
@@ -192,7 +191,6 @@
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
         <div class="header-actions">
-            <!-- Rock Solid Hamburger Button -->
             <div class="hamburger" id="hamburgerBtn">
                 <span></span><span></span><span></span>
             </div>
@@ -245,7 +243,6 @@
     <script>
         window.siteData = {}; 
 
-        // UNIVERSAL DATA NORMALIZER (Prevents crashes if Firebase returns an Object instead of an Array)
         window.normalizeData = (data) => {
             if (!data) return [];
             if (Array.isArray(data)) return data.filter(Boolean);
@@ -254,7 +251,6 @@
 
         window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         
-        // --- NEW ROCK-SOLID HAMBURGER MENU BINDINGS ---
         document.getElementById('hamburgerBtn').addEventListener('click', () => {
             document.getElementById('mobileMenu').classList.add('active');
             document.getElementById('overlay').classList.add('active');
@@ -267,7 +263,6 @@
             document.getElementById('mobileMenu').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
         });
-        // ----------------------------------------------
 
         document.addEventListener('click', (e) => {
             const res = document.getElementById('searchResults'), inp = document.getElementById('globalSearch');
@@ -309,7 +304,6 @@
                 let found = false;
 
                 if (reqType === 'exercise') {
-                    // Protected with normalizeData
                     const exList = window.normalizeData(exercisesData);
                     const exercise = exList.find(e => window.slugify(e.name) === reqSlug);
                     
@@ -339,7 +333,6 @@
                             </div>`;
                         }
 
-                        // --- EDGE-TO-EDGE LAYOUT ---
                         wrapper.innerHTML = `
                         <div class="wiki-article-container">
                             ${exercise.imageUrl ? `
@@ -355,7 +348,6 @@
                     }
                 }
                 else if (reqType === 'service') {
-                    // Protected with normalizeData
                     const servicesList = window.normalizeData(window.siteData.services);
                     const service = servicesList.find(s => window.slugify(s.title) === reqSlug);
                     if(service) {
@@ -374,26 +366,47 @@
                     }
                 } 
                 else if (reqType === 'doctor') {
-                    // Protected with normalizeData
                     const doctorsList = window.normalizeData(window.siteData.doctors);
                     const doc = doctorsList.find(d => window.slugify(d.name) === reqSlug);
                     if(doc) {
                         found = true;
                         updateSEO(doc.name + (doc.qualification ? ` - ${doc.qualification}` : ''), doc.details);
-                        const avatar = doc.photoUrl ? `<img src="${doc.photoUrl}" class="doc-avatar">` : `<div class="doc-avatar"><i class="ph-fill ph-stethoscope"></i></div>`;
+                        
+                        // Intelligent formatting for simple biography text to look like a Wikipedia article
+                        let formattedDetails = doc.details || 'Biography coming soon.';
+                        if (!formattedDetails.includes('<p>')) {
+                            formattedDetails = formattedDetails.split('\\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
+                        }
+
+                        // WIKIPEDIA BIOGRAPHY STYLE LAYOUT
                         wrapper.innerHTML = `
-                        <main class="main">
-                            ${avatar}
-                            <h1 class="title" style="margin-bottom:0.5rem;">${doc.name}</h1>
-                            <div class="entity-subtitle">${doc.qualification}</div>
-                            <div class="entity-price">Fee: ${doc.fees}</div>
-                            <p class="content">${doc.details}</p>
-                            <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}')">Book Appointment</button>
-                        </main>`;
+                        <div class="wiki-article-container">
+                            <div class="wiki-body">
+                                <h1 class="wiki-article-title" style="margin-bottom: 0.25rem; font-family: Georgia, 'Times New Roman', serif;">${doc.name}</h1>
+                                <div style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">${doc.qualification}</div>
+                                
+                                ${doc.photoUrl ? `<img src="${doc.photoUrl}" class="wiki-article-cover" style="width: 240px; border-radius: 4px; border: 1px solid #cbd5e1; padding: 5px; background: white;" alt="${doc.name}">` : ''}
+                                
+                                <div class="wiki-content" style="text-align: justify; font-size: 1.05rem;">
+                                    ${formattedDetails}
+                                </div>
+                                
+                                <div style="clear: both;"></div>
+
+                                <div style="margin-top: 3.5rem; padding: 1.25rem 1.5rem; background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+                                    <div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div>
+                                        <div style="font-size: 1.3rem; font-weight: 800; color: var(--text-dark);">${doc.fees ? (doc.fees.includes('₹') || doc.fees.toLowerCase().includes('rs') ? doc.fees : '₹' + doc.fees) : 'Contact for pricing'}</div>
+                                    </div>
+                                    <button onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}')" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.background='var(--primary)'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='var(--primary)'">
+                                        Book Consultation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
                     }
                 }
                 else if (reqType === 'product') {
-                    // Protected with normalizeData
                     const productsList = window.normalizeData(window.siteData.products);
                     const prod = productsList.find(p => window.slugify(p.name) === reqSlug);
                     if(prod) {
@@ -425,7 +438,6 @@
                     }
                 }
                 else {
-                    // Protected with normalizeData
                     const articlesList = window.normalizeData(window.siteData.articles);
                     const article = articlesList.find(a => (a.slug || '').toLowerCase() === reqSlug);
                     if(article) {
@@ -435,7 +447,6 @@
                         if(article.linkedServices && window.siteData.services) { window.normalizeData(window.siteData.services).filter(s => article.linkedServices.includes(s.id)).forEach(s => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${s.title}</div><div style="font-size:0.85rem; color:var(--text-muted);">Clinical Service</div></div><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book</button></div>`; }); }
                         if(article.linkedProducts && window.siteData.products) { window.normalizeData(window.siteData.products).filter(p => article.linkedProducts.includes(p.id)).forEach(p => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${p.name}</div><div style="font-size:0.85rem; color:var(--text-muted);">Wellness Product</div></div><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button></div>`; }); }
 
-                        // Articles also get the edge-to-edge treatment on mobile!
                         wrapper.innerHTML = `
                         <div class="wiki-article-container">
                             <div class="wiki-body">
@@ -468,7 +479,6 @@
                 return filtered.map(item => `<a href="${linkPrefix}${window.slugify(item.title || item.name)}" class="search-result-item">${imgFn(item)} <div><div style="font-weight:700;font-size:0.95rem;color:#1e293b;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
             };
 
-            // SEARCH NOW PROTECTED WITH NORMALIZED DATA
             const sHtml = filterMap(window.normalizeData(window.siteData.services), ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem; width:24px; text-align:center;">${s.icon}</div>`:`<div style="width:24px; text-align:center;"><i class="ph-bold ph-first-aid text-muted"></i></div>`, s=>s.title, s=>'Service');
             if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
 
@@ -486,7 +496,6 @@
             res.classList.add('active');
         }
 
-        // Keyframes for loader
         const style = document.createElement('style');
         style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
         document.head.appendChild(style);
