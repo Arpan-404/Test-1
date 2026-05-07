@@ -54,8 +54,8 @@
         .search-result-item:hover { background: #f8fafc; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
 
-        /* MOBILE MENU */
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border); }
+        /* MOBILE MENU - FIXED CSS right: 0 instead of -100% */
+        .mobile-menu { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border); }
         .mobile-menu.active { transform: translateX(0); } 
         .mobile-menu ul { list-style: none; }
         .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: var(--text-dark); transition: color 0.2s; }
