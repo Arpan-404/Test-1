@@ -191,7 +191,8 @@
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
         <div class="header-actions">
-            <div class="hamburger" id="hamburgerBtn">
+            <!-- FIXED HAMBURGER MENU CALL -->
+            <div class="hamburger" onclick="window.toggleMenu()">
                 <span></span><span></span><span></span>
             </div>
         </div>
@@ -202,7 +203,8 @@
     <div class="mobile-menu" id="mobileMenu">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border);">
             <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); margin: 0;">Menu</h2>
-            <button class="close-menu" id="closeMenuBtn"><i class="ph-bold ph-x"></i></button>
+            <!-- FIXED CLOSE MENU CALL -->
+            <button class="close-menu" onclick="window.toggleMenu()"><i class="ph-bold ph-x"></i></button>
         </div>
         <ul>
             <li><a href="/" class="main-nav-link"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Home</a></li>
@@ -225,7 +227,8 @@
         </ul>
     </div>
     
-    <div class="overlay" id="overlay"></div>
+    <!-- FIXED OVERLAY MENU CALL -->
+    <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <div id="loading">
         <i class="ph-bold ph-spinner-gap" style="font-size: 2.5rem; color: var(--primary); animation: spin 1s linear infinite;"></i>
@@ -251,18 +254,11 @@
 
         window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         
-        document.getElementById('hamburgerBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.add('active');
-            document.getElementById('overlay').classList.add('active');
-        });
-        document.getElementById('closeMenuBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-        });
-        document.getElementById('overlay').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-        });
+        // FIXED JAVASCRIPT TOGGLE FUNCTION (Replaced the old event listeners)
+        window.toggleMenu = () => { 
+            document.getElementById('mobileMenu').classList.toggle('active'); 
+            document.getElementById('overlay').classList.toggle('active'); 
+        };
 
         document.addEventListener('click', (e) => {
             const res = document.getElementById('searchResults'), inp = document.getElementById('globalSearch');
