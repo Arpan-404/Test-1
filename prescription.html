@@ -86,7 +86,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // ==========================================
@@ -233,17 +233,17 @@
                     const cleanInput = loginId.toLowerCase().replace(/\s+/g, '');
                     const cleanPhone = loginPhone.replace(/\s+/g, '').replace(/[^0-9]/g, '');
 
-                    const querySnapshot = await getDocs(collection(dbRecords, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients'));
-                    let match = null;
+                    // SECURE QUERY: Ask database ONLY for the specific UPID
+                    const patientsRef = collection(dbRecords, 'artifacts', 'physiocare-tracker', 'public', 'data', 'patients');
+                    const q = query(patientsRef, where("ipId", "==", cleanInput));
+                    const querySnapshot = await getDocs(q);
 
+                    let match = null;
                     querySnapshot.forEach((doc) => {
                         const p = doc.data();
                         if (p.isPublished) {
-                            const dbName = (p.name || '').toLowerCase().replace(/\s+/g, '');
-                            const dbIpId = (p.ipId || '').toLowerCase().replace(/\s+/g, '');
                             const dbPhone = (p.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
-
-                            if ((dbName === cleanInput || dbIpId === cleanInput) && dbPhone === cleanPhone) {
+                            if (dbPhone === cleanPhone) {
                                 match = { id: doc.id, ...p };
                             }
                         }
@@ -352,8 +352,8 @@
                                     {loginError && <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 text-center">{loginError}</div>}
                                     
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Patient Name or UPID</label>
-                                        <input type="text" required value={loginId} onChange={e => setLoginId(e.target.value)} placeholder="e.g. John Doe or 4092" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Patient UPID</label>
+                                        <input type="text" required value={loginId} onChange={e => setLoginId(e.target.value)} placeholder="e.g. 4092" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
                                     </div>
                                     
                                     <div className="space-y-1.5">
