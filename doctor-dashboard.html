@@ -332,8 +332,13 @@
                       try {
                           // Verify this user's Google Email against the Admin RTDB 'doctors' list
                           const docSnap = await get(ref(rtdbSite, 'site/doctors'));
-                          const doctors = docSnap.val() || [];
-                          const matchedDoc = doctors.find(d => d.gmail && d.gmail.toLowerCase() === user.email.toLowerCase());
+                          const rawDoctors = docSnap.val() || [];
+                          
+                          // Safely handle Firebase arrays with nulls or converted objects
+                          const doctorsArray = Array.isArray(rawDoctors) ? rawDoctors.filter(Boolean) : Object.values(rawDoctors).filter(Boolean);
+                          
+                          const userEmail = (user.email || "").toLowerCase().trim();
+                          const matchedDoc = doctorsArray.find(d => d && d.gmail && d.gmail.toLowerCase().trim() === userEmail);
                           
                           if (matchedDoc) {
                               setAuthRole('doctor');
@@ -341,7 +346,7 @@
                               if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) setViewMode('home');
                           } else {
                               await signOut(auth);
-                              setLoginError("Access Denied: Email not registered in Admin Panel.");
+                              setLoginError(`Access Denied: Email (${userEmail}) not registered in Admin Panel.`);
                               setViewMode('patient_login_form');
                           }
                       } catch(e) { console.error(e); }
@@ -385,12 +390,17 @@
                   
                   // Instantly verify their Gmail against admin records
                   const docSnap = await get(ref(rtdbSite, 'site/doctors'));
-                  const doctors = docSnap.val() || [];
-                  const matchedDoc = doctors.find(d => d.gmail && d.gmail.toLowerCase() === result.user.email.toLowerCase());
+                  const rawDoctors = docSnap.val() || [];
+                  
+                  // Safely handle Firebase arrays with nulls or converted objects
+                  const doctorsArray = Array.isArray(rawDoctors) ? rawDoctors.filter(Boolean) : Object.values(rawDoctors).filter(Boolean);
+                  
+                  const userEmail = (result.user.email || "").toLowerCase().trim();
+                  const matchedDoc = doctorsArray.find(d => d && d.gmail && d.gmail.toLowerCase().trim() === userEmail);
                   
                   if (!matchedDoc) {
                       await signOut(auth);
-                      setLoginError("Access Denied: Email not registered in Admin Panel.");
+                      setLoginError(`Access Denied: Email (${userEmail}) not registered in Admin Panel.`);
                   } else {
                       setCurrentDoctor(matchedDoc);
                       setAuthRole('doctor');
