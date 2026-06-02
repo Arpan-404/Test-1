@@ -100,7 +100,7 @@
         
         setPersistence(auth, browserLocalPersistence).catch((error) => console.error("Persistence error:", error));
 
-        // 2. PUBLIC DATABASE: Strictly to fetch Exercises
+        // 2. PUBLIC DATABASE: Fetch Exercises & Admin Doctors
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -210,6 +210,7 @@
           const [isConnecting, setIsConnecting] = useState(true);
           const [isCheckingSession, setIsCheckingSession] = useState(true);
           const [loginError, setLoginError] = useState("");
+          const [currentDoctor, setCurrentDoctor] = useState(null); // MULTI-DOCTOR: Holds specific logged-in doctor info
 
           const [patientLoginId, setPatientLoginId] = useState("");
           const [patientLoginPhone, setPatientLoginPhone] = useState("");
@@ -322,14 +323,28 @@
             return () => unsubscribe();
           }, [user]);
 
-          // Lightning Fast Session Restoration
+          // Lightning Fast Session Restoration & Multi-Doctor Admin Verification
           useEffect(() => {
               if (!user) { if (!isConnecting) setIsCheckingSession(false); return; }
               
               const checkLoginState = async () => {
                   if (!user.isAnonymous) {
-                      setAuthRole('doctor');
-                      if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) setViewMode('home');
+                      try {
+                          // Verify this user's Google Email against the Admin RTDB 'doctors' list
+                          const docSnap = await get(ref(rtdbSite, 'site/doctors'));
+                          const doctors = docSnap.val() || [];
+                          const matchedDoc = doctors.find(d => d.gmail && d.gmail.toLowerCase() === user.email.toLowerCase());
+                          
+                          if (matchedDoc) {
+                              setAuthRole('doctor');
+                              setCurrentDoctor(matchedDoc);
+                              if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) setViewMode('home');
+                          } else {
+                              await signOut(auth);
+                              setLoginError("Access Denied: Email not registered in Admin Panel.");
+                              setViewMode('patient_login_form');
+                          }
+                      } catch(e) { console.error(e); }
                       setIsCheckingSession(false);
                       return;
                   }
@@ -361,12 +376,25 @@
               checkLoginState();
           }, [user, isConnecting, isPatientsLoaded]); 
 
-          // EXPLICIT PERSISTENCE FOR DOCTOR LOGIN
+          // EXPLICIT PERSISTENCE FOR DOCTOR LOGIN + INSTANT VERIFICATION
           const handleDoctorGoogleLogin = async () => { 
               setLoginError(""); 
               try { 
                   await setPersistence(auth, browserLocalPersistence);
-                  await signInWithPopup(auth, googleProvider); 
+                  const result = await signInWithPopup(auth, googleProvider); 
+                  
+                  // Instantly verify their Gmail against admin records
+                  const docSnap = await get(ref(rtdbSite, 'site/doctors'));
+                  const doctors = docSnap.val() || [];
+                  const matchedDoc = doctors.find(d => d.gmail && d.gmail.toLowerCase() === result.user.email.toLowerCase());
+                  
+                  if (!matchedDoc) {
+                      await signOut(auth);
+                      setLoginError("Access Denied: Email not registered in Admin Panel.");
+                  } else {
+                      setCurrentDoctor(matchedDoc);
+                      setAuthRole('doctor');
+                  }
               } catch (error) {
                   console.error(error);
                   setLoginError("Staff login failed. Please try again.");
@@ -406,15 +434,35 @@
           const handleCreatePatient = () => {
             let newIpId;
             do { newIpId = Math.floor(1000 + Math.random() * 9000).toString(); } while (allPatients.some(p => p.ipId === newIpId));
-            const newPatient = { id: generateId(), ipId: newIpId, doctorId: user.uid, date: new Date().toISOString().split('T')[0], name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false };
+            
+            // Pre-seed doctor specific info for correct printing BEFORE saving
+            const newPatient = { 
+                id: generateId(), 
+                ipId: newIpId, 
+                doctorId: user.uid, 
+                doctorEmail: user.email,
+                doctorName: currentDoctor?.name || 'Arpan Das',
+                doctorPhone: currentDoctor?.phone || '9641568109',
+                doctorQual: currentDoctor?.qualification || 'BPT',
+                date: new Date().toISOString().split('T')[0], 
+                name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false 
+            };
             setDraftPatient(newPatient); setActivePatientId(newPatient.id); setViewMode('patient'); window.location.hash = `#/reports/${newIpId}`; 
           };
 
+          // MULTI-DOCTOR: Save Patient securely bound to specific doctor details
           const handleSavePatient = async (updatedPatient) => {
             if (authRole !== 'doctor') return;
             setIsSaving(true);
             try {
-                const patientToSave = { ...updatedPatient, doctorId: user.uid };
+                const patientToSave = { 
+                    ...updatedPatient, 
+                    doctorId: user.uid,
+                    doctorEmail: user.email,
+                    doctorName: currentDoctor?.name || 'Arpan Das',
+                    doctorPhone: currentDoctor?.phone || '9641568109',
+                    doctorQual: currentDoctor?.qualification || 'BPT'
+                };
                 delete patientToSave.trackedMetrics; delete patientToSave.records;
                 if (patientToSave.customTables) patientToSave.customTables = patientToSave.customTables.map(t => ({ ...t, rows: JSON.stringify(t.rows) }));
                 Object.keys(patientToSave).forEach(key => { if (patientToSave[key] === undefined) delete patientToSave[key]; });
@@ -457,7 +505,8 @@
               );
           }
 
-          const doctorPatients = allPatients.filter(p => p.doctorId === user?.uid);
+          // MULTI-DOCTOR: Filter patients allowing backward compatibility (uid) or new email-based match
+          const doctorPatients = allPatients.filter(p => p.doctorId === user?.uid || p.doctorEmail === user?.email);
           const activePatient = draftPatient || allPatients.find(p => p.id === activePatientId) || { id: activePatientId };
 
           // --- MAIN RENDER ---
@@ -963,8 +1012,8 @@
                   {/* Print Header */}
                   <div className="flex justify-between items-start pb-2 text-left">
                       <div>
-                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>Dr. Arpan Das (PT)</h1>
-                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">BPT (KPC Medical College and Hospital)</p>
+                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>{formData.doctorName ? `Dr. ${formData.doctorName}` : 'Dr. Arpan Das (PT)'}</h1>
+                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">{formData.doctorQual || 'BPT (KPC Medical College and Hospital)'}</p>
                           <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
                           <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
                       </div>
@@ -978,7 +1027,7 @@
 
                       <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
                           <div className="flex items-center gap-1.5 font-black text-2xl mb-6">
-                              <i className="ph-fill ph-phone-call text-[28px]"></i> +91 9641568109
+                              <i className="ph-fill ph-phone-call text-[28px]"></i> +91 {formData.doctorPhone || '9641568109'}
                           </div>
                           <div className="text-[16px] flex items-center gap-2 font-semibold">
                               <span>Date:</span> <span className="border-b border-[#1e40af] w-28 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span>
