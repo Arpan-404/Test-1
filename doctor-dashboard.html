@@ -451,9 +451,11 @@
                 ipId: newIpId, 
                 doctorId: user.uid, 
                 doctorEmail: user.email,
-                doctorName: currentDoctor?.name || 'Arpan Das',
+                doctorName: currentDoctor?.name || 'Dr. Arpan Das (PT)',
                 doctorPhone: currentDoctor?.phone || '9641568109',
-                doctorQual: currentDoctor?.qualification || 'BPT',
+                doctorQual: currentDoctor?.qualification || 'BPT (KPC Medical College and Hospital)',
+                doctorDesignation: currentDoctor?.designation || 'Consultant Physiotherapist',
+                doctorReg: currentDoctor?.regNumber || 'Reg. No 202105633 (WBUHS)',
                 date: new Date().toISOString().split('T')[0], 
                 name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false 
             };
@@ -469,9 +471,11 @@
                     ...updatedPatient, 
                     doctorId: user.uid,
                     doctorEmail: user.email,
-                    doctorName: currentDoctor?.name || 'Arpan Das',
+                    doctorName: currentDoctor?.name || 'Dr. Arpan Das (PT)',
                     doctorPhone: currentDoctor?.phone || '9641568109',
-                    doctorQual: currentDoctor?.qualification || 'BPT'
+                    doctorQual: currentDoctor?.qualification || 'BPT (KPC Medical College and Hospital)',
+                    doctorDesignation: currentDoctor?.designation || 'Consultant Physiotherapist',
+                    doctorReg: currentDoctor?.regNumber || 'Reg. No 202105633 (WBUHS)'
                 };
                 delete patientToSave.trackedMetrics; delete patientToSave.records;
                 if (patientToSave.customTables) patientToSave.customTables = patientToSave.customTables.map(t => ({ ...t, rows: JSON.stringify(t.rows) }));
@@ -1022,10 +1026,20 @@
                   {/* Print Header */}
                   <div className="flex justify-between items-start pb-2 text-left">
                       <div>
-                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>{formData.doctorName ? `Dr. ${formData.doctorName}` : 'Dr. Arpan Das (PT)'}</h1>
-                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">{formData.doctorQual || 'BPT (KPC Medical College and Hospital)'}</p>
-                          <p className="text-[16px] font-bold text-[#1e40af]">Consultant Physiotherapist</p>
-                          <p className="text-[12px] font-bold text-slate-600 mt-1">Reg. No 202105633 (WBUHS)</p>
+                          <h1 className="text-[38px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>
+                              {formData.doctorName || 'Dr. Arpan Das (PT)'}
+                          </h1>
+                          <p className="text-[16px] mt-2 font-bold text-[#1e40af]">
+                              {formData.doctorQual || 'BPT (KPC Medical College and Hospital)'}
+                          </p>
+                          <p className="text-[16px] font-bold text-[#1e40af]">
+                              {formData.doctorDesignation || 'Consultant Physiotherapist'}
+                          </p>
+                          {(formData.doctorReg || !formData.doctorName) && (
+                              <p className="text-[12px] font-bold text-slate-600 mt-1">
+                                  {formData.doctorReg || 'Reg. No 202105633 (WBUHS)'}
+                              </p>
+                          )}
                       </div>
                       
                       {formData.id && (
