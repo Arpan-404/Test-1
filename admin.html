@@ -548,6 +548,20 @@
 
                 const updateField = (f, v) => setLocalData(prev => ({ ...prev, [f]: v }));
                 
+                // Helper functions for dynamic pricing options array
+                const handleAddPricing = () => {
+                    const newPricing = [...(localData.pricingOptions || []), { id: Date.now().toString(), title: '', price: '', buttonText: 'Book Now' }];
+                    updateField('pricingOptions', newPricing);
+                };
+                
+                const handleRemovePricing = (id) => {
+                    updateField('pricingOptions', (localData.pricingOptions || []).filter(p => p.id !== id));
+                };
+                
+                const handleUpdatePricing = (id, field, value) => {
+                    updateField('pricingOptions', (localData.pricingOptions || []).map(p => p.id === id ? { ...p, [field]: value } : p));
+                };
+
                 const handleSave = () => {
                     if (type === 'article' && !localData.title) return alert("Title required");
                     if (type === 'article' && !localData.slug) localData.slug = slugify(localData.title);
@@ -585,16 +599,41 @@
                                             <div><label className="text-[10px] font-bold text-slate-400 uppercase">Designation</label><input type="text" value={localData.designation||''} onChange={e=>updateField('designation', e.target.value)} placeholder="Orthopaedic Surgeon" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                             <div><label className="text-[10px] font-bold text-slate-400 uppercase">Registration No.</label><input type="text" value={localData.regNumber||''} onChange={e=>updateField('regNumber', e.target.value)} placeholder="Reg. No 202105633" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Online Booking URL</label><input type="url" value={localData.onlineBookingUrl||''} onChange={e=>updateField('onlineBookingUrl', e.target.value)} placeholder="https://practo.com/..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Exercise Chart URL</label><input type="url" value={localData.exerciseChartUrl||''} onChange={e=>updateField('exerciseChartUrl', e.target.value)} placeholder="https://..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                        
+                                        {/* NEW: Dynamic Booking Options Array */}
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i className="ph-bold ph-list-plus text-azure"></i> Custom Booking Options & Fees</label>
+                                                <button onClick={handleAddPricing} className="text-[10px] font-bold bg-azure text-white px-2 py-1 rounded shadow-sm hover:bg-navy">Add Option</button>
+                                            </div>
+                                            
+                                            {(localData.pricingOptions || []).map((opt) => (
+                                                <div key={opt.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2 p-2 bg-white border border-slate-200 rounded-md relative shadow-sm">
+                                                    <div>
+                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Title</label>
+                                                        <input type="text" placeholder="e.g. Diet Chart" value={opt.title} onChange={e => handleUpdatePricing(opt.id, 'title', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Price</label>
+                                                        <input type="text" placeholder="e.g. ₹300" value={opt.price} onChange={e => handleUpdatePricing(opt.id, 'price', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Button Text</label>
+                                                        <input type="text" placeholder="e.g. Get Diet Chart" value={opt.buttonText} onChange={e => handleUpdatePricing(opt.id, 'buttonText', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
+                                                    </div>
+                                                    <button onClick={() => handleRemovePricing(opt.id)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-200 rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-sm hover:bg-red-500 hover:text-white transition"><i className="ph-bold ph-x"></i></button>
+                                                </div>
+                                            ))}
+                                            {(localData.pricingOptions || []).length === 0 && (
+                                                <div className="text-center py-4 text-xs text-slate-400 italic">No custom pricing added. System will use default layout.</div>
+                                            )}
                                         </div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="3" value={localData.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                                            <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message when booking this doctor. Use tag: {"{doctor_name}"}</p>
-                                            <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I want to book an appointment with {doctor_name}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
+
+                                        <div className="grid grid-cols-2 gap-3 mt-2">
+                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Online Booking Portal URL</label><input type="url" value={localData.onlineBookingUrl||''} onChange={e=>updateField('onlineBookingUrl', e.target.value)} placeholder="https://practo.com/..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Exercise Chart App URL</label><input type="url" value={localData.exerciseChartUrl||''} onChange={e=>updateField('exerciseChartUrl', e.target.value)} placeholder="https://..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                         </div>
+                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="5" value={localData.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                     </div>
                                 </>
                             )}
