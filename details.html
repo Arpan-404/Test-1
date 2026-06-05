@@ -54,7 +54,7 @@
         .search-result-item:hover { background: #f8fafc; }
         .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
 
-        /* MOBILE MENU */
+        /* MOBILE MENU - FIXED CSS right: 0 instead of -100% */
         .mobile-menu { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border); }
         .mobile-menu.active { transform: translateX(0); } 
         .mobile-menu ul { list-style: none; }
@@ -78,7 +78,6 @@
         .content { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;}
         
         .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 1px solid var(--border); }
-        .entity-subtitle { color: var(--primary); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 1rem; }
         
         .test-list { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
         .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); transition: 0.2s;}
@@ -109,7 +108,7 @@
         .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.2s;}
         .btn-buy-now:active { transform: scale(0.98); }
         
-        /* WIKIPEDIA / BIOGRAPHY LAYOUT */
+        /* WIKIPEDIA / EXERCISE LAYOUT */
         .wiki-article-container { 
             max-width: 850px; 
             margin: 60px auto 0; 
@@ -117,7 +116,6 @@
             min-height: calc(100vh - 60px);
             padding-bottom: 3rem;
         }
-        
         @media (min-width: 851px) {
             .wiki-article-container { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
         }
@@ -134,9 +132,7 @@
         .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
         .wiki-article-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
-        
-        /* ADJUSTED DOCTOR IMAGE STYLING */
-        .wiki-article-cover { width: 220px; float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); border: 1px solid #cbd5e1; padding: 4px; background: white; }
+        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
         
         .wiki-related-box { margin-top: 3rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
         .wiki-related-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;}
@@ -149,16 +145,13 @@
         
         @media (max-width: 768px) { 
             body { background: var(--surface) !important; padding-bottom: 2rem; }
-            .main { padding: 2rem 1.25rem !important; margin: 60px 0 0 !important; border-radius: 0 !important; border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; } 
+            .main { padding: 2rem 1.25rem !important; margin: 60px 0 0 !important; border-radius: 0 !important; border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important;} 
             .wiki-article-container { margin: 60px 0 0 !important; width: 100% !important; max-width: 100% !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
             .wiki-body { padding: 1.5rem 1.25rem !important; } 
             .ex-hero-container { height: 260px !important; padding: 0 !important; border-bottom: none !important; } 
             .ex-hero-container img { border-radius: 0 !important; }
             .wiki-article-title { font-size: 1.8rem !important; }
-            
-            /* Responsive image adjustment */
-            .wiki-article-cover { float: none !important; width: 180px !important; max-width: 100% !important; margin: 1rem auto 1.5rem !important; display: block; }
-            
+            .wiki-article-cover { float: none !important; width: 100% !important; max-width: 100% !important; margin: 1rem 0 1.5rem !important; }
             .prod-detail-main { margin: 60px 0 0 !important; }
         }
     </style>
@@ -171,6 +164,7 @@
             <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
         </div>
         <div class="header-actions">
+            <!-- FIXED HAMBURGER MENU CALL -->
             <div class="hamburger" onclick="window.toggleMenu()">
                 <span></span><span></span><span></span>
             </div>
@@ -182,6 +176,7 @@
     <div class="mobile-menu" id="mobileMenu">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border);">
             <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); margin: 0;">Menu</h2>
+            <!-- FIXED CLOSE MENU CALL -->
             <button class="close-menu" onclick="window.toggleMenu()"><i class="ph-bold ph-x"></i></button>
         </div>
         <ul>
@@ -205,6 +200,7 @@
         </ul>
     </div>
     
+    <!-- FIXED OVERLAY MENU CALL -->
     <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
 
     <div id="loading">
@@ -349,59 +345,79 @@
                             formattedDetails = formattedDetails.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
                         }
 
-                        // Use Doctor's specific phone if available
+                        // Use Doctor's specific phone if available for booking links
                         const targetPhone = doc.phone ? doc.phone.replace(/[^0-9]/g, '') : wNum;
                         const formattedPhone = targetPhone.length === 10 ? '91' + targetPhone : targetPhone;
-                        const waLink = `https://wa.me/${formattedPhone}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}`;
+
+                        // Build Dynamic Pricing Options
+                        const pricingOptions = doc.pricingOptions || [];
+                        let pricingHtml = '';
                         
-                        const docFees = doc.fees ? (doc.fees.includes('₹') || doc.fees.toLowerCase().includes('rs') ? doc.fees : '₹' + doc.fees) : 'Contact for pricing';
-
-                        // Build Action Buttons dynamically based on Admin Data
-                        let actionButtonsHtml = `
-                            <button onclick="window.open('${waLink}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; min-width: max-content;">
-                                <i class="ph-bold ph-whatsapp-logo text-lg"></i> Book via WhatsApp
-                            </button>
-                        `;
-
-                        if (doc.onlineBookingUrl) {
-                            actionButtonsHtml += `
-                            <button onclick="window.open('${doc.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px 24px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; min-width: max-content;">
-                                <i class="ph-bold ph-calendar-plus text-lg"></i> Online Booking
-                            </button>
-                            `;
-                        }
-
-                        if (doc.exerciseChartUrl) {
-                            actionButtonsHtml += `
-                            <button onclick="window.open('${doc.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px 24px; background: #f1f5f9; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; min-width: max-content;">
-                                <i class="ph-bold ph-person-simple-walk text-lg"></i> Exercise Chart
-                            </button>
+                        if (pricingOptions.length > 0) {
+                            pricingHtml = pricingOptions.map(opt => {
+                                const optMsg = `Hello, I want to request: ${opt.title} with ${doc.name}`;
+                                const optWaLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(optMsg)}`;
+                                return `
+                                <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-soft);">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                        <div>
+                                            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">${opt.title || 'Consultation'}</div>
+                                            <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${opt.price || 'Contact for price'}</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="window.open('${optWaLink}')" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">
+                                        ${opt.buttonText || 'Book Now'}
+                                    </button>
+                                </div>
+                                `;
+                            }).join('');
+                        } else {
+                            // Default Fallback Option
+                            const fallbackLink = `https://wa.me/${formattedPhone}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}`;
+                            const fallbackFee = doc.fees ? (doc.fees.includes('₹') || doc.fees.toLowerCase().includes('rs') ? doc.fees : '₹' + doc.fees) : 'Contact for pricing';
+                            pricingHtml = `
+                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; box-shadow: var(--shadow-soft);">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div>
+                                    <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${fallbackFee}</div>
+                                </div>
+                                <button onclick="window.open('${fallbackLink}')" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">
+                                    Book Consultation
+                                </button>
+                            </div>
                             `;
                         }
 
                         wrapper.innerHTML = `
-                        <div class="wiki-article-container">
-                            <div class="wiki-body">
-                                <h1 class="wiki-article-title" style="margin-bottom: 0.25rem; font-family: Georgia, 'Times New Roman', serif;">${doc.name}</h1>
-                                <div style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">${doc.qualification}</div>
+                        <div class="main" style="margin-top: 80px; max-width: 600px;">
+                            <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); overflow: hidden; padding: 2rem 1.5rem;">
                                 
-                                ${doc.photoUrl ? `<img src="${doc.photoUrl}" class="wiki-article-cover" alt="${doc.name}">` : ''}
-                                
-                                <div class="wiki-content" style="text-align: justify; font-size: 1.05rem;">
+                                <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
+                                    ${doc.photoUrl ? `<img src="${doc.photoUrl}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1.2rem;" alt="${doc.name}">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
+                                    <h1 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${doc.name}</h1>
+                                    <div style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${doc.designation || 'Consultant Physiotherapist'}</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${doc.qualification}</div>
+                                    ${doc.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #f8fafc; padding: 4px 12px; border-radius: 100px;">${doc.regNumber}</div>` : ''}
+                                </div>
+
+                                <div class="wiki-content" style="text-align: left; font-size: 1.05rem; margin-bottom: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
                                     ${formattedDetails}
                                 </div>
-                                
-                                <div style="clear: both;"></div>
 
-                                <div style="margin-top: 3.5rem; padding: 1.5rem; background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1.5rem;">
-                                    <div>
-                                        <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div>
-                                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-dark);">${docFees}</div>
-                                    </div>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; width: 100%;">
-                                        ${actionButtonsHtml}
+                                <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; background: #f8fafc; margin: 0 -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
+                                    <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; text-align: center;">Booking Options</h3>
+                                    
+                                    <div style="display: flex; flex-direction: column;">
+                                        ${pricingHtml}
                                     </div>
                                 </div>
+                                
+                                ${(doc.onlineBookingUrl || doc.exerciseChartUrl) ? `
+                                <div style="margin-top: 1rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; gap: 10px;">
+                                    ${doc.onlineBookingUrl ? `<button onclick="window.open('${doc.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph-bold ph-calendar-plus text-lg"></i> Online Booking Portal</button>` : ''}
+                                    ${doc.exerciseChartUrl ? `<button onclick="window.open('${doc.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: #f1f5f9; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph-bold ph-person-simple-walk text-lg"></i> View Exercise Chart</button>` : ''}
+                                </div>` : ''}
+
                             </div>
                         </div>`;
                     }
@@ -451,7 +467,7 @@
                         <div class="wiki-article-container">
                             <div class="wiki-body">
                                 <h1 class="wiki-article-title">${article.title}</h1>
-                                <div class="wiki-content ql-editor">${article.imageUrl ? `<img src="${article.imageUrl}" class="wiki-article-cover" alt="${article.title}">` : ''}${article.content}</div>
+                                <div class="wiki-content ql-editor">${article.imageUrl ? `<img src="${article.imageUrl}" class="wiki-article-cover" style="float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); width: 100%; max-width: 350px;" alt="${article.title}">` : ''}${article.content}</div>
                                 ${relatedHtml ? `<div class="wiki-related-box"><div class="wiki-related-title"><i class="ph-bold ph-link text-primary"></i> Related Resources</div><div class="wiki-related-grid">${relatedHtml}</div></div>` : ''}
                             </div>
                         </div>`;
