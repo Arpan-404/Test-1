@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Therapeutic Hub | Expert Physiotherapy</title>
+    <meta name="description" content="Expert healthcare, physiotherapy, and rehabilitation services at Therapeutic Hub.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* PREMIUM MEDICAL THEME */
+        :root {
+            --app-bg: #f8fafc; --surface: #ffffff; --primary: #2563eb; --primary-dark: #1e40af; --primary-light: #dbeafe;  
+            --text-dark: #0f172a; --text-muted: #475569; --border: #e2e8f0;
+            --shadow-soft: 0 4px 15px rgba(15, 23, 42, 0.04); --shadow-hover: 0 10px 25px rgba(15, 23, 42, 0.08); 
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; padding-bottom: 2.5rem; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; cursor: pointer; }
+
+        /* HEADER */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; border-bottom: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .logo { display: flex; align-items: center; }
+        .logo-img { width: 36px; height: 36px; border-radius: var(--radius-sm); object-fit: cover; }
+        
+        .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; max-width: 250px; margin: 0 auto; }
+        .search-input { width: 100%; padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border); background: #f1f5f9; font-size: 0.9rem; transition: all 0.2s ease; color: var(--text-dark); }
+        .search-input:focus { background: var(--surface); border-color: var(--primary); outline: none; }
+        
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
+        .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; transition: 0.2s; }
+
+        /* SEARCH RESULTS DROPDOWN */
+        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; border: 1px solid var(--border); }
+        .search-results.active { display: block; }
+        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: var(--radius-sm); }
+        .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
+
+        /* MOBILE MENU */
+        .mobile-menu { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transform: translateX(100%); transition: transform 0.3s ease; padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border); }
+        .mobile-menu.active { transform: translateX(0); } 
+        .mobile-menu ul { list-style: none; }
+        .mobile-menu ul li a { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: var(--text-dark); transition: color 0.2s; }
+        .mobile-menu ul li a:hover { color: var(--primary); }
+        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 999; visibility: hidden; opacity: 0; transition: 0.3s;}
+        .overlay.active { visibility: visible; opacity: 1; }
+
+        /* SPA VIEW LOGIC */
+        .app-view { display: none; animation: fadeIn 0.3s ease; margin-top: 75px; padding: 0 1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .app-view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LOADER */
+        .loader { width: 40px; height: 40px; border: 4px solid var(--primary-light); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* REUSABLE STYLES */
+        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; margin-top: 2rem; }
+        .section-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.3px;}
+        .view-all { font-size: 0.85rem; color: var(--primary); font-weight: 700; }
+        .btn { display: block; padding: 14px 20px; background: var(--primary); color: white; border-radius: var(--radius-sm); font-weight: 700; text-align: center; border: none; width: 100%; transition: 0.2s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);}
+        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; border-radius: 100px; font-weight: 700;}
+        
+        /* HORIZONTAL SCROLL & GRIDS */
+        .h-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; margin: 0 -1rem; padding: 0 1rem 15px; scroll-snap-type: x mandatory; }
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .grid-2-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .flex-stack { display: flex; flex-direction: column; gap: 12px; }
+        @media (min-width: 600px) { .grid-2-col { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; } .h-scroll { gap: 16px; } }
+
+        /* HOME HERO SPECIFIC STYLES */
+        .hero-wrapper { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2rem; box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
+        .slider-container { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; background: #e2e8f0; }
+        .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease; }
+        .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
+        .hero-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; }
+        .hero-actions { display: flex; gap: 12px; width: 100%; align-items: center; }
+        .btn-book { flex: 2; background: #1e293b; color: white; border: none; padding: 14px 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+        .btn-call { flex: 1; background: var(--surface); color: #334155; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.95rem; padding: 14px 16px; transition: all 0.2s; }
+
+        /* CARDS */
+        .card { background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 12px; text-align: center; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card h4 { font-size: 0.95rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: 4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        .card p { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0; }
+        .card-img-circle { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--primary-light); background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .card-img-square { width: 100%; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: var(--radius-sm); background: #f8fafc; padding: 5px; }
+
+        .card-compact { min-width: 280px; width: 100%; background: var(--surface); border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; gap: 12px; scroll-snap-align: start; box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
+        .card-compact-img { width: 70px; height: 70px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+
+        .article-row { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border);}
+        .article-row img { width: 75px; height: 75px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; background: #f1f5f9; }
+        
+        /* === SPECIFIC DETAIL STYLES === */
+        
+        /* Products */
+        .prod-detail-main { background: var(--app-bg); margin: -1rem -1rem 0 -1rem; padding-bottom: 80px; }
+        .prod-image-section { background: var(--surface); padding: 1.5rem 0; border-bottom: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .prod-main-img { width: 100%; height: 300px; object-fit: contain; }
+        .gallery-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 1.5rem; scrollbar-width: none; }
+        .gallery-thumb { width: 65px; height: 65px; border-radius: var(--radius-sm); object-fit: contain; border: 2px solid transparent; cursor: pointer; padding: 4px; background: #f1f5f9; transition: 0.2s; }
+        .gallery-thumb:hover { border-color: var(--primary-light); }
+        .prod-freedel { color: #10b981; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; background: #ecfdf5; padding: 4px 10px; border-radius: 100px; margin-top: 8px;}
+        .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: flex; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 999; border-top: 1px solid var(--border); }
+        .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+
+        /* Services */
+        .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 1px solid var(--border); }
+        .test-list { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+
+        /* Articles / Wiki */
+        .wiki-article-container { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
+        .wiki-article-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
+        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
+        .wiki-related-box { margin-top: 2.5rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .wiki-related-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px;}
+        
+        .video-container { width: 100%; aspect-ratio: 16/9; background: #0f172a; border-radius: var(--radius-md); overflow: hidden; margin-top: 1rem; margin-bottom: 1.5rem; }
+        .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER & SEARCH -->
+    <header class="header">
+        <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
+        <div class="search-container">
+            <input type="text" id="globalSearch" class="search-input" placeholder="Search clinics, specialists..." oninput="window.handleSearch()">
+        </div>
+        <div class="header-actions">
+            <div class="hamburger" onclick="window.toggleMenu()"><span></span><span></span><span></span></div>
+        </div>
+    </header>
+
+    <div id="searchResults" class="search-results"></div>
+
+    <!-- MOBILE MENU -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border);">
+            <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); margin: 0;">Menu</h2>
+            <button class="close-menu" onclick="window.toggleMenu()"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <ul onclick="window.toggleMenu()">
+            <li><a href="/"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Home</a></li>
+            <li><a href="/services"><i class="ph-bold ph-first-aid" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Services</a></li>
+            <li><a href="/doctors"><i class="ph-bold ph-stethoscope" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Team</a></li>
+            <li><a href="/products"><i class="ph-bold ph-shopping-bag" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Wellness Products</a></li>
+            <li><a href="/articles"><i class="ph-bold ph-article" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Health Articles</a></li>
+            <li><a href="/exercises"><i class="ph-bold ph-person-simple-walk" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Rehabilitation Exercises</a></li>
+            <li><a href="/prescription.html"><i class="ph-bold ph-folder-open" style="margin-right: 12px; font-size: 1.3rem; color: var(--primary);"></i> Patient Records</a></li>
+        </ul>
+    </div>
+    <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
+
+    <!-- VIEW 1: HOME PAGE -->
+    <main id="view-home" class="app-view active">
+        <div id="home-content"><div class="loader"></div></div>
+    </main>
+
+    <!-- VIEW 2: LIST PAGES -->
+    <main id="view-list" class="app-view">
+        <h1 class="page-title" id="list-title">Loading...</h1>
+        <div id="list-grid"><div class="loader"></div></div>
+        <!-- INVISIBLE TRIGGER FOR INFINITE SCROLL -->
+        <div id="load-more-trigger" style="height: 1px; width: 100%; margin-top: 10px;"></div>
+    </main>
+
+    <!-- VIEW 3: SPECIFIC DETAILS -->
+    <main id="view-detail" class="app-view">
+        <button onclick="window.history.back()" style="background:none; border:none; color:var(--text-muted); font-weight:800; margin-bottom:1rem; font-size:1rem; display:flex; align-items:center; gap:5px;"><i class="ph-bold ph-arrow-left"></i> Back</button>
+        <div id="detail-content"></div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+        const app = initializeApp({ apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", projectId: "clinic-bdf92" });
+        const db = getDatabase(app);
+        
+        window.siteData = {};
+        window.exercisesData = null; 
+
+        // --- INFINITE SCROLL STATE ---
+        let currentListItems = [];
+        let currentVisibleCount = 0;
+        const CHUNK_SIZE = 24;
+        let listObserver = null;
+        let currentActiveRoute = '';
+
+        // HELPERS
+        window.toggleMenu = () => { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); };
+        window.slugify = (text) => text?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || '';
+        const normalize = (data) => data ? (Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean)) : [];
+        window.changeMainImg = (url) => { const mainImg = document.getElementById('mainProdImg'); if(mainImg) mainImg.src = url; };
+
+        // DYNAMIC SEO TAG UPDATER
+        function updateSEO(title, description) {
+            document.title = title ? `${title} | Therapeutic Hub` : 'Therapeutic Hub | Expert Physiotherapy';
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc && description) {
+                metaDesc.content = description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+            }
+        }
+
+        // INTERCEPT LINKS FOR CLEAN URL SPA ROUTING
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link) {
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('/') && !href.includes('.html') && !href.startsWith('http')) {
+                    e.preventDefault();
+                    window.history.pushState({}, '', href);
+                    handleRoute();
+                }
+            }
+        });
+
+        // SLIDER
+        let slideIndex = 0; let slideDirection = 1; let slideInterval;
+        function setupSlider(images) {
+            const track = document.getElementById('sliderTrack');
+            if(!track) return;
+            if(!images || images.length === 0) return track.innerHTML = '<div class="slide" style="background:#1e293b;"></div>';
+            track.innerHTML = images.map(img => `<div class="slide" style="background-image:url('${img}')"></div>`).join('');
+            clearInterval(slideInterval);
+            if(images.length > 1) {
+                slideInterval = setInterval(() => {
+                    slideIndex += slideDirection;
+                    if(slideIndex >= images.length - 1) slideDirection = -1; else if(slideIndex <= 0) slideDirection = 1; 
+                    track.style.transform = `translateX(-${slideIndex * 100}%)`;
+                }, 4000); 
+            }
+        }
+
+        async function fetchCoreData() {
+            try {
+                const res = await fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json');
+                window.siteData = await res.json() || {};
+                if (window.siteData.hero?.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
+                handleRoute(); 
+            } catch (error) { document.getElementById('home-content').innerHTML = '<p style="text-align:center; color:red;">Connection Error.</p>'; }
+        }
+
+        async function fetchExercisesLazy() {
+            if (window.exercisesData) return window.exercisesData;
+            try {
+                const res = await fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/exercises.json');
+                const data = await res.json();
+                window.exercisesData = normalize(data).reverse(); 
+                return window.exercisesData;
+            } catch (error) { return []; }
+        }
+
+        // --- INFINITE SCROLL FUNCTIONS ---
+        function setupObserver() {
+            if (listObserver) listObserver.disconnect();
+            const trigger = document.getElementById('load-more-trigger');
+            if (!trigger) return;
+
+            // Trigger loading 200px before the user hits the bottom
+            listObserver = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    renderNextChunk();
+                }
+            }, { rootMargin: "200px" });
+
+            listObserver.observe(trigger);
+        }
+
+        function renderNextChunk() {
+            if (currentVisibleCount >= currentListItems.length) return;
+            
+            const nextItems = currentListItems.slice(currentVisibleCount, currentVisibleCount + CHUNK_SIZE);
+            if (nextItems.length === 0) return;
+
+            let html = '';
+            
+            if (currentActiveRoute === 'articles') {
+                html = nextItems.map(a => `
+                    <a href="/article/${window.slugify(a.title || a.slug)}" class="article-row">
+                        ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : `<div style="width:75px;height:75px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📄</div>`}
+                        <div><h4 style="font-size:0.95rem; font-weight:800; color:#1e293b; line-height:1.2; margin-bottom:4px;">${a.title}</h4>
+                        <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${a.content ? a.content.replace(/<[^>]*>?/gm, '') : ''}</p></div>
+                    </a>
+                `).join('');
+            } else if (currentActiveRoute === 'services') {
+                html = nextItems.map(s => `
+                    <a href="/service/${window.slugify(s.title)}" class="card-compact">
+                        ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
+                        <div><h4 class="card-compact-title">${s.title}</h4><p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p></div>
+                    </a>
+                `).join('');
+            } else {
+                html = nextItems.map(item => {
+                    const title = item.title || item.name;
+                    const img = item.photoUrl || item.profilePhoto || item.bannerImageUrl || item.imageUrl;
+                    const sub = item.qualification || item.price || '';
+                    if (currentActiveRoute === 'exercises') {
+                        return `<a href="/exercise/${window.slugify(title)}" class="card" style="padding:10px;">${img ? `<img src="${img}" class="card-img-square" loading="lazy" style="mix-blend-mode:multiply; height:80px;">` : `<div class="card-img-square" style="display:flex;align-items:center;justify-content:center;font-size:2rem; height:80px;">🏃</div>`}<h4>${title}</h4></a>`;
+                    } else {
+                        const isSquare = currentActiveRoute === 'products';
+                        return `<a href="/${currentActiveRoute.slice(0,-1)}/${window.slugify(title)}" class="card">${img ? `<img src="${img}" class="${isSquare ? 'card-img-square' : 'card-img-circle'}" loading="lazy">` : `<div class="${isSquare ? 'card-img-square' : 'card-img-circle'}" style="font-size:2rem; display:flex; align-items:center; justify-content:center;">${isSquare?'📦':'👨‍⚕️'}</div>`}<h4>${title}</h4><p>${sub}</p></a>`;
+                    }
+                }).join('');
+            }
+
+            document.getElementById('list-grid').insertAdjacentHTML('beforeend', html);
+            currentVisibleCount += nextItems.length;
+
+            if (currentVisibleCount >= currentListItems.length) {
+                if (listObserver) listObserver.disconnect();
+            }
+        }
+
+        // --- NEW CLEAN URL ROUTER ---
+        async function handleRoute() {
+            if (listObserver) listObserver.disconnect(); // Stop checking scroll when page changes
+
+            let path = window.location.pathname.replace(/^\/|\/$/g, '');
+            if (window.location.search.startsWith('?/')) {
+                path = window.location.search.slice(2).split('&')[0];
+                window.history.replaceState(null, null, '/' + path);
+            }
+
+            const parts = path.split('/').filter(Boolean);
+            const knownRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'doctor', 'service', 'product', 'article', 'exercise'];
+            
+            let route = 'home';
+            let slug = '';
+
+            for (let i = 0; i < parts.length; i++) {
+                if (knownRoutes.includes(parts[i])) {
+                    route = parts[i];
+                    slug = parts[i+1] || '';
+                    break;
+                }
+            }
+
+            if(route === 'index.html') route = 'home';
+
+            document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active'));
+            window.scrollTo(0,0);
+
+            if (route === 'home') {
+                updateSEO('Home', 'Expert healthcare, physiotherapy, and rehabilitation services.');
+                document.getElementById('view-home').classList.add('active');
+                
+                const hero = window.siteData.hero || {};
+                const phone = hero.whatsappNumber || '';
+                const sliderImages = hero.sliderImages || (hero.bannerImageUrl ? [hero.bannerImageUrl] : []);
+                
+                let html = `
+                    <div class="hero-wrapper">
+                        <div class="slider-container"><div class="slider-track" id="sliderTrack"></div></div>
+                        <div class="hero-content">
+                            <div class="hero-actions">
+                                <button class="btn-book" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to book an appointment.')">Book Appointment</button>
+                                <a href="tel:${phone.replace(/[^0-9+]/g, '')}" class="btn-call">Call Clinic</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const services = normalize(window.siteData.services);
+                if (services.length > 0) {
+                    html += `
+                    <div class="section-header"><h2 class="section-title">Clinical Services</h2><a href="/services" class="view-all">View All</a></div>
+                    <div class="h-scroll">
+                        ${services.map(s => `
+                            <a href="/service/${window.slugify(s.title)}" class="card-compact" style="min-width: 250px;">
+                                ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
+                                <div><h4 class="card-compact-title">${s.title}</h4><p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p></div>
+                            </a>
+                        `).join('')}
+                    </div>`;
+                }
+
+                const doctors = normalize(window.siteData.doctors);
+                if (doctors.length > 0) {
+                    html += `
+                    <div class="section-header"><h2 class="section-title">Our Specialists</h2><a href="/doctors" class="view-all">View Team</a></div>
+                    <div class="h-scroll">
+                        ${doctors.map(d => `
+                            <a href="/doctor/${window.slugify(d.name)}" class="card" style="min-width: 140px; justify-content: start;">
+                                ${d.photoUrl ? `<img src="${d.photoUrl}" class="card-img-circle" loading="lazy">` : `<div class="card-img-circle">👨‍⚕️</div>`}
+                                <h4>${d.name}</h4><p>${d.qualification || 'Specialist'}</p>
+                            </a>
+                        `).join('')}
+                    </div>`;
+                }
+
+                html += `
+                <div class="section-header"><h2 class="section-title">Rehabilitation</h2><a href="/exercises" class="view-all">View Library</a></div>
+                <div class="h-scroll" id="home-exercises-container"><div class="loader" style="width:25px;height:25px;margin:10px auto;"></div></div>`;
+
+                const products = normalize(window.siteData.products);
+                if (products.length > 0) {
+                    html += `
+                    <div class="section-header"><h2 class="section-title">Wellness Products</h2><a href="/products" class="view-all">View Store</a></div>
+                    <div class="h-scroll">
+                        ${products.map(p => {
+                            let price = p.price; if(!price.includes('₹') && !price.toLowerCase().includes('rs')) price = '₹' + price;
+                            return `
+                            <a href="/product/${window.slugify(p.name)}" class="card" style="min-width: 140px; justify-content: start;">
+                                ${p.profilePhoto ? `<img src="${p.profilePhoto}" class="card-img-square" loading="lazy">` : `<div class="card-img-square" style="font-size:2rem; display:flex; align-items:center; justify-content:center;">📦</div>`}
+                                <h4>${p.name}</h4><div style="font-size:0.95rem; color:#1e293b; font-weight:800; margin-top:4px;">${price}</div>
+                            </a>`
+                        }).join('')}
+                    </div>`;
+                }
+
+                const articles = normalize(window.siteData.articles).sort((a,b) => new Date(b.date) - new Date(a.date));
+                if (articles.length > 0) {
+                    html += `
+                    <div class="section-header"><h2 class="section-title">Health Articles</h2><a href="/articles" class="view-all">Read All</a></div>
+                    <div class="flex-stack">
+                        ${articles.slice(0, 3).map(a => `
+                            <a href="/article/${window.slugify(a.title || a.slug)}" class="article-row">
+                                ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : `<div style="width:75px;height:75px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📄</div>`}
+                                <div><h4 style="font-size:0.95rem; font-weight:800; color:#1e293b; line-height:1.2; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${a.title}</h4>
+                                <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${a.content ? a.content.replace(/<[^>]*>?/gm, '') : ''}</p></div>
+                            </a>
+                        `).join('')}
+                    </div>`;
+                }
+
+                document.getElementById('home-content').innerHTML = html;
+                setTimeout(() => setupSlider(sliderImages), 100);
+
+                fetchExercisesLazy().then(exData => {
+                    const exContainer = document.getElementById('home-exercises-container');
+                    if (exContainer) {
+                        if (exData && exData.length > 0) {
+                            exContainer.innerHTML = exData.slice(0, 6).map(ex => `
+                                <a href="/exercise/${window.slugify(ex.name)}" class="card" style="min-width: 140px; padding:10px; justify-content:start;">
+                                    ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="card-img-square" loading="lazy" style="mix-blend-mode:multiply; height:80px;">` : `<div class="card-img-square" style="display:flex;align-items:center;justify-content:center;font-size:2rem; height:80px;">🏃</div>`}
+                                    <h4>${ex.name}</h4>
+                                </a>
+                            `).join('');
+                        } else { exContainer.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-muted); font-size:0.9rem;">No exercises available.</p>'; }
+                    }
+                });
+            } 
+            else if (['doctors', 'services', 'products', 'articles', 'exercises'].includes(route) && !slug) {
+                // --- INFINITE SCROLL LIST PAGES ---
+                updateSEO(route.charAt(0).toUpperCase() + route.slice(1), `Browse our ${route}`);
+                document.getElementById('view-list').classList.add('active');
+                document.getElementById('list-title').innerText = route.charAt(0).toUpperCase() + route.slice(1);
+                
+                const grid = document.getElementById('list-grid');
+                grid.innerHTML = '<div class="loader"></div>';
+                
+                // Set Up The State For Current Page
+                currentActiveRoute = route;
+                currentVisibleCount = 0;
+
+                if (route === 'exercises') { 
+                    currentListItems = await fetchExercisesLazy(); 
+                } else { 
+                    currentListItems = normalize(window.siteData[route]); 
+                    if (route === 'articles') currentListItems.sort((a,b) => new Date(b.date) - new Date(a.date));
+                }
+
+                grid.innerHTML = ''; // Clear loader
+                
+                if (route === 'articles' || route === 'services') grid.className = 'flex-stack';
+                else grid.className = 'grid-2-col';
+
+                if (currentListItems.length === 0) {
+                    grid.innerHTML = `<p style="text-align:center; grid-column:1/-1;">No items found.</p>`;
+                } else {
+                    renderNextChunk(); // Draw first 24 items
+                    setupObserver();   // Turn on the invisible motion sensor
+                }
+            }
+            else if (slug) {
+                // --- DETAIL PAGES ---
+                document.getElementById('view-detail').classList.add('active');
+                const container = document.getElementById('detail-content');
+                container.innerHTML = '<div class="loader"></div>';
+                
+                let listData = [];
+                if (route === 'exercise') { listData = await fetchExercisesLazy(); }
+                else { listData = normalize(window.siteData[route + 's']); }
+                
+                const item = listData?.find(i => window.slugify(i.title || i.name || i.slug) === slug);
+                if (!item) return container.innerHTML = '<p style="text-align:center;">Page not found.</p>';
+
+                const title = item.title || item.name;
+                const img = item.photoUrl || item.profilePhoto || item.bannerImageUrl || item.imageUrl;
+                const phone = window.siteData.hero?.whatsappNumber?.replace('+', '') || '';
+                
+                updateSEO(title, item.details || item.description || item.content);
+
+                let extraHtml = '';
+                if (route === 'doctor') {
+                    let detailsHtml = item.details || 'Biography coming soon.';
+                    if (!detailsHtml.includes('<p>')) detailsHtml = detailsHtml.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
+                    
+                    const targetPhone = item.phone ? item.phone.replace(/[^0-9]/g, '') : phone;
+                    const formattedPhone = targetPhone.length === 10 ? '91' + targetPhone : targetPhone;
+
+                    let pricingHtml = '';
+                    if (item.pricingOptions && item.pricingOptions.length > 0) {
+                        pricingHtml = item.pricingOptions.map(opt => `
+                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-soft);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                    <div><div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">${opt.title || 'Consultation'}</div><div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${opt.price || 'Contact for price'}</div></div>
+                                </div>
+                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to request: ${opt.title} with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">${opt.buttonText || 'Book Now'}</button>
+                            </div>`).join('');
+                    } else {
+                        const fallbackFee = item.fees ? (item.fees.includes('₹') || item.fees.toLowerCase().includes('rs') ? item.fees : '₹' + item.fees) : 'Contact for pricing';
+                        pricingHtml = `
+                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; box-shadow: var(--shadow-soft);">
+                                <div><div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div><div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${fallbackFee}</div></div>
+                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to book an appointment with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; width: 100%;">Book Consultation</button>
+                            </div>`;
+                    }
+
+                    container.innerHTML = `
+                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2rem 1.5rem;">
+                            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
+                                ${item.photoUrl ? `<img src="${item.photoUrl}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1.2rem;">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
+                                <h2 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${item.name}</h2>
+                                <div style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${item.designation || 'Consultant Physiotherapist'}</div>
+                                <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${item.qualification}</div>
+                                ${item.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #f8fafc; padding: 4px 12px; border-radius: 100px;">${item.regNumber}</div>` : ''}
+                            </div>
+                            <div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">${detailsHtml}</div>
+                            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; background: #f8fafc; margin: 0 -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; text-align: center;">Booking Options</h3>
+                                ${pricingHtml}
+                            </div>
+                            ${(item.onlineBookingUrl || item.exerciseChartUrl) ? `
+                            <div style="margin-top: 1rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; gap: 10px;">
+                                ${item.onlineBookingUrl ? `<button onclick="window.open('${item.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; width: 100%;">Online Booking Portal</button>` : ''}
+                                ${item.exerciseChartUrl ? `<button onclick="window.open('${item.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: #f1f5f9; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; width: 100%;">View Exercise Chart</button>` : ''}
+                            </div>` : ''}
+                        </div>
+                    `;
+                } 
+                else if (route === 'product') {
+                    let allImages = [];
+                    if (item.profilePhoto) allImages.push(item.profilePhoto);
+                    if (item.galleryImages && Array.isArray(item.galleryImages)) allImages = allImages.concat(item.galleryImages);
+                    const uniqueImages = [...new Set(allImages)]; 
+                    let galleryHtml = uniqueImages.length > 1 ? `<div class="gallery-scroll">` + uniqueImages.map(url => `<img src="${url}" class="gallery-thumb" onclick="window.changeMainImg('${url}')">`).join('') + `</div>` : '';
+                    let mainImgHtml = uniqueImages.length > 0 ? `<img src="${uniqueImages[0]}" class="prod-main-img" id="mainProdImg">` : `<div class="prod-main-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:#f9f9f9;">📦</div>`;
+                    
+                    let videoHtml = '';
+                    if (item.videoUrl) {
+                        videoHtml = `<div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border); font-weight:800;">Product Video</div>`;
+                        if (item.videoUrl.includes('youtube') || item.videoUrl.includes('youtu.be')) {
+                            let videoId = item.videoUrl.split('v=')[1] || item.videoUrl.split('youtu.be/')[1];
+                            if(videoId) { const ampersandPosition = videoId.indexOf('&'); if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition); videoHtml += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; }
+                        } else { videoHtml += `<div class="video-container"><video src="${item.videoUrl}" controls></video></div>`; }
+                    }
+                    let displayPrice = item.price; if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) displayPrice = '₹' + displayPrice;
+
+                    container.innerHTML = `
+                        <div class="prod-detail-main">
+                            <div class="prod-image-section">${mainImgHtml}${galleryHtml}</div>
+                            <div style="background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">${item.name}</h2>
+                                <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary-dark);">${displayPrice}</div>
+                                <div class="prod-freedel">Free Delivery</div>
+                            </div>
+                            <div style="background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+                                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: #1e293b;">Product Details</div>
+                                <div style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; white-space: pre-wrap;">${item.description}</div>
+                                ${videoHtml}
+                            </div>
+                            <div class="sticky-buy-bar"><button class="btn-buy-now" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to buy: ${item.name}`)}')">Buy Now</button></div>
+                        </div>
+                    `;
+                }
+                else if (route === 'service') {
+                    const img = item.bannerImageUrl ? `<img src="${item.bannerImageUrl}" class="entity-img">` : `<div class="entity-img">⚕️</div>`;
+                    let testsHtml = (item.tests || []).map(t => `<div class="test-item"><span style="font-weight:700;">${t.name}</span><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book the test: ${t.name}`)}')">₹${t.price.replace(/[^0-9.]/g, '')}</button></div>`).join('');
+                    
+                    container.innerHTML = `
+                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2rem 1.5rem;">
+                            ${img}
+                            <h1 style="color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
+                            <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;">${item.description}</p>
+                            <button class="btn" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book: ${item.title}`)}')">Book Consultation</button>
+                            ${testsHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Available Sub-Services</h3>${testsHtml}</div>` : ''}
+                        </div>
+                    `;
+                }
+                else if (route === 'article') {
+                    let relatedHtml = '';
+                    if(item.linkedServices && window.siteData.services) { normalize(window.siteData.services).filter(s => item.linkedServices.includes(s.id)).forEach(s => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${s.title}</div><div style="font-size:0.85rem; color:var(--text-muted);">Clinical Service</div></div><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book</button></div>`; }); }
+                    if(item.linkedProducts && window.siteData.products) { normalize(window.siteData.products).filter(p => item.linkedProducts.includes(p.id)).forEach(p => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${p.name}</div><div style="font-size:0.85rem; color:var(--text-muted);">Wellness Product</div></div><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button></div>`; }); }
+
+                    container.innerHTML = `
+                        <div class="wiki-article-container">
+                            <h1 class="wiki-article-title">${item.title}</h1>
+                            <div class="detail-html" style="color: #334155;">
+                                ${item.imageUrl ? `<img src="${item.imageUrl}" class="wiki-article-cover" alt="${item.title}">` : ''}
+                                ${item.content}
+                            </div>
+                            ${relatedHtml ? `<div class="wiki-related-box"><div style="font-size: 1.1rem; font-weight: 800; color: #1e293b; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem;">Related Resources</div><div style="display:flex; flex-direction:column; gap:10px;">${relatedHtml}</div></div>` : ''}
+                        </div>
+                    `;
+                }
+                else if (route === 'exercise') {
+                    let videoHtml = '';
+                    if (item.videoUrl) {
+                        const getYtId = (url) => { const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (m && m[2].length===11)?m[2]:null; };
+                        const ytId = getYtId(item.videoUrl);
+                        if (ytId) {
+                            videoHtml = `<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe></div>`;
+                        } else {
+                            videoHtml = `<div class="video-container"><video src="${item.videoUrl}" controls style="width:100%;"></video></div>`;
+                        }
+                    }
+                    container.innerHTML = `
+                        <div class="wiki-article-container">
+                            ${item.imageUrl ? `<div style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;"><img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;"></div>` : ''}
+                            <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: inline-block;">${item.name}</h1>
+                            <div class="detail-html" style="color: #334155;">${item.description || '<p>No description provided.</p>'}</div>
+                            ${videoHtml}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // SEARCH
+        window.handleSearch = async function() {
+            const query = document.getElementById('globalSearch').value.toLowerCase();
+            const res = document.getElementById('searchResults');
+            if (!query) { res.classList.remove('active'); return; }
+
+            let html = '';
+            const filterMap = (arr, fields, linkPrefix, imgFn, titleFn, subFn) => {
+                const filtered = arr.filter(item => fields.some(f => (item[f]||'').toLowerCase().includes(query)));
+                if(filtered.length === 0) return '';
+                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(titleFn(item))}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">${imgFn(item)} <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
+            };
+
+            const sHtml = filterMap(normalize(window.siteData.services), ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem">${s.icon}</div>`:`⚕️`, s=>s.title, s=>'Service');
+            if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
+
+            const dHtml = filterMap(normalize(window.siteData.doctors), ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
+            if(dHtml) html += `<div class="search-category-title">Doctors</div>${dHtml}`;
+
+            const pHtml = filterMap(normalize(window.siteData.products), ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
+            if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
+
+            const articles = normalize(window.siteData.articles).filter(a => (a.title||'').toLowerCase().includes(query) || (a.content||'').toLowerCase().includes(query));
+            if(articles.length > 0) html += `<div class="search-category-title">Articles</div>` + articles.map(a => `<a href="/article/${window.slugify(a.title||a.slug)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
+
+            const exData = await fetchExercisesLazy();
+            const exMatches = exData.filter(ex => (ex.name||'').toLowerCase().includes(query) || (ex.tags||[]).some(t => t.toLowerCase().includes(query)));
+            if(exMatches.length > 0) html += `<div class="search-category-title">Exercises</div>` + exMatches.slice(0,5).map(e => `<a href="/exercise/${window.slugify(e.name)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item"><img src="${e.imageUrl}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;"> <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${e.name}</div><div style="font-size:0.8rem;color:var(--text-muted);">Rehabilitation Exercise</div></div></a>`).join('');
+
+            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
+            res.classList.add('active');
+        }
+        document.addEventListener('click', (e) => { const r = document.getElementById('searchResults'), i = document.getElementById('globalSearch'); if (e.target !== r && e.target !== i && !r.contains(e.target)) r.classList.remove('active'); });
+
+        window.addEventListener('popstate', handleRoute);
+        fetchCoreData();
+    </script>
+</body>
+</html>
