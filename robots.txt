@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://therapeutichub.in/sitemap.xml
-
