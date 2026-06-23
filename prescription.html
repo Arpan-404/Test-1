@@ -14,6 +14,13 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
+        window.addEventListener('error', function(event) {
+            const root = document.getElementById('root');
+            if(root) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center;"><b>Fatal Crash Detected:</b><br/>' + event.message + '</div>';
+        });
+    </script>
+
+    <script>
       tailwind.config = {
         theme: {
           extend: {
@@ -117,7 +124,7 @@
         const appSite = initializeApp(siteConfig, "AppSite");
         const dbSite = getDatabase(appSite);
 
-        const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
 
         function ReadOnlyCustomTable({ table }) {
             let rows = table.rows || [];
@@ -177,11 +184,11 @@
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         let exArray = [];
-                        if (data.exercises) {
+                        if (data && data.exercises) {
                             if (Array.isArray(data.exercises)) exArray = data.exercises.filter(Boolean);
                             else exArray = Object.keys(data.exercises).map(key => ({ ...data.exercises[key], id: data.exercises[key].id || key }));
                         }
-                        setSiteData({ hero: data.hero || {}, exercises: exArray });
+                        setSiteData({ hero: data?.hero || {}, exercises: exArray });
                     }
                 });
                 return () => unsubSite();
@@ -190,7 +197,6 @@
             useEffect(() => {
                 const initializePatientAuth = async () => {
                     try {
-                        // FIX: Failsafe Auth Promise. This physically forces the screen to unlock even if Firebase delays.
                         await new Promise((resolve) => {
                             let isResolved = false;
                             const forceResolve = () => { if (!isResolved) { isResolved = true; resolve(); } };
@@ -688,6 +694,7 @@
                                         </>
                                     )}
 
+                                    {/* Exercises Rescaled to 2 columns for Print! */}
                                     {prescribedExData.length > 0 && (
                                         <>
                                             {isPhoneVerified && <tr className="print-break-after-always"><td></td></tr>}
