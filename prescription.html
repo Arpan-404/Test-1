@@ -15,11 +15,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Global Error Catcher -->
+    <!-- Global Crash Preventer & Catcher -->
     <script>
         window.addEventListener('error', function(event) {
             const root = document.getElementById('root');
-            if(root) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center;"><b>Fatal Crash Detected:</b><br/>' + event.message + '</div>';
+            if(root) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center; margin-top: 50px;"><b>System Error:</b><br/>' + (event.message || event.error) + '</div>';
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            const root = document.getElementById('root');
+            if(root) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center; margin-top: 50px;"><b>Network Error:</b><br/>' + (event.reason && event.reason.message ? event.reason.message : event.reason) + '</div>';
         });
     </script>
 
@@ -95,27 +99,31 @@
         </div>
     </div>
 
-    <!-- 1. FIREBASE MODULE IMPORTS (Mobile Safe) -->
+    <!-- STEP 1: MOBILE-SAFE NATIVE MODULE LOADER -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        // Save to window so Babel can read it safely
+        // Store the imported functions safely in the browser window
         window.FirebaseAPI = {
             initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
             getFirestore, collection, doc, getDoc, getDocs, query, where,
             getDatabase, ref, onValue
         };
-        // Tell React that Firebase is ready
-        window.dispatchEvent(new Event('firebaseReady'));
+        
+        // Broadcast that Firebase is ready to be used by React
+        window.isFirebaseReady = true;
+        window.dispatchEvent(new Event('FirebaseReady'));
     </script>
 
-    <!-- 2. REACT APP -->
+    <!-- STEP 2: REACT APP EXECUTION -->
     <script type="text/babel">
-        function launchApp() {
-            const { useState, useEffect } = React;
+        function launchReactApp() {
+            const { useState, useEffect, useRef } = React;
+            
+            // Extract Firebase functions from the window (Bypasses the Module Error!)
             const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, collection, doc, getDoc, getDocs, query, where, getDatabase, ref, onValue } = window.FirebaseAPI;
 
             // ==========================================
@@ -215,10 +223,11 @@
                 useEffect(() => {
                     const initializePatientAuth = async () => {
                         try {
+                            // Failsafe Timeout: Forces the loading screen to vanish if Firebase takes longer than 6 seconds
                             await new Promise((resolve) => {
                                 let isResolved = false;
                                 const forceResolve = () => { if (!isResolved) { isResolved = true; resolve(); } };
-                                const fallbackTimeout = setTimeout(forceResolve, 5000); 
+                                const fallbackTimeout = setTimeout(forceResolve, 6000); 
 
                                 const unsubscribe = onAuthStateChanged(authRecords, (user) => {
                                     if (user) {
@@ -250,6 +259,7 @@
                             }
                         } catch (e) {
                             console.error("Initialization error:", e);
+                            setLoginError("Network connection error. Please refresh.");
                         } finally {
                             setIsCheckingAuth(false);
                         }
@@ -756,9 +766,12 @@
             root.render(<App />);
         }
 
-        // Boot React securely once Firebase tells the browser it is ready
-        if (window.FirebaseAPI) launchApp();
-        else window.addEventListener('firebaseReady', launchApp);
+        // 3. EXECUTE SAFELY
+        if (window.isFirebaseReady) {
+            launchReactApp();
+        } else {
+            window.addEventListener('FirebaseReady', launchReactApp);
+        }
     </script>
 </body>
 </html>
