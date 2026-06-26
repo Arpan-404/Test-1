@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doctor Portal - Physio Hub</title>
+    <title>Clinical Portal - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
     <!-- Pure Firebase Compat Libraries (No Modules, No React, No Crashes) -->
@@ -24,7 +24,7 @@
       tailwind.config = {
         theme: {
           extend: {
-            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
+            colors: { navy: '#1e3a8a', azure: '#2563eb', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
             boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
           }
         }
@@ -38,10 +38,10 @@
         .h-scroll { scrollbar-width: none; }
         
         @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #2563eb; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
 
         /* Clean Quill Container */
-        .ql-editor { min-height: 150px; font-size: 14px; font-family: inherit; line-height: 1.6; }
+        .ql-editor { min-height: 120px; font-size: 14px; font-family: inherit; line-height: 1.6; }
         .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
         .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
         
@@ -89,7 +89,7 @@
     <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4 print-hidden">
         <div class="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
             <i class="ph-fill ph-stethoscope text-5xl text-azure mb-3"></i>
-            <h1 class="text-2xl font-black text-navy tracking-tight mb-2">Staff Portal</h1>
+            <h1 class="text-2xl font-black text-navy tracking-tight mb-2">Clinical Portal</h1>
             <p class="text-sm text-slate-500 mb-6">Log in with your registered Google Workspace account to access patient records.</p>
             
             <div id="auth-error" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 mb-4"></div>
@@ -104,27 +104,27 @@
     <!-- VIEW 3: DASHBOARD MAIN -->
     <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans print-hidden">
         
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+        <!-- Sidebar (Restored Aesthetic) -->
+        <aside id="sidebar" class="w-full md:w-[350px] bg-white border-r border-slate-200 flex flex-col h-full z-20">
             <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
                 <div>
-                    <h1 class="font-black text-navy text-lg leading-tight">Clinical Portal</h1>
-                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Doctor</p>
+                    <h1 class="font-black text-navy text-xl leading-tight">Clinical Portal</h1>
+                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-1">Doctor</p>
                 </div>
-                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-xl"></i></button>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-2xl"></i></button>
             </div>
             
-            <div class="p-3 shrink-0 bg-slate-50 border-b border-slate-200">
-                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-2.5 rounded-lg text-sm shadow-sm hover:bg-navy transition mb-3 flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-plus"></i> New Record
+            <div class="p-4 shrink-0 bg-white border-b border-slate-200 shadow-sm z-10">
+                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-3 rounded-xl text-sm shadow-sm hover:bg-blue-700 transition mb-4 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-plus text-lg"></i> New Record
                 </button>
                 <div class="relative">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-4 outline-none focus:border-azure text-sm" />
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-3 text-slate-400 text-lg"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-azure text-sm font-medium text-slate-700" />
                 </div>
             </div>
 
-            <div id="patient-list-container" class="flex-1 overflow-y-auto">
+            <div id="patient-list-container" class="flex-1 overflow-y-auto bg-white">
                 <!-- Injected via JS -->
             </div>
         </aside>
@@ -143,19 +143,19 @@
                 
                 <header class="bg-white border-b border-slate-200 p-3 sm:px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
                     <div class="flex items-center gap-3">
-                        <button onclick="closeEditorMobile()" class="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+                        <button onclick="closeEditorMobile()" class="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-xl"></i></button>
                         <h2 id="editor-title" class="font-black text-navy text-lg">Patient Record</h2>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button onclick="handlePrint()" class="bg-slate-100 text-navy px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-200 transition flex items-center gap-2">
-                            <i class="ph-bold ph-printer"></i> <span class="hidden sm:inline">Print</span>
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <button onclick="handlePrint()" class="bg-slate-100 text-navy px-3 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-200 transition flex items-center gap-2">
+                            <i class="ph-bold ph-printer text-lg"></i> <span class="hidden sm:inline">Print</span>
                         </button>
-                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg">
                             <input type="checkbox" id="input-published" class="accent-azure w-4 h-4" onchange="updateActiveData('isPublished', this.checked)" />
                             <span class="text-xs font-bold text-slate-600 hidden sm:inline">Published</span>
                         </label>
-                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy transition disabled:opacity-50 flex items-center gap-2">
-                            <i class="ph-bold ph-floppy-disk"></i> <span class="hidden sm:inline">Save Data</span>
+                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2">
+                            <i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save Data</span>
                         </button>
                     </div>
                 </header>
@@ -168,33 +168,34 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="sm:col-span-2">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Full Name *</label>
-                                <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="Patient Name" />
+                                <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Patient Name" />
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">UPID (ID) *</label>
-                                <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="e.g. 4092" />
+                                <!-- UPID becomes disabled (greyed out) once patient is saved -->
+                                <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="e.g. 4092" />
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="col-span-1 sm:col-span-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Age</label>
-                                <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="Yrs" />
+                                <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Yrs" />
                             </div>
                             <div class="col-span-2 sm:col-span-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
-                                <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure bg-white">
+                                <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure bg-white text-slate-800">
                                     <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
                                 </select>
                             </div>
                             <div class="col-span-3 sm:col-span-1">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone Number (Login) *</label>
-                                <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="10 Digits" />
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone Number *</label>
+                                <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="10 Digits" />
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 2: Clinical Notes -->
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                    <!-- Section 2: Clinical Notes & Tables -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-6">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-stethoscope text-azure mr-1"></i> Clinical Notes</h3>
                         
                         <div>
@@ -207,36 +208,49 @@
                             <div id="quill-mh"></div>
                         </div>
                         
-                        <div>
+                        <div class="pt-4 border-t border-slate-100">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Physical Assessment</label>
-                            <div id="quill-pa"></div>
+                            <div id="quill-pa" class="mb-3"></div>
+                            <!-- Assessment Custom Tables -->
+                            <div id="ctables-assessment"></div>
+                            <button onclick="addCustomTable('assessment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1"><i class="ph-bold ph-plus"></i> Add Assessment Table</button>
                         </div>
 
-                        <div>
+                        <div class="pt-4 border-t border-slate-100">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Diagnosis</label>
-                            <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-3 text-base font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition" placeholder="Primary Diagnosis" />
+                            <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-3 text-base font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition text-slate-800" placeholder="Primary Diagnosis" />
                         </div>
 
-                        <div>
+                        <div class="pt-4 border-t border-slate-100">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Treatment Plan & Advice</label>
-                            <div id="quill-tp"></div>
+                            <div id="quill-tp" class="mb-3"></div>
+                            <!-- Treatment Custom Tables -->
+                            <div id="ctables-treatment"></div>
+                            <button onclick="addCustomTable('treatment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1"><i class="ph-bold ph-plus"></i> Add Treatment Table</button>
                         </div>
                     </div>
 
-                    <!-- Section 3: Exercises -->
+                    <!-- Section 3: Reassessment Tables -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-chart-line-up text-azure mr-1"></i> Reassessment & Tracking</h3>
+                        <div id="ctables-reassessment"></div>
+                        <button onclick="addCustomTable('reassessment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1"><i class="ph-bold ph-plus"></i> Add Reassessment Table</button>
+                    </div>
+
+                    <!-- Section 4: Exercises -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-person-simple-walk text-azure mr-1"></i> Prescribed Exercises</h3>
                         
                         <div class="mb-4">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Select Exercises from Library</label>
-                            <div id="exercise-library" class="h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 space-y-1">
+                            <div id="exercise-library" class="h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <!-- Injected via JS -->
                             </div>
                         </div>
 
                         <div id="exercise-configs" class="space-y-3 mt-4 border-t border-slate-100 pt-4 hidden">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Configure Selected Exercises</label>
-                            <div id="exercise-configs-list"></div>
+                            <div id="exercise-configs-list" class="space-y-2"></div>
                         </div>
                     </div>
                     
@@ -285,7 +299,7 @@
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             document.getElementById('toast-icon').className = isError ? "ph-bold ph-warning-circle text-white" : "ph-bold ph-check-circle text-emerald-400";
-            document.getElementById('toast-content').className = `text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
+            document.getElementById('toast-content').className = `text-white px-4 py-3 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
             
             t.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
             t.classList.add('opacity-100', 'translate-y-0');
@@ -329,7 +343,11 @@
                     }
 
                     if (isAuthorized) {
-                        document.getElementById('doc-name-display').innerText = "Dr. " + doctorProfile.name;
+                        // Fix Double "Dr." if it exists
+                        let dName = doctorProfile.name || 'Doctor';
+                        if(!dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+                        document.getElementById('doc-name-display').innerText = dName;
+                        
                         fetchData();
                     } else {
                         await authRecords.signOut();
@@ -376,14 +394,14 @@
             });
 
             dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients')
-                .orderBy('date', 'desc').limit(50).onSnapshot(snap => {
+                .orderBy('date', 'desc').limit(100).onSnapshot(snap => {
                     patients = [];
                     snap.forEach(doc => patients.push({ id: doc.id, ...doc.data() }));
                     renderPatientList();
                 });
         }
 
-        // 6. RENDER SIDEBAR
+        // 6. RENDER SIDEBAR (Matched to Screenshot Layout)
         function renderPatientList() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const container = document.getElementById('patient-list-container');
@@ -400,12 +418,12 @@
             }
 
             container.innerHTML = filtered.map(p => `
-                <div onclick="openPatient('${p.id}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50' : ''}">
+                <div onclick="openPatient('${p.id}')" class="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50/50' : ''}">
                     <div>
-                        <h4 class="font-bold text-slate-800 text-sm">${p.name || 'Unnamed Patient'}</h4>
-                        <p class="text-[11px] font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
+                        <h4 class="font-bold text-slate-800 text-[15px]">${p.name || 'Unnamed Patient'}</h4>
+                        <p class="text-xs font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
                     </div>
-                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition"></i>
+                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition text-lg"></i>
                 </div>
             `).join('');
         }
@@ -430,7 +448,7 @@
             activePatient = {
                 name: "", ipId: "", contact: "", age: "", gender: "Male",
                 chiefComplaints: "", history: "", assessmentNote: "", diagnosis: "", treatmentNote: "",
-                isPublished: true, prescribedExercises: [], exerciseParams: {}
+                isPublished: true, prescribedExercises: [], exerciseParams: {}, customTables: []
             };
             loadEditorUI();
         }
@@ -441,6 +459,7 @@
                 activePatient = JSON.parse(JSON.stringify(p)); 
                 if(!activePatient.prescribedExercises) activePatient.prescribedExercises = [];
                 if(!activePatient.exerciseParams) activePatient.exerciseParams = {};
+                if(!activePatient.customTables) activePatient.customTables = [];
                 loadEditorUI();
             }
         }
@@ -468,29 +487,145 @@
             // Populate Inputs
             document.getElementById('input-published').checked = activePatient.isPublished !== false;
             document.getElementById('input-name').value = activePatient.name || '';
-            document.getElementById('input-upid').value = activePatient.ipId || '';
+            
+            // Handle UPID Locking
+            const upidInput = document.getElementById('input-upid');
+            upidInput.value = activePatient.ipId || '';
+            upidInput.disabled = !!activePatient.id; // Lock if patient has an ID (already saved)
+            
             document.getElementById('input-age').value = activePatient.age || '';
             document.getElementById('input-gender').value = activePatient.gender || 'Male';
             document.getElementById('input-phone').value = activePatient.contact || '';
             document.getElementById('input-diagnosis').value = activePatient.diagnosis || '';
 
-            // Populate Quills (Safely)
+            // Populate Quills
             qCC.root.innerHTML = activePatient.chiefComplaints || '';
             qMH.root.innerHTML = activePatient.history || '';
             qPA.root.innerHTML = activePatient.assessmentNote || '';
             qTP.root.innerHTML = activePatient.treatmentNote || '';
 
+            renderAllCustomTables();
             renderExercises();
         }
 
-        // 8. EXERCISE MANAGEMENT
+        // 8. TABLE BUILDER SYSTEM (Restored & Optimized for Vanilla JS)
+        function addCustomTable(section) {
+            if(!activePatient.customTables) activePatient.customTables = [];
+            activePatient.customTables.push({
+                id: 'ct_' + Date.now(),
+                section: section,
+                title: "New Table",
+                headers: ["Column 1", "Column 2"],
+                rows: [["", ""]]
+            });
+            renderAllCustomTables();
+        }
+
+        window.updateCTableField = function(id, field, val) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(!t) return;
+            
+            if (field === 'title') {
+                t.title = val;
+            } else if (field === 'headers') {
+                const newHeaders = val.split(',').map(s => s.trim());
+                t.headers = newHeaders;
+                t.rows = t.rows.map(r => {
+                    let newRow = [...r];
+                    if(newRow.length > newHeaders.length) newRow.length = newHeaders.length;
+                    while(newRow.length < newHeaders.length) newRow.push("");
+                    return newRow;
+                });
+            }
+            renderAllCustomTables();
+        };
+
+        window.updateCTableCell = function(id, rIdx, cIdx, val) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t && t.rows[rIdx]) t.rows[rIdx][cIdx] = val;
+        };
+
+        window.addCTableRow = function(id) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t) {
+                t.rows.push(Array(t.headers.length).fill(""));
+                renderAllCustomTables();
+            }
+        };
+
+        window.deleteCTableRow = function(id, rIdx) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t) {
+                t.rows.splice(rIdx, 1);
+                renderAllCustomTables();
+            }
+        };
+
+        window.deleteCTable = function(id) {
+            if(confirm("Delete this table?")) {
+                activePatient.customTables = activePatient.customTables.filter(x => x.id !== id);
+                renderAllCustomTables();
+            }
+        };
+
+        function renderAllCustomTables() {
+            renderCustomTableGroup('assessment');
+            renderCustomTableGroup('treatment');
+            renderCustomTableGroup('reassessment');
+        }
+
+        function renderCustomTableGroup(section) {
+            const container = document.getElementById(`ctables-${section}`);
+            if(!container) return;
+            const tables = (activePatient.customTables || []).filter(t => t.section === section);
+            
+            container.innerHTML = tables.map(t => `
+                <div class="border border-slate-200 rounded-lg p-4 mb-4 bg-slate-50/50 shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" value="${t.title}" onchange="updateCTableField('${t.id}', 'title', this.value)" class="font-black text-navy text-sm bg-transparent border-b border-slate-300 outline-none w-2/3 focus:border-azure px-1" placeholder="Table Title">
+                        <button onclick="deleteCTable('${t.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold transition flex items-center gap-1"><i class="ph-bold ph-trash"></i> Delete Table</button>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-[9px] uppercase font-bold text-slate-500 mb-1 block">Headers (comma separated)</label>
+                        <input type="text" value="${t.headers.join(', ')}" onchange="updateCTableField('${t.id}', 'headers', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-white shadow-sm" placeholder="e.g. Date, Joint, ROM">
+                    </div>
+                    <div class="overflow-x-auto rounded border border-slate-200 bg-white">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    ${t.headers.map(h => `<th class="p-2 border-b border-slate-200 text-xs font-bold text-navy bg-slate-100">${h}</th>`).join('')}
+                                    <th class="p-2 border-b border-slate-200 bg-slate-100 w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${t.rows.map((row, rIdx) => `
+                                    <tr>
+                                        ${row.map((cell, cIdx) => `
+                                            <td class="p-1 border-b border-slate-100 border-r last:border-r-0">
+                                                <textarea oninput="updateCTableCell('${t.id}', ${rIdx}, ${cIdx}, this.value)" class="w-full text-xs p-1.5 outline-none resize-y min-h-[36px] bg-transparent text-slate-700">${cell}</textarea>
+                                            </td>
+                                        `).join('')}
+                                        <td class="p-1 border-b border-slate-100 text-center">
+                                            <button onclick="deleteCTableRow('${t.id}', ${rIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="ph-bold ph-x"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onclick="addCTableRow('${t.id}')" class="mt-3 text-xs font-bold text-azure flex items-center gap-1 hover:underline bg-blue-50 px-2 py-1 rounded"><i class="ph-bold ph-plus"></i> Add Row</button>
+                </div>
+            `).join('');
+        }
+
+        // 9. EXERCISE MANAGEMENT
         function renderExercises() {
             const libContainer = document.getElementById('exercise-library');
             const confArea = document.getElementById('exercise-configs');
             const confList = document.getElementById('exercise-configs-list');
 
             if(siteExercises.length === 0) {
-                libContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center">No exercises found in Admin Panel.</div>';
+                libContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center col-span-2">No exercises found in Admin Panel.</div>';
                 confArea.classList.add('hidden');
                 return;
             }
@@ -498,10 +633,10 @@
             libContainer.innerHTML = siteExercises.map(ex => {
                 const isChecked = activePatient.prescribedExercises.includes(ex.id);
                 return `
-                    <label class="flex items-center gap-3 p-2 hover:bg-white rounded cursor-pointer border border-transparent hover:border-slate-200 transition">
+                    <label class="flex items-center gap-3 p-2 bg-white rounded-lg cursor-pointer border hover:border-azure transition shadow-sm ${isChecked ? 'border-azure bg-blue-50/20' : 'border-slate-200'}">
                         <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${ex.id}', this.checked)" class="accent-azure w-4 h-4 shrink-0" />
-                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-8 h-8 rounded object-cover border border-slate-200 bg-white" />` : `<div class="w-8 h-8 rounded bg-slate-200 flex items-center justify-center text-xs">🏃</div>`}
-                        <span class="text-sm font-bold text-slate-700">${ex.name}</span>
+                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-10 h-10 rounded object-cover border border-slate-100 bg-white" />` : `<div class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center text-lg">🏃</div>`}
+                        <span class="text-xs font-bold text-slate-700 leading-tight">${ex.name}</span>
                     </label>
                 `;
             }).join('');
@@ -513,14 +648,19 @@
                     if(!exInfo) return '';
                     const p = activePatient.exerciseParams[exId] || { reps: '', sets: '', freq: '', note: '' };
                     return `
-                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-2">
-                            <div class="font-bold text-sm text-navy mb-2">${exInfo.name}</div>
-                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
-                                <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
-                                <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
-                                <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq (e.g. 2x/day)" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col sm:flex-row gap-3">
+                            <div class="w-12 h-12 shrink-0 bg-slate-50 rounded border border-slate-100 flex items-center justify-center hidden sm:flex">
+                                ${exInfo.imageUrl ? `<img src="${exInfo.imageUrl}" class="max-w-full max-h-full mix-blend-multiply rounded" />` : `🏃`}
                             </div>
-                            <input type="text" placeholder="Special Instructions / Note..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none italic" />
+                            <div class="flex-1">
+                                <div class="font-bold text-sm text-navy mb-2 leading-tight">${exInfo.name}</div>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
+                                    <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq (e.g. 2x/day)" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                </div>
+                                <input type="text" placeholder="Special Instructions / Note..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure italic bg-slate-50 focus:bg-white" />
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -545,20 +685,24 @@
             activePatient.exerciseParams[exId][field] = val;
         };
 
-        // 9. SAVE TO DATABASE
+        // 10. SAVE TO DATABASE
         async function savePatientData() {
             if(!activePatient.name || !activePatient.ipId || !activePatient.contact) {
-                return showToast("Name, UPID, and Mobile Number are required.", true);
+                return showToast("Name, UPID, and Phone Number are required.", true);
             }
 
             const btn = document.getElementById('btn-save');
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> <span class="hidden sm:inline">Saving...</span>`;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i> <span class="hidden sm:inline">Saving...</span>`;
             btn.disabled = true;
 
             try {
+                // Ensure doctor name format
+                let dName = doctorProfile.name || '';
+                if(dName && !dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+
                 const dataToSave = {
                     ...activePatient,
-                    doctorName: doctorProfile.name || '',
+                    doctorName: dName,
                     doctorQual: doctorProfile.qualification || '',
                     doctorDesignation: doctorProfile.designation || '',
                     doctorReg: doctorProfile.regNumber || '',
@@ -576,6 +720,9 @@
                     dataToSave.id = newRef.id;
                     await newRef.set(dataToSave);
                     activePatient.id = newRef.id; 
+                    
+                    // Now that it has an ID, disable the UPID input box
+                    document.getElementById('input-upid').disabled = true;
                 }
                 
                 showToast("Patient record saved securely!");
@@ -583,12 +730,12 @@
                 console.error(e);
                 showToast("Save Error: Ensure you are authorized.", true);
             } finally {
-                btn.innerHTML = `<i class="ph-bold ph-floppy-disk"></i> <span class="hidden sm:inline">Save Data</span>`;
+                btn.innerHTML = `<i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save Data</span>`;
                 btn.disabled = false;
             }
         }
 
-        // 10. PRINT ENGINE (Restored to the Large Bold Layout)
+        // 11. ADVANCED PRINT ENGINE (Restored Big Bold Layout & Tables)
         function handlePrint() {
             if (!activePatient) return;
             
@@ -596,10 +743,13 @@
             const dateStr = activePatient.date ? new Date(activePatient.date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/prescription.html#/' + activePatient.id)}`;
             
+            let dName = doctorProfile.name || 'Doctor';
+            if(!dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+
             let html = `
                 <div class="flex justify-between items-start pb-2 text-left">
                     <div>
-                        <h1 class="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style="text-shadow: 0px 0px 1px #1e40af; line-height: 1;">${doctorProfile.name || 'Doctor'}</h1>
+                        <h1 class="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style="text-shadow: 0px 0px 1px #1e40af; line-height: 1;">${dName}</h1>
                         <p class="text-[18px] mt-2 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
                         <p class="text-[18px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
                         ${doctorProfile.regNumber ? `<p class="text-[14px] font-bold text-slate-600 mt-1">${doctorProfile.regNumber}</p>` : ''}
@@ -635,7 +785,7 @@
                     <tbody>
             `;
 
-            // Clinical Notes Render
+            // Clinical Notes
             if (activePatient.chiefComplaints || activePatient.history) {
                 html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-5">`;
                 if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-5"><span class="font-bold text-[22px]">Chief Complaint :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
@@ -643,7 +793,7 @@
                 html += `</td></tr>`;
             }
 
-            // Custom Tables Helper
+            // Custom Tables Helper Function
             const buildCustomTables = (section) => {
                 const tables = (activePatient.customTables || []).filter(t => t.section === section);
                 if(tables.length === 0) return '';
@@ -652,9 +802,7 @@
                     tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[20px] text-[#1e40af] mb-2">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
                     (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-2 bg-blue-50/30 text-[18px]">${h}</th>`);
                     tHtml += `</tr></thead><tbody>`;
-                    let rows = t.rows || [];
-                    if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch(e) { rows = []; } }
-                    rows.forEach(r => {
+                    t.rows.forEach(r => {
                         tHtml += `<tr class="print-break-inside-avoid">`;
                         r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-2 text-[18px] align-top whitespace-pre-wrap">${c}</td>`);
                         tHtml += `</tr>`;
@@ -683,37 +831,9 @@
                 html += `</div></td></tr>`;
             }
 
-            // Reassessment Builder
+            // Reassessment Tables (Now using the Custom Table Builder)
             const rTablesHtml = buildCustomTables('reassessment');
             if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-6 text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
-
-            (activePatient.reassessmentTables || []).forEach(rtable => {
-                if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0) return;
-                html += `<tr class="main-print-row"><td class="px-2 pb-8 text-[#1e40af]"><span class="font-bold text-[22px] block mb-4">${rtable.title}</span><div class="pl-5 pr-2 w-full"><table class="w-full table-auto border-collapse text-[14px] text-slate-900 border border-[#1e40af] print-break-inside-avoid"><thead><tr>`;
-                html += `<th class="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold text-[16px]">Date</th>`;
-                
-                rtable.trackedMetrics.forEach(metric => {
-                    html += `<th class="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div class="flex flex-col h-full justify-between"><span class="leading-tight px-1 mb-2 pt-2 text-[15px]">${metric.title}</span>`;
-                    if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div class="flex-1 py-1 font-bold">L</div></div>`;
-                    if (metric.type === 'ROM with VAS') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div class="flex-1 py-1 font-bold">${metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div>`;
-                    if (metric.type === 'Custom 2-Column') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">${metric.col1}</div><div class="flex-1 py-1 font-bold">${metric.col2}</div></div>`;
-                    html += `</div></th>`;
-                });
-                html += `</tr></thead><tbody>`;
-                
-                (rtable.records || []).forEach(record => {
-                    html += `<tr class="print-break-inside-avoid"><td class="p-2 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[14px]">${record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>`;
-                    rtable.trackedMetrics.forEach(metric => {
-                        const cellValue = record.values ? record.values[metric.id] : null;
-                        if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.r || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.l || '-'}</div></div></td>`;
-                        else if (metric.type === 'ROM with VAS') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.vas || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.rom || '-'}</div></div></td>`;
-                        else if (metric.type === 'Custom 2-Column') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c1 || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c2 || '-'}</div></div></td>`;
-                        else html += `<td class="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">${cellValue || '-'}</td>`;
-                    });
-                    html += `</tr>`;
-                });
-                html += `</tbody></table></div></td></tr>`;
-            });
 
             // Exercises
             if (activePatient.prescribedExercises && activePatient.prescribedExercises.length > 0) {
@@ -750,7 +870,6 @@
             html += `</tbody></table>`;
             pc.innerHTML = html;
             
-            // Trigger native print dialog
             setTimeout(() => { window.print(); }, 200);
         }
     </script>
