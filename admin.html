@@ -18,12 +18,9 @@
     <!-- Quill Editor CSS & JS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <!-- CRITICAL: Bind Quill to window before loading the resize module -->
     <script>window.Quill = Quill;</script>
-    <!-- Quill Image Resize Module -->
     <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
 
-    <!-- Global Crash Preventer & Catcher -->
     <script>
         window.addEventListener('error', function(event) {
             const root = document.getElementById('root');
@@ -65,18 +62,10 @@
         .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
         .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: white; }
 
-        /* --- MOBILE TOUCH-FRIENDLY RESIZE HANDLES --- */
+        /* Touch-Friendly Resize Handles */
         .ql-container div[style*="cursor: nwse-resize"],
         .ql-container div[style*="cursor: nesw-resize"] {
-            width: 32px !important;
-            height: 32px !important;
-            background-color: #1d4ed8 !important; 
-            border: 3px solid #ffffff !important;
-            border-radius: 50% !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-            margin-top: -16px !important;
-            margin-left: -16px !important;
-            opacity: 1 !important; 
+            width: 32px !important; height: 32px !important; background-color: #1d4ed8 !important; border: 3px solid #ffffff !important; border-radius: 50% !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; margin-top: -16px !important; margin-left: -16px !important; opacity: 1 !important; 
         }
 
         .hidden { display: none !important; }
@@ -112,8 +101,7 @@
     <!-- VIEW 3: DASHBOARD -->
     <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg">
         
-        <!-- Mobile Sidebar Overlay -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-navy/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-navy/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="closeSidebar()"></div>
         
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0">
@@ -139,7 +127,7 @@
         <div class="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all h-full">
             <header class="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30">
                 <h1 class="font-black text-navy flex items-center gap-2"><i class="ph-fill ph-shield-check text-azure"></i> Admin Hub</h1>
-                <button onclick="toggleSidebar()" class="p-1 text-slate-600"><i class="ph-bold ph-list text-2xl"></i></button>
+                <button onclick="openSidebar()" class="p-1 text-slate-600"><i class="ph-bold ph-list text-2xl"></i></button>
             </header>
 
             <main class="flex-1 overflow-y-auto p-3 sm:p-6 relative" id="main-content">
@@ -212,7 +200,7 @@
                 <!-- PANEL: ISOLATED FORM EDITOR -->
                 <div id="panel-form" class="hidden bg-white form-edge rounded-xl shadow-soft border border-slate-200 flex-col h-[calc(100vh-80px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 relative z-20">
                     <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-                        <h2 id="form-title" class="text-base font-black text-navy flex items-center gap-2"><button onclick="closeForm()" class="text-slate-400 hover:text-navy mr-1"><i class="ph-bold ph-arrow-left"></i></button> Edit Item</h2>
+                        <h2 id="form-title" class="text-base font-black text-navy flex items-center gap-2"><button onclick="closeFormAndReturn()" class="text-slate-400 hover:text-navy mr-1"><i class="ph-bold ph-arrow-left"></i></button> Edit Item</h2>
                         <button onclick="saveForm()" class="bg-azure text-white px-5 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-navy flex items-center gap-1.5"><i class="ph-bold ph-floppy-disk"></i> Save</button>
                     </div>
                     
@@ -225,7 +213,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('doc-photo-upload').click()">
                                     <img id="doc-photo-preview" class="hidden w-full h-full object-cover" />
                                     <div id="doc-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="doc-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'docPhotoUrl', 'doc-photo-preview', 'doc-photo-icon')" class="hidden" />
+                                    <input type="file" id="doc-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'photoUrl', 'doc-photo-preview', 'doc-photo-icon')" class="hidden" />
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -263,7 +251,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('srv-photo-upload').click()">
                                     <img id="srv-photo-preview" class="hidden w-full h-full object-cover" />
                                     <div id="srv-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="srv-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'srvBannerUrl', 'srv-photo-preview', 'srv-photo-icon')" class="hidden" />
+                                    <input type="file" id="srv-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'bannerImageUrl', 'srv-photo-preview', 'srv-photo-icon')" class="hidden" />
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -285,7 +273,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('prd-photo-upload').click()">
                                     <img id="prd-photo-preview" class="hidden w-full h-full object-cover" />
                                     <div id="prd-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="prd-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'prdPhotoUrl', 'prd-photo-preview', 'prd-photo-icon')" class="hidden" />
+                                    <input type="file" id="prd-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'profilePhoto', 'prd-photo-preview', 'prd-photo-icon')" class="hidden" />
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -309,7 +297,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('exe-photo-upload').click()">
                                     <img id="exe-photo-preview" class="hidden w-full h-full object-contain p-1" />
                                     <div id="exe-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="exe-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'exeImageUrl', 'exe-photo-preview', 'exe-photo-icon')" class="hidden" />
+                                    <input type="file" id="exe-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'imageUrl', 'exe-photo-preview', 'exe-photo-icon')" class="hidden" />
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -333,7 +321,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('art-photo-upload').click()">
                                     <img id="art-photo-preview" class="hidden w-full h-full object-cover" />
                                     <div id="art-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="art-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'artImageUrl', 'art-photo-preview', 'art-photo-icon')" class="hidden" />
+                                    <input type="file" id="art-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'imageUrl', 'art-photo-preview', 'art-photo-icon')" class="hidden" />
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -373,7 +361,7 @@
                                 <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('cln-photo-upload').click()">
                                     <img id="cln-photo-preview" class="hidden w-full h-full object-contain p-1" />
                                     <div id="cln-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
-                                    <input type="file" id="cln-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'clnLogoUrl', 'cln-photo-preview', 'cln-photo-icon')" class="hidden" />
+                                    <input type="file" id="cln-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'logoUrl', 'cln-photo-preview', 'cln-photo-icon')" class="hidden" />
                                 </div>
                             </div>
 
@@ -456,18 +444,20 @@
         };
 
         // --- UI TOGGLES ---
-        function toggleSidebar() {
+        function openSidebar() {
             const sb = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            if (sb.classList.contains('-translate-x-full')) {
-                sb.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden', 'opacity-0');
-                setTimeout(() => overlay.classList.add('opacity-100'), 10);
-            } else {
-                sb.classList.add('-translate-x-full');
-                overlay.classList.remove('opacity-100');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
+            sb.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden', 'opacity-0');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        }
+
+        function closeSidebar() {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sb.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
         }
 
         function switchView(viewId) {
@@ -511,7 +501,7 @@
         // --- ROUTING ---
         function handleHashChange() {
             activeHash = window.location.hash || '#/overview';
-            closeForm(); // Resets to base panel
+            closeForm(); // Resets form, hides panel
             
             // Highlight nav
             document.querySelectorAll('.nav-link').forEach(el => {
@@ -527,7 +517,7 @@
             });
             
             renderRoute();
-            if(window.innerWidth < 1024) toggleSidebar();
+            if(window.innerWidth < 1024) closeSidebar();
         }
         window.addEventListener('hashchange', handleHashChange);
 
@@ -538,6 +528,9 @@
             document.getElementById('panel-overview').classList.add('hidden');
             document.getElementById('panel-clinic').classList.add('hidden');
             document.getElementById('panel-list').classList.add('hidden');
+            
+            // Do NOT hide panel-form if it is currently being edited!
+            // But if we routed via Hash Change, closeForm() was already called.
 
             if (activeHash === '#/overview') {
                 document.getElementById('stat-exercises').innerText = siteData.exercises.length;
@@ -557,11 +550,11 @@
             }
             else {
                 activeCategory = activeHash.replace('#/', '');
-                // Singularize category for formType mapping
                 const catMap = { 'doctors': 'doctor', 'services': 'service', 'products': 'product', 'articles': 'article', 'exercises': 'exercise' };
                 if (catMap[activeCategory]) {
                     document.getElementById('list-title').innerText = activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
                     document.getElementById('panel-list').classList.remove('hidden');
+                    document.getElementById('panel-list').classList.add('flex'); // Ensure flex is applied for full height
                     document.getElementById('list-search').value = '';
                     renderActiveList();
                 }
@@ -585,7 +578,6 @@
             }
 
             let html = '';
-            // Render in reverse to show newest first (conceptually)
             [...filtered].reverse().forEach(item => {
                 let title = item.name || item.title || 'Untitled';
                 let subtitle = '';
@@ -598,6 +590,7 @@
                 else if(activeCategory === 'articles') { subtitle = `/${item.slug||''}`; img = item.imageUrl; fallback = '📄'; }
                 else if(activeCategory === 'exercises') { subtitle = item.tags ? (Array.isArray(item.tags)?item.tags.join(', '):item.tags) : ''; img = item.imageUrl; fallback = '🏃'; }
 
+                // The magic fix: category.slice(0, -1) converts "doctors" to "doctor"
                 html += `
                     <div class="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onclick="openForm('${activeCategory.slice(0, -1)}', '${item.id}')">
                         <div class="w-10 h-10 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
@@ -620,7 +613,7 @@
         function initQuillForAdmin() {
             const setupQuill = (id) => {
                 const el = document.getElementById(id);
-                if(!el || el.classList.contains('ql-container')) return null; // already initialized
+                if(!el || el.classList.contains('ql-container')) return null; 
                 
                 const q = new Quill(`#${id}`, {
                     theme: 'snow',
@@ -693,6 +686,7 @@
                 return q;
             };
 
+            // Safely initialize if they don't exist
             if(!qArticle) qArticle = setupQuill('quill-article');
             if(!qExercise) qExercise = setupQuill('quill-exercise');
         }
@@ -719,11 +713,13 @@
                 currentFormData[dataKey] = url;
                 setPreviewImage(previewId, iconId, url);
             }
-            event.target.value = ''; // reset input
+            event.target.value = '';
         }
 
         function closeForm() {
             document.getElementById('panel-form').classList.add('hidden');
+            document.getElementById('panel-form').classList.remove('flex');
+            
             document.getElementById('form-doctor').classList.add('hidden');
             document.getElementById('form-service').classList.add('hidden');
             document.getElementById('form-product').classList.add('hidden');
@@ -733,11 +729,21 @@
             currentFormData = {};
         }
 
+        function closeFormAndReturn() {
+            closeForm();
+            renderRoute(); // This brings back the list or overview!
+        }
+
         function openForm(type, itemId) {
             closeForm();
+            
+            // Hide the active panels so ONLY the form shows
+            document.getElementById('panel-overview').classList.add('hidden');
+            document.getElementById('panel-clinic').classList.add('hidden');
+            document.getElementById('panel-list').classList.add('hidden');
+
             formType = type;
             
-            // Find item data
             if(type === 'clinicInfo') {
                 currentFormData = JSON.parse(JSON.stringify(siteData.hero || {}));
             } else {
@@ -746,11 +752,11 @@
                 currentFormData = item ? JSON.parse(JSON.stringify(item)) : {};
             }
 
-            document.getElementById('form-title').innerText = currentFormData.id ? 'Edit Item' : 'Create New';
+            document.getElementById('form-title').innerHTML = `<button onclick="closeFormAndReturn()" class="text-slate-400 hover:text-navy mr-1"><i class="ph-bold ph-arrow-left"></i></button> ` + (currentFormData.id ? 'Edit Item' : 'Create New');
             
-            initQuills();
+            // THE FATAL BUG FIX: Correct Function Call
+            initQuillForAdmin(); 
 
-            // Populate Forms based on type
             if (type === 'doctor') {
                 if (!currentFormData.pricingOptions) currentFormData.pricingOptions = [];
                 setPreviewImage('doc-photo-preview', 'doc-photo-icon', currentFormData.photoUrl);
@@ -908,7 +914,6 @@
 
         // --- SAVING ---
         async function saveForm() {
-            // Read inputs into currentFormData based on type
             if (formType === 'doctor') {
                 currentFormData.name = document.getElementById('doc-name').value;
                 currentFormData.gmail = document.getElementById('doc-gmail').value;
@@ -951,9 +956,8 @@
                 currentFormData.waDefaultMessage = document.getElementById('cln-wa-msg').value;
             }
 
-            // Save to Firebase
             try {
-                // Clean data
+                // Wipe empty values cleanly
                 const cleanData = JSON.parse(JSON.stringify(currentFormData, (k, v) => v === undefined ? null : v));
                 Object.keys(cleanData).forEach(key => { if(cleanData[key] === null || cleanData[key] === '') delete cleanData[key]; });
 
@@ -977,7 +981,7 @@
                 }
                 
                 showToast('Saved Successfully!');
-                handleHashChange(); // return to list
+                closeFormAndReturn(); // Returns to the list
             } catch (e) {
                 console.error(e);
                 alert(`Error saving: ${e.message}`);
@@ -989,6 +993,8 @@
                 const arr = siteData[category].filter(item => item.id !== id);
                 await dbSite.ref(`site/${category}`).set(arr);
                 showToast('Deleted Successfully!');
+                // Auto close form if deleting the item currently being edited
+                if (currentFormData.id === id) closeFormAndReturn();
             }
         };
 
