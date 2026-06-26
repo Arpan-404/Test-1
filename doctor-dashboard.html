@@ -2,520 +2,565 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Therapeutic Hub</title>
-    <meta name="description" content="Expert healthcare and physiotherapy services at Therapeutic Hub.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doctor Portal - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Pure Firebase Compat Libraries (No Modules, No React, No Crashes) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <!-- Quill Editor (For Clinical Notes) -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     
+    <!-- Tailwind & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
+            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
+          }
+        }
+      }
+    </script>
+
     <style>
-        /* PREMIUM MEDICAL THEME */
-        :root {
-            --app-bg: #f8fafc;        
-            --surface: #ffffff;       
-            --primary: #2563eb;       
-            --primary-dark: #1e40af;
-            --primary-light: #dbeafe;  
-            --text-dark: #0f172a;     
-            --text-muted: #475569;    
-            --border: #e2e8f0;
-            --shadow-soft: 0 4px 15px rgba(15, 23, 42, 0.04);
-            --shadow-hover: 0 10px 25px rgba(15, 23, 42, 0.08); 
-            --radius-sm: 8px;         
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
-        a { text-decoration: none; color: inherit; }
-
-        /* HEADER & SEARCH */
-        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; gap: 8px; border-bottom: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .logo { display: flex; align-items: center; }
-        .logo-img { width: 36px; height: 36px; border-radius: var(--radius-sm); object-fit: cover; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #0f172a; overflow-x: hidden; }
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .h-scroll { scrollbar-width: none; }
         
-        .search-container { flex-grow: 1; display: flex; justify-content: center; position: relative; max-width: 250px; margin: 0 auto; }
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; pointer-events: none; }
-        .search-input { width: 100%; padding: 8px 16px 8px 36px; border-radius: 100px; border: 1px solid var(--border); background: #f1f5f9; font-size: 0.9rem; transition: all 0.2s ease; color: var(--text-dark); }
-        .search-input:focus { background: var(--surface); border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); outline: none; }
+        @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+
+        /* Clean Quill Container */
+        .ql-editor { min-height: 150px; font-size: 14px; font-family: inherit; line-height: 1.6; }
+        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
+        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
         
-        .header-actions { display: flex; align-items: center; gap: 8px; }
-        .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
-        .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; transition: 0.2s; }
-
-        /* SEARCH DROPDOWN */
-        .search-results { position: fixed; top: 65px; left: 1rem; right: 1rem; max-height: 60vh; overflow-y: auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1002; display: none; padding: 0.5rem; border: 1px solid var(--border); }
-        .search-results.active { display: block; }
-        .search-result-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-radius: var(--radius-sm); }
-        .search-result-item:hover { background: #f8fafc; }
-        .search-category-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 5px 5px; font-weight: 700; }
-
-        /* MOBILE MENU - FIXED CSS right: 0 instead of -100% */
-        .mobile-menu { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: var(--surface); z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid var(--border); }
-        .mobile-menu.active { transform: translateX(0); } 
-        .mobile-menu ul { list-style: none; }
-        .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: var(--text-dark); transition: color 0.2s; }
-        .mobile-menu ul li a.main-nav-link:hover { color: var(--primary); }
-        .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .close-menu:hover { background: #e2e8f0; color: var(--text-dark); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
-        .overlay.active { visibility: visible; opacity: 1; }
-
-        /* BUTTONS */
-        .btn { display: inline-block; padding: 14px 24px; background: var(--primary); color: white; border-radius: 100px; font-weight: 700; text-align: center; border: none; cursor: pointer; transition: all 0.2s; width: 100%; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);}
-        .btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);}
-        .btn:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);}
-        .btn-small { width: auto; padding: 8px 20px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary-dark); box-shadow: none; border-radius: 100px; font-weight: 700;}
-        .btn-small:hover { background: #bfdbfe; }
-
-        /* SERVICES LAYOUT */
-        .main { max-width: 800px; margin: 80px auto 2rem; background: var(--surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
-        .title { color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
-        .content { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;}
-        
-        .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 1px solid var(--border); }
-        
-        .test-list { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
-        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); transition: 0.2s;}
-        .test-item:hover { border-color: var(--primary-light); background: #ffffff; box-shadow: var(--shadow-soft); }
-        .test-name { font-weight: 700; color: var(--text-dark); font-size: 1.05rem; }
-
-        /* PRODUCT LAYOUT */
-        .prod-detail-main { max-width: 100%; margin: 60px auto 0; padding-bottom: 80px; background: var(--app-bg); }
-        .prod-image-section { background: var(--surface); padding: 1.5rem 0; border-bottom: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .prod-main-img { width: 100%; height: 350px; object-fit: contain; }
-        .gallery-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 1.5rem; scrollbar-width: none; }
-        .gallery-thumb { width: 65px; height: 65px; border-radius: var(--radius-sm); object-fit: contain; border: 2px solid transparent; cursor: pointer; padding: 4px; background: #f1f5f9; transition: 0.2s; }
-        .gallery-thumb:hover { border-color: var(--primary-light); }
-        
-        .prod-info-section { background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .prod-title-text { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px; line-height: 1.3; }
-        .prod-price-text { font-size: 1.75rem; font-weight: 800; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        .prod-freedel { color: #10b981; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; background: #ecfdf5; padding: 4px 10px; border-radius: 100px; margin-top: 8px;}
-
-        .prod-desc-section { background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .prod-desc-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: #1e293b; display: flex; align-items: center; gap: 6px;}
-        .prod-desc-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; white-space: pre-wrap; }
-
-        .video-container { width: 100%; aspect-ratio: 16/9; margin-top: 15px; background: #0f172a; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 1.5rem; box-shadow: var(--shadow-soft); }
-        .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
-
-        .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: flex; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 999; border-top: 1px solid var(--border); }
-        .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.2s;}
-        .btn-buy-now:active { transform: scale(0.98); }
-        
-        /* WIKIPEDIA / EXERCISE LAYOUT */
-        .wiki-article-container { 
-            max-width: 850px; 
-            margin: 60px auto 0; 
-            background: var(--surface); 
-            min-height: calc(100vh - 60px);
-            padding-bottom: 3rem;
-        }
-        @media (min-width: 851px) {
-            .wiki-article-container { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
-        }
-        
-        .wiki-body { padding: 2.5rem 3rem; }
-        .ex-hero-container { height: 350px; width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-bottom: 1px solid var(--border); padding: 1rem; }
-
-        .wiki-content { font-size: 1.05rem; line-height: 1.7; color: #334155; }
-        .wiki-content.ql-editor { padding: 0; overflow-y: visible; } 
-        .wiki-content h2 { font-size: 1.5rem; font-weight: 800; color: #1e3a8a; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
-        .wiki-content h3 { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-        .wiki-content p { margin-bottom: 1.25rem; }
-        .wiki-content a { color: #1d4ed8; text-decoration: underline; }
-        .wiki-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        
-        .wiki-article-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
-        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
-        
-        .wiki-related-box { margin-top: 3rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
-        .wiki-related-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;}
-        .wiki-related-grid { display: flex; flex-direction: column; gap: 10px; }
-        .wiki-related-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); transition: 0.2s; }
-        .wiki-related-item:hover { box-shadow: var(--shadow-soft); border-color: var(--primary-light); }
-
-        #loading { text-align: center; padding: 8rem 2rem; font-size: 1.1rem; color: var(--text-muted); font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 10px;}
-        .error-msg { text-align: center; color: var(--text-dark); display: none; margin-top: 80px; padding: 4rem 2rem; background: var(--surface); border-radius: var(--radius-lg); max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: var(--shadow-soft); border: 1px solid var(--border);}
-        
-        @media (max-width: 768px) { 
-            body { background: var(--surface) !important; padding-bottom: 2rem; }
-            .main { padding: 2rem 1.25rem !important; margin: 60px 0 0 !important; border-radius: 0 !important; border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important;} 
-            .wiki-article-container { margin: 60px 0 0 !important; width: 100% !important; max-width: 100% !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
-            .wiki-body { padding: 1.5rem 1.25rem !important; } 
-            .ex-hero-container { height: 260px !important; padding: 0 !important; border-bottom: none !important; } 
-            .ex-hero-container img { border-radius: 0 !important; }
-            .wiki-article-title { font-size: 1.8rem !important; }
-            .wiki-article-cover { float: none !important; width: 100% !important; max-width: 100% !important; margin: 1rem 0 1.5rem !important; }
-            .prod-detail-main { margin: 60px 0 0 !important; }
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <header class="header">
-        <a href="/" class="logo"><img src="" alt="PT" class="logo-img" id="clinicLogo"></a>
-        <div class="search-container">
-            <i class="ph-bold ph-magnifying-glass search-icon"></i>
-            <input type="text" id="globalSearch" class="search-input" placeholder="Search..." oninput="window.handleSearch()">
-        </div>
-        <div class="header-actions">
-            <!-- FIXED HAMBURGER MENU CALL -->
-            <div class="hamburger" onclick="window.toggleMenu()">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    </header>
 
-    <div id="searchResults" class="search-results"></div>
-
-    <div class="mobile-menu" id="mobileMenu">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border);">
-            <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); margin: 0;">Menu</h2>
-            <!-- FIXED CLOSE MENU CALL -->
-            <button class="close-menu" onclick="window.toggleMenu()"><i class="ph-bold ph-x"></i></button>
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none">
+        <div id="toast-content" class="text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 bg-slate-800">
+            <i id="toast-icon" class="ph-bold ph-check-circle text-emerald-400"></i> <span id="toast-msg">Success</span>
         </div>
-        <ul>
-            <li><a href="/" class="main-nav-link"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Home</a></li>
-            <li><a href="/services" class="main-nav-link"><i class="ph-bold ph-first-aid" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Services</a></li>
-            <li><a href="/doctors" class="main-nav-link"><i class="ph-bold ph-stethoscope" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Team</a></li>
-            <li><a href="/products" class="main-nav-link"><i class="ph-bold ph-shopping-bag" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Wellness Products</a></li>
-            <li><a href="/articles" class="main-nav-link"><i class="ph-bold ph-article" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Health Articles</a></li>
-            <li><a href="/exercises" class="main-nav-link"><i class="ph-bold ph-person-simple-walk" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Rehabilitation Exercises</a></li>
-            <li><a href="/prescription" class="main-nav-link"><i class="ph-bold ph-folder-open" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Patient Records</a></li>
+    </div>
+
+    <!-- VIEW 1: LOADING -->
+    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans">
+        <div class="native-loader"></div>
+        <div id="loading-text" class="text-lg font-black text-navy tracking-tight mt-4">Connecting to Secure Server...</div>
+    </div>
+
+    <!-- VIEW 2: LOGIN -->
+    <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4">
+        <div class="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
+            <i class="ph-fill ph-stethoscope text-5xl text-azure mb-3"></i>
+            <h1 class="text-2xl font-black text-navy tracking-tight mb-2">Staff Portal</h1>
+            <p class="text-sm text-slate-500 mb-6">Log in with your registered Google Workspace account to access patient records.</p>
             
-            <li style="padding: 2.5rem 1.5rem 0.5rem; border-bottom: none; display: flex; flex-direction: column; gap: 8px;">
-                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Internal Links</div>
-                <a href="/doctor-dashboard" style="color: #64748b; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; transition: color 0.2s; text-decoration: none;">
-                    <i class="ph-fill ph-activity" style="margin-right: 6px; font-size: 1rem;"></i> Staff Portal
-                </a>
-                <a href="/admin" style="color: #64748b; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; transition: color 0.2s; text-decoration: none;">
-                    <i class="ph-fill ph-shield-check" style="margin-right: 6px; font-size: 1rem;"></i> Admin Panel
-                </a>
-            </li>
-        </ul>
-    </div>
-    
-    <!-- FIXED OVERLAY MENU CALL -->
-    <div class="overlay" id="overlay" onclick="window.toggleMenu()"></div>
-
-    <div id="loading">
-        <i class="ph-bold ph-spinner-gap" style="font-size: 2.5rem; color: var(--primary); animation: spin 1s linear infinite;"></i>
-        Loading content...
-    </div>
-    <div id="detailWrapper"></div>
-
-    <div class="error-msg" id="errorMsg">
-        <i class="ph-fill ph-warning-circle" style="font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem; display: block;"></i>
-        <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Page Not Found</h2>
-        <p style="color: var(--text-muted);">The clinical record or item you clicked doesn't exist or has been removed.</p>
-        <a href="/" class="btn" style="margin-top: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph-bold ph-house"></i> Return Home</a>
+            <div id="auth-error" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 mb-4"></div>
+            
+            <button onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Authenticate with Google
+            </button>
+        </div>
     </div>
 
-    <script>
-        window.siteData = {}; 
-
-        window.normalizeData = (data) => {
-            if (!data) return [];
-            if (Array.isArray(data)) return data.filter(Boolean);
-            return Object.values(data).filter(Boolean);
-        };
-
-        window.slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    <!-- VIEW 3: DASHBOARD MAIN -->
+    <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans">
         
-        window.toggleMenu = () => { 
-            document.getElementById('mobileMenu').classList.toggle('active'); 
-            document.getElementById('overlay').classList.toggle('active'); 
-        };
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col h-full z-20">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+                <div>
+                    <h1 class="font-black text-navy text-lg leading-tight">Clinical Portal</h1>
+                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Doctor</p>
+                </div>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-xl"></i></button>
+            </div>
+            
+            <div class="p-3 shrink-0 bg-slate-50 border-b border-slate-200">
+                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-2.5 rounded-lg text-sm shadow-sm hover:bg-navy transition mb-3 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-plus"></i> New Record
+                </button>
+                <div class="relative">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-4 outline-none focus:border-azure text-sm" />
+                </div>
+            </div>
 
-        document.addEventListener('click', (e) => {
-            const res = document.getElementById('searchResults'), inp = document.getElementById('globalSearch');
-            if (e.target !== res && e.target !== inp && !res.contains(e.target)) res.classList.remove('active');
+            <div id="patient-list-container" class="flex-1 overflow-y-auto">
+                <!-- Injected via JS -->
+            </div>
+        </aside>
+
+        <!-- Main Editor Area -->
+        <main id="editor-area" class="hidden md:flex flex-1 bg-appbg flex-col h-full w-full absolute md:relative top-0 left-0 z-30">
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">
+                <i class="ph-fill ph-folder-open text-6xl mb-4 opacity-20"></i>
+                <p class="font-bold text-lg text-slate-500">Select a patient record to view or edit.</p>
+            </div>
+
+            <!-- Active Editor -->
+            <div id="active-editor" class="hidden flex-col h-full animate-in slide-in-from-right-4 md:slide-in-from-right-0">
+                
+                <header class="bg-white border-b border-slate-200 p-3 sm:px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
+                    <div class="flex items-center gap-3">
+                        <button onclick="closeEditorMobile()" class="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+                        <h2 id="editor-title" class="font-black text-navy text-lg">Patient Record</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                            <input type="checkbox" id="input-published" class="accent-azure w-4 h-4" onchange="updateActiveData('isPublished', this.checked)" />
+                            <span class="text-xs font-bold text-slate-600">Published</span>
+                        </label>
+                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy transition disabled:opacity-50 flex items-center gap-2">
+                            <i class="ph-bold ph-floppy-disk"></i> Save Data
+                        </button>
+                    </div>
+                </header>
+
+                <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                    
+                    <!-- Section 1: Demographics -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-identification-card text-azure mr-1"></i> Demographics</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Full Name *</label>
+                                <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="Patient Name" />
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">UPID (ID) *</label>
+                                <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="e.g. 4092" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="col-span-1 sm:col-span-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Age</label>
+                                <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="Yrs" />
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
+                                <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure bg-white">
+                                    <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-span-3 sm:col-span-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone Number (Login) *</label>
+                                <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-azure" placeholder="10 Digits" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Clinical Notes -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-stethoscope text-azure mr-1"></i> Clinical Notes</h3>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Chief Complaints</label>
+                            <div id="quill-cc"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Medical History</label>
+                            <div id="quill-mh"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Physical Assessment</label>
+                            <div id="quill-pa"></div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Diagnosis</label>
+                            <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-3 text-base font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition" placeholder="Primary Diagnosis" />
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Treatment Plan & Advice</label>
+                            <div id="quill-tp"></div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Exercises -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-person-simple-walk text-azure mr-1"></i> Prescribed Exercises</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Select Exercises from Library</label>
+                            <div id="exercise-library" class="h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 space-y-1">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <div id="exercise-configs" class="space-y-3 mt-4 border-t border-slate-100 pt-4 hidden">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Configure Selected Exercises</label>
+                            <div id="exercise-configs-list"></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PURE VANILLA JAVASCRIPT ENGINE -->
+    <script>
+        // 1. FIREBASE SETUP
+        const recordsConfig = {
+            apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
+            authDomain: "patient-records-arpan.firebaseapp.com",
+            projectId: "patient-records-arpan"
+        };
+        const appRecords = firebase.initializeApp(recordsConfig, "AppRecords");
+        const authRecords = appRecords.auth();
+        const dbRecords = appRecords.firestore();
+        
+        const siteConfig = {
+            apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
+            databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
+            projectId: "clinic-bdf92"
+        };
+        const appSite = firebase.initializeApp(siteConfig, "AppSite");
+        const dbSite = appSite.database();
+
+        // 2. GLOBAL STATE
+        let currentUser = null;
+        let doctorProfile = null;
+        let patients = [];
+        let siteExercises = [];
+        let activePatient = null;
+
+        // Quill Instances
+        let qCC, qMH, qPA, qTP;
+
+        // 3. UI CONTROLLERS
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').className = isError ? "ph-bold ph-warning-circle text-white" : "ph-bold ph-check-circle text-emerald-400";
+            document.getElementById('toast-content').className = `text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
+            
+            t.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                t.classList.remove('opacity-100', 'translate-y-0');
+                t.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function switchView(viewId) {
+            document.getElementById('view-loading').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function closeEditorMobile() {
+            document.getElementById('editor-area').classList.add('hidden');
+            document.getElementById('editor-area').classList.remove('flex');
+            document.getElementById('sidebar').classList.remove('hidden');
+            activePatient = null;
+        }
+
+        // 4. AUTHENTICATION LOGIC
+        authRecords.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const snap = await dbSite.ref('site/doctors').once('value');
+                    let isAuthorized = false;
+                    
+                    if (snap.exists()) {
+                        const allDocs = snap.val();
+                        const docArray = Array.isArray(allDocs) ? allDocs : Object.values(allDocs);
+                        const match = docArray.find(d => d && d.gmail && d.gmail.toLowerCase() === user.email.toLowerCase());
+                        
+                        if (match) {
+                            isAuthorized = true;
+                            doctorProfile = match;
+                            currentUser = user;
+                        }
+                    }
+
+                    if (isAuthorized) {
+                        document.getElementById('doc-name-display').innerText = "Dr. " + doctorProfile.name;
+                        fetchData();
+                    } else {
+                        await authRecords.signOut();
+                        showAuthError(`Access Denied: Email (${user.email}) not found in Admin Panel.`);
+                        switchView('view-login');
+                    }
+                } catch (e) {
+                    showAuthError("Error verifying credentials.");
+                    switchView('view-login');
+                }
+            } else {
+                switchView('view-login');
+            }
         });
 
-        window.changeMainImg = (url) => { const mainImg = document.getElementById('mainProdImg'); if(mainImg) mainImg.src = url; };
-
-        const updateSEO = (title, description) => {
-            document.title = title + " - Therapeutic Hub";
-            let metaDesc = document.querySelector('meta[name="description"]');
-            if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = "description"; document.head.appendChild(metaDesc); }
-            metaDesc.content = description ? description.replace(/<[^>]*>?/gm, '').substring(0, 155) + "..." : "Expert healthcare services at Therapeutic Hub.";
-        };
-
-        const path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase();
-        const pathParts = path.split('/');
-        
-        let reqType = 'article'; 
-        let reqSlug = pathParts[0];
-
-        if(pathParts.length > 1) { reqType = pathParts[0]; reqSlug = pathParts[1]; }
-
-        if(!reqSlug) {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('errorMsg').style.display = 'block';
-        } else {
-            Promise.all([
-                fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json').then(r => r.json()),
-                reqType === 'exercise' ? fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site/exercises.json').then(r => r.json()) : Promise.resolve(null)
-            ]).then(([siteData, exercisesData]) => {
-                document.getElementById('loading').style.display = 'none';
-                window.siteData = siteData || {};
-                
-                if(window.siteData.hero && window.siteData.hero.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
-
-                const wNum = (window.siteData.hero?.whatsappNumber || '').replace('+', '');
-                const wrapper = document.getElementById('detailWrapper');
-                let found = false;
-
-                if (reqType === 'exercise') {
-                    const exList = window.normalizeData(exercisesData);
-                    const exercise = exList.find(e => window.slugify(e.name) === reqSlug);
-                    
-                    if(exercise) {
-                        found = true;
-                        updateSEO(exercise.name, exercise.description);
-
-                        const getYoutubeEmbedUrl = (url) => {
-                            if (!url) return null;
-                            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-                            const match = url.match(regExp);
-                            return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
-                        };
-
-                        const embedUrl = getYoutubeEmbedUrl(exercise.videoUrl);
-                        let videoHtml = '';
-                        if (embedUrl || exercise.videoUrl) {
-                            videoHtml = `
-                            <div style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-                                <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                                    <i class="ph-fill ph-video-camera" style="color: #1d4ed8;"></i> Video Demonstration
-                                </h3>
-                                ${embedUrl ? 
-                                    `<div class="video-container" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); aspect-ratio: 16/9; overflow: hidden;"><iframe src="${embedUrl}" style="width: 100%; height: 100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : 
-                                    `<div class="video-container" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); aspect-ratio: 16/9; overflow: hidden;"><video src="${exercise.videoUrl}" style="width: 100%; height: 100%;" controls poster="${exercise.imageUrl}"></video></div>`
-                                }
-                            </div>`;
-                        }
-
-                        wrapper.innerHTML = `
-                        <div class="wiki-article-container">
-                            ${exercise.imageUrl ? `
-                            <div class="ex-hero-container">
-                                <img src="${exercise.imageUrl}" alt="${exercise.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;">
-                            </div>` : ''}
-                            <div class="wiki-body">
-                                <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: inline-block;">${exercise.name}</h1>
-                                <div class="wiki-content ql-editor">${exercise.description || '<p>No description provided.</p>'}</div>
-                                ${videoHtml}
-                            </div>
-                        </div>`;
-                    }
-                }
-                else if (reqType === 'service') {
-                    const servicesList = window.normalizeData(window.siteData.services);
-                    const service = servicesList.find(s => window.slugify(s.title) === reqSlug);
-                    if(service) {
-                        found = true;
-                        updateSEO(service.title, service.description);
-                        const img = service.bannerImageUrl ? `<img src="${service.bannerImageUrl}" class="entity-img">` : `<div class="entity-img"><i class="ph-fill ph-first-aid text-[6rem] color:var(--text-muted)"></i></div>`;
-                        let testsHtml = (service.tests || []).map(t => `<div class="test-item"><span class="test-name">${t.name}</span><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book the test: ${encodeURIComponent(t.name)}')">₹${t.price.replace(/[^0-9.]/g, '')}</button></div>`).join('');
-                        wrapper.innerHTML = `
-                        <main class="main">
-                            ${img}
-                            <h1 class="title">${service.title}</h1>
-                            <p class="content">${service.description}</p>
-                            <button class="btn" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(service.title)}')">Book Consultation</button>
-                            ${testsHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800; display:flex; align-items:center; gap:6px;"><i class="ph-bold ph-list-plus text-primary"></i> Available Sub-Services</h3>${testsHtml}</div>` : ''}
-                        </main>`;
-                    }
-                } 
-                else if (reqType === 'doctor') {
-                    const doctorsList = window.normalizeData(window.siteData.doctors);
-                    const doc = doctorsList.find(d => window.slugify(d.name) === reqSlug);
-                    if(doc) {
-                        found = true;
-                        updateSEO(doc.name + (doc.qualification ? ` - ${doc.qualification}` : ''), doc.details);
-                        
-                        let formattedDetails = doc.details || 'Biography coming soon.';
-                        if (!formattedDetails.includes('<p>')) {
-                            formattedDetails = formattedDetails.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
-                        }
-
-                        // Use Doctor's specific phone if available for booking links
-                        const targetPhone = doc.phone ? doc.phone.replace(/[^0-9]/g, '') : wNum;
-                        const formattedPhone = targetPhone.length === 10 ? '91' + targetPhone : targetPhone;
-
-                        // Build Dynamic Pricing Options
-                        const pricingOptions = doc.pricingOptions || [];
-                        let pricingHtml = '';
-                        
-                        if (pricingOptions.length > 0) {
-                            pricingHtml = pricingOptions.map(opt => {
-                                const optMsg = `Hello, I want to request: ${opt.title} with ${doc.name}`;
-                                const optWaLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(optMsg)}`;
-                                return `
-                                <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-soft);">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                                        <div>
-                                            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">${opt.title || 'Consultation'}</div>
-                                            <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${opt.price || 'Contact for price'}</div>
-                                        </div>
-                                    </div>
-                                    <button onclick="window.open('${optWaLink}')" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">
-                                        ${opt.buttonText || 'Book Now'}
-                                    </button>
-                                </div>
-                                `;
-                            }).join('');
-                        } else {
-                            // Default Fallback Option
-                            const fallbackLink = `https://wa.me/${formattedPhone}?text=Hello, I want to book an appointment with ${encodeURIComponent(doc.name)}`;
-                            const fallbackFee = doc.fees ? (doc.fees.includes('₹') || doc.fees.toLowerCase().includes('rs') ? doc.fees : '₹' + doc.fees) : 'Contact for pricing';
-                            pricingHtml = `
-                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; box-shadow: var(--shadow-soft);">
-                                <div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div>
-                                    <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${fallbackFee}</div>
-                                </div>
-                                <button onclick="window.open('${fallbackLink}')" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">
-                                    Book Consultation
-                                </button>
-                            </div>
-                            `;
-                        }
-
-                        wrapper.innerHTML = `
-                        <div class="main" style="margin-top: 80px; max-width: 600px;">
-                            <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); overflow: hidden; padding: 2rem 1.5rem;">
-                                
-                                <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
-                                    ${doc.photoUrl ? `<img src="${doc.photoUrl}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1.2rem;" alt="${doc.name}">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
-                                    <h1 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${doc.name}</h1>
-                                    <div style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${doc.designation || 'Consultant Physiotherapist'}</div>
-                                    <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${doc.qualification}</div>
-                                    ${doc.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #f8fafc; padding: 4px 12px; border-radius: 100px;">${doc.regNumber}</div>` : ''}
-                                </div>
-
-                                <div class="wiki-content" style="text-align: left; font-size: 1.05rem; margin-bottom: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
-                                    ${formattedDetails}
-                                </div>
-
-                                <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; background: #f8fafc; margin: 0 -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
-                                    <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; text-align: center;">Booking Options</h3>
-                                    
-                                    <div style="display: flex; flex-direction: column;">
-                                        ${pricingHtml}
-                                    </div>
-                                </div>
-                                
-                                ${(doc.onlineBookingUrl || doc.exerciseChartUrl) ? `
-                                <div style="margin-top: 1rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; gap: 10px;">
-                                    ${doc.onlineBookingUrl ? `<button onclick="window.open('${doc.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph-bold ph-calendar-plus text-lg"></i> Online Booking Portal</button>` : ''}
-                                    ${doc.exerciseChartUrl ? `<button onclick="window.open('${doc.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: #f1f5f9; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph-bold ph-person-simple-walk text-lg"></i> View Exercise Chart</button>` : ''}
-                                </div>` : ''}
-
-                            </div>
-                        </div>`;
-                    }
-                }
-                else if (reqType === 'product') {
-                    const productsList = window.normalizeData(window.siteData.products);
-                    const prod = productsList.find(p => window.slugify(p.name) === reqSlug);
-                    if(prod) {
-                        found = true;
-                        updateSEO(prod.name, prod.description);
-                        let galleryHtml = ''; let allImages = [];
-                        if (prod.profilePhoto) allImages.push(prod.profilePhoto);
-                        if (prod.galleryImages && Array.isArray(prod.galleryImages)) allImages = allImages.concat(prod.galleryImages);
-                        const uniqueImages = [...new Set(allImages)]; 
-                        if (uniqueImages.length > 1) galleryHtml = `<div class="gallery-scroll">` + uniqueImages.map(url => `<img src="${url}" class="gallery-thumb" onclick="window.changeMainImg('${url}')">`).join('') + `</div>`;
-                        let mainImgHtml = uniqueImages.length > 0 ? `<img src="${uniqueImages[0]}" class="prod-main-img" id="mainProdImg">` : `<div class="prod-main-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:#f9f9f9;"><i class="ph-bold ph-package color:var(--text-muted)"></i></div>`;
-                        let videoHtml = '';
-                        if (prod.videoUrl) {
-                            videoHtml = `<div class="prod-desc-title" style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border);"><i class="ph-bold ph-play-circle text-primary"></i> Product Video</div>`;
-                            if (prod.videoUrl.includes('youtube') || prod.videoUrl.includes('youtu.be')) {
-                                let videoId = prod.videoUrl.split('v=')[1] || prod.videoUrl.split('youtu.be/')[1];
-                                if(videoId) { const ampersandPosition = videoId.indexOf('&'); if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition); videoHtml += `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`; }
-                            } else { videoHtml += `<div class="video-container"><video src="${prod.videoUrl}" controls playsinline></video></div>`; }
-                        }
-                        let displayPrice = prod.price; if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) displayPrice = '₹' + displayPrice;
-
-                        wrapper.innerHTML = `
-                        <div class="prod-detail-main">
-                            <div class="prod-image-section">${mainImgHtml}${galleryHtml}</div>
-                            <div class="prod-info-section"><div class="prod-title-text">${prod.name}</div><div class="prod-price-text">${displayPrice}</div><div class="prod-freedel"><i class="ph-bold ph-truck"></i> Free Delivery</div></div>
-                            <div class="prod-desc-section"><div class="prod-desc-title"><i class="ph-bold ph-info text-primary"></i> Product Details</div><div class="prod-desc-text">${prod.description}</div>${videoHtml}</div>
-                            <div class="sticky-buy-bar"><button class="btn-buy-now" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(prod.name)}')"><i class="ph-bold ph-shopping-cart"></i> Buy Now</button></div>
-                        </div>`;
-                    }
-                }
-                else {
-                    const articlesList = window.normalizeData(window.siteData.articles);
-                    const article = articlesList.find(a => (a.slug || '').toLowerCase() === reqSlug);
-                    if(article) {
-                        found = true;
-                        updateSEO(article.title, article.content);
-                        let relatedHtml = '';
-                        if(article.linkedServices && window.siteData.services) { window.normalizeData(window.siteData.services).filter(s => article.linkedServices.includes(s.id)).forEach(s => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${s.title}</div><div style="font-size:0.85rem; color:var(--text-muted);">Clinical Service</div></div><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book</button></div>`; }); }
-                        if(article.linkedProducts && window.siteData.products) { window.normalizeData(window.siteData.products).filter(p => article.linkedProducts.includes(p.id)).forEach(p => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${p.name}</div><div style="font-size:0.85rem; color:var(--text-muted);">Wellness Product</div></div><button class="btn-small" onclick="window.open('https://wa.me/${wNum}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button></div>`; }); }
-
-                        wrapper.innerHTML = `
-                        <div class="wiki-article-container">
-                            <div class="wiki-body">
-                                <h1 class="wiki-article-title">${article.title}</h1>
-                                <div class="wiki-content ql-editor">${article.imageUrl ? `<img src="${article.imageUrl}" class="wiki-article-cover" style="float: right; margin: 0 0 1.5rem 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); width: 100%; max-width: 350px;" alt="${article.title}">` : ''}${article.content}</div>
-                                ${relatedHtml ? `<div class="wiki-related-box"><div class="wiki-related-title"><i class="ph-bold ph-link text-primary"></i> Related Resources</div><div class="wiki-related-grid">${relatedHtml}</div></div>` : ''}
-                            </div>
-                        </div>`;
-                    }
-                }
-
-                if(!found) document.getElementById('errorMsg').style.display = 'block';
-
-            }).catch((err) => { 
-                console.error("Data Fetch Error:", err);
-                document.getElementById('loading').style.display = 'none'; 
-                document.getElementById('errorMsg').style.display = 'block'; 
+        function handleGoogleLogin() {
+            document.getElementById('auth-error').classList.add('hidden');
+            const provider = new firebase.auth.GoogleAuthProvider();
+            authRecords.signInWithPopup(provider).catch(e => {
+                showAuthError("Google Sign-In failed or was cancelled.");
             });
         }
 
-        window.handleSearch = function() {
-            const query = document.getElementById('globalSearch').value.toLowerCase();
-            const res = document.getElementById('searchResults');
-            if (!query) { res.classList.remove('active'); return; }
-            let html = '';
-            
-            const filterMap = (arr, fields, linkPrefix, imgFn, titleFn, subFn) => {
-                const filtered = (arr || []).filter(item => fields.some(f => item[f]?.toLowerCase().includes(query)));
-                if(filtered.length === 0) return '';
-                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(item.title || item.name)}" class="search-result-item">${imgFn(item)} <div><div style="font-weight:700;font-size:0.95rem;color:#1e293b;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
-            };
-
-            const sHtml = filterMap(window.normalizeData(window.siteData.services), ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem; width:24px; text-align:center;">${s.icon}</div>`:`<div style="width:24px; text-align:center;"><i class="ph-bold ph-first-aid text-muted"></i></div>`, s=>s.title, s=>'Service');
-            if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
-
-            const dHtml = filterMap(window.normalizeData(window.siteData.doctors), ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">`:`<div style="width:30px; text-align:center;"><i class="ph-bold ph-stethoscope text-muted"></i></div>`, d=>d.name, d=>d.qualification);
-            if(dHtml) html += `<div class="search-category-title">Doctors</div>${dHtml}`;
-
-            const pHtml = filterMap(window.normalizeData(window.siteData.products), ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">`:`<div style="width:30px; text-align:center;"><i class="ph-bold ph-package text-muted"></i></div>`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
-            if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
-
-            const aHtml = window.normalizeData(window.siteData.articles).filter(a => (a.title||'').toLowerCase().includes(query) || (a.content||'').toLowerCase().includes(query))
-                .map(a => `<a href="/${a.slug}" class="search-result-item"><div style="width:24px; text-align:center;"><i class="ph-bold ph-file-text text-muted"></i></div> <div><div style="font-weight:700;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
-            if(aHtml) html += `<div class="search-category-title">Articles</div>${aHtml}`;
-
-            res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
-            res.classList.add('active');
+        function handleLogout() {
+            authRecords.signOut().then(() => window.location.reload());
         }
 
-        const style = document.createElement('style');
-        style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
-        document.head.appendChild(style);
+        function showAuthError(msg) {
+            const errBox = document.getElementById('auth-error');
+            errBox.innerText = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        // 5. DATA FETCHING
+        function fetchData() {
+            switchView('view-dashboard');
+            
+            // Get Exercises
+            dbSite.ref('site/exercises').once('value').then(snap => {
+                if(snap.exists()) {
+                    const data = snap.val();
+                    siteExercises = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+                    if(activePatient) renderExercises();
+                }
+            });
+
+            // Get Patients
+            dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients')
+                .orderBy('date', 'desc').limit(50).onSnapshot(snap => {
+                    patients = [];
+                    snap.forEach(doc => patients.push({ id: doc.id, ...doc.data() }));
+                    renderPatientList();
+                });
+        }
+
+        // 6. RENDER SIDEBAR
+        function renderPatientList() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const container = document.getElementById('patient-list-container');
+            
+            const filtered = patients.filter(p => 
+                (p.name && p.name.toLowerCase().includes(query)) || 
+                (p.ipId && p.ipId.includes(query)) || 
+                (p.contact && p.contact.includes(query))
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-medium">No records found.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => `
+                <div onclick="openPatient('${p.id}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">${p.name || 'Unnamed Patient'}</h4>
+                        <p class="text-[11px] font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
+                    </div>
+                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition"></i>
+                </div>
+            `).join('');
+        }
+
+        // 7. EDITOR MANAGEMENT
+        function initQuillEditors() {
+            if(!qCC) {
+                const qOptions = { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{'list': 'ordered'}, {'list': 'bullet'}], ['clean']] } };
+                qCC = new Quill('#quill-cc', { ...qOptions, placeholder: 'Primary symptoms...' });
+                qMH = new Quill('#quill-mh', { ...qOptions, placeholder: 'Past medical history...' });
+                qPA = new Quill('#quill-pa', { ...qOptions, placeholder: 'Findings from physical exam...' });
+                qTP = new Quill('#quill-tp', { ...qOptions, placeholder: 'Plan of care...' });
+
+                qCC.on('text-change', () => activePatient.chiefComplaints = qCC.root.innerHTML);
+                qMH.on('text-change', () => activePatient.history = qMH.root.innerHTML);
+                qPA.on('text-change', () => activePatient.assessmentNote = qPA.root.innerHTML);
+                qTP.on('text-change', () => activePatient.treatmentNote = qTP.root.innerHTML);
+            }
+        }
+
+        function createNewPatient() {
+            activePatient = {
+                name: "", ipId: "", contact: "", age: "", gender: "Male",
+                chiefComplaints: "", history: "", assessmentNote: "", diagnosis: "", treatmentNote: "",
+                isPublished: true, prescribedExercises: [], exerciseParams: {}
+            };
+            loadEditorUI();
+        }
+
+        function openPatient(id) {
+            const p = patients.find(x => x.id === id);
+            if(p) {
+                activePatient = JSON.parse(JSON.stringify(p)); // Deep copy to prevent accidental live editing
+                if(!activePatient.prescribedExercises) activePatient.prescribedExercises = [];
+                if(!activePatient.exerciseParams) activePatient.exerciseParams = {};
+                loadEditorUI();
+            }
+        }
+
+        function updateActiveData(key, value) {
+            if(activePatient) activePatient[key] = value;
+        }
+
+        function loadEditorUI() {
+            initQuillEditors();
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('active-editor').classList.remove('hidden');
+            document.getElementById('active-editor').classList.add('flex');
+            
+            // Mobile handling
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('editor-area').classList.remove('hidden');
+                document.getElementById('editor-area').classList.add('flex');
+            }
+
+            document.getElementById('editor-title').innerText = activePatient.id ? 'Edit Record' : 'New Patient Record';
+            
+            // Populate Inputs
+            document.getElementById('input-published').checked = activePatient.isPublished !== false;
+            document.getElementById('input-name').value = activePatient.name || '';
+            document.getElementById('input-upid').value = activePatient.ipId || '';
+            document.getElementById('input-age').value = activePatient.age || '';
+            document.getElementById('input-gender').value = activePatient.gender || 'Male';
+            document.getElementById('input-phone').value = activePatient.contact || '';
+            document.getElementById('input-diagnosis').value = activePatient.diagnosis || '';
+
+            // Populate Quills
+            qCC.root.innerHTML = activePatient.chiefComplaints || '';
+            qMH.root.innerHTML = activePatient.history || '';
+            qPA.root.innerHTML = activePatient.assessmentNote || '';
+            qTP.root.innerHTML = activePatient.treatmentNote || '';
+
+            renderExercises();
+        }
+
+        // 8. EXERCISE MANAGEMENT
+        function renderExercises() {
+            const libContainer = document.getElementById('exercise-library');
+            const confArea = document.getElementById('exercise-configs');
+            const confList = document.getElementById('exercise-configs-list');
+
+            if(siteExercises.length === 0) {
+                libContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center">No exercises found in Admin Panel.</div>';
+                confArea.classList.add('hidden');
+                return;
+            }
+
+            // Render Library
+            libContainer.innerHTML = siteExercises.map(ex => {
+                const isChecked = activePatient.prescribedExercises.includes(ex.id);
+                return `
+                    <label class="flex items-center gap-3 p-2 hover:bg-white rounded cursor-pointer border border-transparent hover:border-slate-200 transition">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${ex.id}', this.checked)" class="accent-azure w-4 h-4 shrink-0" />
+                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-8 h-8 rounded object-cover border border-slate-200 bg-white" />` : `<div class="w-8 h-8 rounded bg-slate-200 flex items-center justify-center text-xs">🏃</div>`}
+                        <span class="text-sm font-bold text-slate-700">${ex.name}</span>
+                    </label>
+                `;
+            }).join('');
+
+            // Render Configs
+            if (activePatient.prescribedExercises.length > 0) {
+                confArea.classList.remove('hidden');
+                confList.innerHTML = activePatient.prescribedExercises.map(exId => {
+                    const exInfo = siteExercises.find(e => e.id === exId);
+                    if(!exInfo) return '';
+                    const p = activePatient.exerciseParams[exId] || { reps: '', sets: '', freq: '', note: '' };
+                    return `
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-2">
+                            <div class="font-bold text-sm text-navy mb-2">${exInfo.name}</div>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
+                                <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
+                                <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
+                                <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq (e.g. 2x/day)" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none" /></div>
+                            </div>
+                            <input type="text" placeholder="Special Instructions / Note..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none italic" />
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                confArea.classList.add('hidden');
+                confList.innerHTML = '';
+            }
+        }
+
+        window.toggleExercise = function(exId, isChecked) {
+            if (isChecked) {
+                if(!activePatient.prescribedExercises.includes(exId)) activePatient.prescribedExercises.push(exId);
+                if(!activePatient.exerciseParams[exId]) activePatient.exerciseParams[exId] = { reps: '', sets: '', freq: '', note: '' };
+            } else {
+                activePatient.prescribedExercises = activePatient.prescribedExercises.filter(id => id !== exId);
+            }
+            renderExercises();
+        };
+
+        window.updateExParam = function(exId, field, val) {
+            if(!activePatient.exerciseParams[exId]) activePatient.exerciseParams[exId] = { reps: '', sets: '', freq: '', note: '' };
+            activePatient.exerciseParams[exId][field] = val;
+        };
+
+        // 9. SAVE TO DATABASE
+        async function savePatientData() {
+            if(!activePatient.name || !activePatient.ipId || !activePatient.contact) {
+                return showToast("Name, UPID, and Mobile Number are required.", true);
+            }
+
+            const btn = document.getElementById('btn-save');
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            try {
+                const dataToSave = {
+                    ...activePatient,
+                    doctorName: doctorProfile.name || '',
+                    doctorQual: doctorProfile.qualification || '',
+                    doctorDesignation: doctorProfile.designation || '',
+                    doctorReg: doctorProfile.regNumber || '',
+                    doctorPhone: doctorProfile.phone || '',
+                    lastEditedBy: currentUser.email,
+                    date: activePatient.date || new Date().toISOString()
+                };
+
+                const coll = dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients');
+                
+                if (activePatient.id) {
+                    await coll.doc(activePatient.id).set(dataToSave, { merge: true });
+                } else {
+                    const newRef = coll.doc();
+                    dataToSave.id = newRef.id;
+                    await newRef.set(dataToSave);
+                    activePatient.id = newRef.id; // update local state so subsequent saves are edits
+                }
+                
+                showToast("Patient record saved securely!");
+            } catch(e) {
+                console.error(e);
+                showToast("Save Error: Ensure you are authorized.", true);
+            } finally {
+                btn.innerHTML = `<i class="ph-bold ph-floppy-disk"></i> Save Data`;
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
-
