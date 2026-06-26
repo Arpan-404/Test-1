@@ -246,7 +246,7 @@
     </div>
 
     <!-- PRINT CONTAINER (Hidden in Web, Displayed in Print) -->
-    <div id="print-container" class="hidden text-[#1e40af] text-[16px] font-sans h-full w-full relative">
+    <div id="print-container" class="hidden text-[#1e40af] text-[14px] font-sans h-full w-full relative">
         <!-- Injected Dynamically on Print -->
     </div>
 
@@ -588,7 +588,7 @@
             }
         }
 
-        // 10. PRINT ENGINE
+        // 10. PRINT ENGINE (RESCALED FOR A4)
         function handlePrint() {
             if (!activePatient) return;
             
@@ -599,22 +599,22 @@
             let html = `
                 <div class="flex justify-between items-start pb-2 text-left">
                     <div>
-                        <h1 class="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style="text-shadow: 0px 0px 1px #1e40af; line-height: 1;">${doctorProfile.name || 'Doctor'}</h1>
-                        <p class="text-[18px] mt-2 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
-                        <p class="text-[18px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
-                        ${doctorProfile.regNumber ? `<p class="text-[14px] font-bold text-slate-600 mt-1">${doctorProfile.regNumber}</p>` : ''}
+                        <h1 class="text-[28px] font-bold italic tracking-wide text-[#1e40af]" style="line-height: 1.1;">${doctorProfile.name || 'Doctor'}</h1>
+                        <p class="text-[14px] mt-1 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
+                        <p class="text-[14px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
+                        ${doctorProfile.regNumber ? `<p class="text-[11px] font-bold text-slate-600 mt-0.5">${doctorProfile.regNumber}</p>` : ''}
                     </div>
                     ${activePatient.id ? `
-                    <div class="flex flex-col items-center justify-center pt-2 px-6">
-                        <img src="${qrUrl}" alt="QR Code" class="w-[85px] h-[85px]" />
-                        <span class="text-[11px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                    <div class="flex flex-col items-center justify-center px-4">
+                        <img src="${qrUrl}" alt="QR Code" class="w-[65px] h-[65px]" />
+                        <span class="text-[9px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
                     </div>` : ''}
-                    <div class="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                        <div class="flex items-center gap-2 font-black text-[26px] mb-6">
-                            <i class="ph-fill ph-phone-call text-[32px]"></i> +91 ${doctorProfile.phone || ''}
+                    <div class="text-right flex flex-col items-end text-[#1e40af]">
+                        <div class="flex items-center gap-2 font-black text-[16px] mb-4">
+                            <i class="ph-fill ph-phone-call text-[20px]"></i> +91 ${doctorProfile.phone || ''}
                         </div>
-                        <div class="text-[18px] flex items-center gap-2 font-semibold">
-                            <span>Date:</span> <span class="border-b border-[#1e40af] w-32 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
+                        <div class="text-[14px] flex items-center gap-2 font-semibold">
+                            <span>Date:</span> <span class="border-b border-[#1e40af] w-24 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
                         </div>
                     </div>
                 </div>
@@ -622,12 +622,12 @@
                 
                 <table class="main-print-table">
                     <thead class="print-table-header">
-                        <tr><td class="pb-5 pt-3">
-                            <div class="flex justify-between items-end pb-3 text-[18px] font-bold text-[#1e40af]">
-                                <div class="flex-1 flex items-end"><span class="whitespace-nowrap">Patient's name:</span> <span class="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">${activePatient.name || ''}</span></div>
-                                <div class="w-28 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.age || ''}</span></div>
-                                <div class="w-40 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.gender || ''}</span></div>
-                                <div class="w-36 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.ipId || ''}</span></div>
+                        <tr><td class="pb-3 pt-2">
+                            <div class="flex justify-between items-end pb-2 text-[13px] font-bold text-[#1e40af]">
+                                <div class="flex-1 flex items-end"><span class="whitespace-nowrap">Patient's name:</span> <span class="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.name || ''}</span></div>
+                                <div class="w-24 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.age || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.gender || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.ipId || ''}</span></div>
                             </div>
                             <div class="border-b border-[#1e40af]"></div>
                         </td></tr>
@@ -637,9 +637,9 @@
 
             // Clinical Notes Render
             if (activePatient.chiefComplaints || activePatient.history) {
-                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-5">`;
-                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-5"><span class="font-bold text-[22px]">Chief Complaint :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
-                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[22px]">Medical History :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.history}</div></div>`;
+                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-4">`;
+                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-4"><span class="font-bold text-[15px] block mb-1">Chief Complaint :-</span><div class="ml-4 text-slate-900 text-[13px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
+                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[15px] block mb-1">Medical History :-</span><div class="ml-4 text-slate-900 text-[13px] rich-text-content">${activePatient.history}</div></div>`;
                 html += `</td></tr>`;
             }
 
@@ -647,16 +647,16 @@
             const buildCustomTables = (section) => {
                 const tables = (activePatient.customTables || []).filter(t => t.section === section);
                 if(tables.length === 0) return '';
-                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-5 pl-5 pr-2">';
+                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-3 pl-4 pr-2">';
                 tables.forEach(t => {
-                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[20px] text-[#1e40af] mb-2">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
-                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-2 bg-blue-50/30 text-[18px]">${h}</th>`);
+                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[14px] text-[#1e40af] mb-1">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
+                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-1.5 bg-blue-50/30 text-[12px]">${h}</th>`);
                     tHtml += `</tr></thead><tbody>`;
                     let rows = t.rows || [];
                     if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch(e) { rows = []; } }
                     rows.forEach(r => {
                         tHtml += `<tr class="print-break-inside-avoid">`;
-                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-2 text-[18px] align-top whitespace-pre-wrap">${c}</td>`);
+                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-1.5 text-[12px] align-top whitespace-pre-wrap">${c}</td>`);
                         tHtml += `</tr>`;
                     });
                     tHtml += `</tbody></table></div>`;
@@ -666,49 +666,49 @@
             };
 
             if (activePatient.assessmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'assessment'))) {
-                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Assessment :-</span>`;
-                if(activePatient.assessmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.assessmentNote}</div>`;
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[15px] block mb-1">Assessment :-</span>`;
+                if(activePatient.assessmentNote) html += `<div class="ml-4 text-slate-900 text-[13px] rich-text-content">${activePatient.assessmentNote}</div>`;
                 html += buildCustomTables('assessment');
                 html += `</div></td></tr>`;
             }
 
             if (activePatient.diagnosis) {
-                html += `<tr class="main-print-row"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px]">Diagnosis:</span><span class="ml-3 text-slate-900 font-bold text-[22px]">${activePatient.diagnosis}</span></div></td></tr>`;
+                html += `<tr class="main-print-row"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[15px]">Diagnosis:</span><span class="ml-2 text-slate-900 font-bold text-[15px]">${activePatient.diagnosis}</span></div></td></tr>`;
             }
 
             if (activePatient.treatmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'treatment'))) {
-                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-8"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Treatment Plan / Advice :-</span>`;
-                if(activePatient.treatmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[15px] block mb-1">Treatment Plan / Advice :-</span>`;
+                if(activePatient.treatmentNote) html += `<div class="ml-4 text-slate-900 text-[13px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
                 html += buildCustomTables('treatment');
                 html += `</div></td></tr>`;
             }
 
             // Reassessment Builder
             const rTablesHtml = buildCustomTables('reassessment');
-            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-6 text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
+            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-4 text-[#1e40af]"><span class="font-bold text-[15px] block mb-2">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
 
             (activePatient.reassessmentTables || []).forEach(rtable => {
                 if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0) return;
-                html += `<tr class="main-print-row"><td class="px-2 pb-8 text-[#1e40af]"><span class="font-bold text-[22px] block mb-4">${rtable.title}</span><div class="pl-5 pr-2 w-full"><table class="w-full table-auto border-collapse text-[14px] text-slate-900 border border-[#1e40af] print-break-inside-avoid"><thead><tr>`;
-                html += `<th class="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold text-[16px]">Date</th>`;
+                html += `<tr class="main-print-row"><td class="px-2 pb-6 text-[#1e40af]"><span class="font-bold text-[15px] block mb-2">${rtable.title}</span><div class="pl-4 pr-2 w-full"><table class="w-full table-auto border-collapse text-[12px] text-slate-900 border border-[#1e40af] print-break-inside-avoid"><thead><tr>`;
+                html += `<th class="p-1.5 text-left border border-[#1e40af] w-24 text-[#1e40af] font-bold">Date</th>`;
                 
                 rtable.trackedMetrics.forEach(metric => {
-                    html += `<th class="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div class="flex flex-col h-full justify-between"><span class="leading-tight px-1 mb-2 pt-2 text-[15px]">${metric.title}</span>`;
-                    if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div class="flex-1 py-1 font-bold">L</div></div>`;
-                    if (metric.type === 'ROM with VAS') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div class="flex-1 py-1 font-bold">${metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div>`;
-                    if (metric.type === 'Custom 2-Column') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">${metric.col1}</div><div class="flex-1 py-1 font-bold">${metric.col2}</div></div>`;
+                    html += `<th class="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div class="flex flex-col h-full justify-between"><span class="leading-tight px-1 mb-1 pt-1 text-[11px]">${metric.title}</span>`;
+                    if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<div class="flex w-full border-t border-[#1e40af] text-[10px] text-[#1e40af] mt-auto"><div class="flex-1 py-0.5 border-r border-[#1e40af] font-bold">R</div><div class="flex-1 py-0.5 font-bold">L</div></div>`;
+                    if (metric.type === 'ROM with VAS') html += `<div class="flex w-full border-t border-[#1e40af] text-[10px] text-[#1e40af] mt-auto"><div class="flex-1 py-0.5 border-r border-[#1e40af] font-bold">VAS</div><div class="flex-1 py-0.5 font-bold">${metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div>`;
+                    if (metric.type === 'Custom 2-Column') html += `<div class="flex w-full border-t border-[#1e40af] text-[10px] text-[#1e40af] mt-auto"><div class="flex-1 py-0.5 border-r border-[#1e40af] font-bold">${metric.col1}</div><div class="flex-1 py-0.5 font-bold">${metric.col2}</div></div>`;
                     html += `</div></th>`;
                 });
                 html += `</tr></thead><tbody>`;
                 
                 (rtable.records || []).forEach(record => {
-                    html += `<tr class="print-break-inside-avoid"><td class="p-2 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[14px]">${record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>`;
+                    html += `<tr class="print-break-inside-avoid"><td class="p-1.5 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[12px]">${record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>`;
                     rtable.trackedMetrics.forEach(metric => {
                         const cellValue = record.values ? record.values[metric.id] : null;
-                        if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.r || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.l || '-'}</div></div></td>`;
-                        else if (metric.type === 'ROM with VAS') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.vas || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.rom || '-'}</div></div></td>`;
-                        else if (metric.type === 'Custom 2-Column') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c1 || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c2 || '-'}</div></div></td>`;
-                        else html += `<td class="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">${cellValue || '-'}</td>`;
+                        if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.r || '-'}</div><div class="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.l || '-'}</div></div></td>`;
+                        else if (metric.type === 'ROM with VAS') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.vas || '-'}</div><div class="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.rom || '-'}</div></div></td>`;
+                        else if (metric.type === 'Custom 2-Column') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.c1 || '-'}</div><div class="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">${cellValue?.c2 || '-'}</div></div></td>`;
+                        else html += `<td class="p-1.5 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">${cellValue || '-'}</td>`;
                     });
                     html += `</tr>`;
                 });
@@ -720,24 +720,24 @@
                 const pExs = activePatient.prescribedExercises.map(id => siteExercises.find(e => e.id === id)).filter(Boolean);
                 if (pExs.length > 0) {
                     html += `<tr class="print-break-after-always"><td></td></tr>`;
-                    html += `<tr class="main-print-row-allow-break"><td class="pt-8 px-0 pb-6"><div class="text-[#1e40af] mb-8 border-b-2 border-[#1e40af] inline-block pr-8"><span class="font-bold text-[26px]">Prescribed Exercises</span></div>`;
-                    html += `<div class="flex-1 w-full"><div class="grid grid-cols-2 gap-x-8 gap-y-12 w-full">`;
+                    html += `<tr class="main-print-row-allow-break"><td class="pt-6 px-0 pb-4"><div class="text-[#1e40af] mb-4 border-b border-[#1e40af] inline-block pr-6"><span class="font-bold text-[18px]">Prescribed Exercises</span></div>`;
+                    html += `<div class="flex-1 w-full"><div class="grid grid-cols-2 gap-x-6 gap-y-8 w-full">`;
                     
                     pExs.forEach(ex => {
                         const params = activePatient.exerciseParams?.[ex.id] || {};
                         html += `
-                            <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-4 rounded-xl">
-                                <div class="h-56 w-full flex items-center justify-center mb-4 bg-slate-50 rounded-lg">
+                            <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-3 rounded-lg">
+                                <div class="h-32 w-full flex items-center justify-center mb-3 bg-slate-50 rounded">
                                     <img src="${ex.imageUrl||''}" alt="${ex.name}" class="max-w-full max-h-full object-contain mix-blend-multiply" />
                                 </div>
                                 <div class="w-full text-left">
-                                    <h4 class="font-bold text-slate-800 text-[18px] mb-2 text-left leading-tight">${ex.name}</h4>
-                                    <div class="flex justify-start items-center space-x-3 text-[14px] font-bold text-[#1e3a8a] mb-2 flex-wrap bg-blue-50/50 p-2 rounded">
+                                    <h4 class="font-bold text-slate-800 text-[14px] mb-1.5 text-left leading-tight">${ex.name}</h4>
+                                    <div class="flex justify-start items-center space-x-2 text-[11px] font-bold text-[#1e3a8a] mb-1 flex-wrap bg-blue-50/50 p-1.5 rounded">
                                         ${params.reps ? `<span>Reps: <span class="text-black">${params.reps}</span></span>` : ''}
                                         ${params.sets ? `<span>Sets: <span class="text-black">${params.sets}</span></span>` : ''}
                                         ${params.freq ? `<span>Freq: <span class="text-black">${params.freq}</span></span>` : ''}
                                     </div>
-                                    ${params.note ? `<p class="text-[15px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
+                                    ${params.note ? `<p class="text-[11px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
                                 </div>
                             </div>
                         `;
