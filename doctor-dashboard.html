@@ -25,7 +25,7 @@
         theme: {
           extend: {
             colors: { navy: '#1e3a8a', azure: '#2563eb', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
+            boxShadow: { 'soft': '0 2px 10px rgba(15, 23, 42, 0.04)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
           }
         }
       }
@@ -40,9 +40,9 @@
         @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #2563eb; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
 
-        /* Clean Quill Container */
-        .ql-editor { min-height: 120px; font-size: 14px; font-family: inherit; line-height: 1.6; }
-        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
+        /* Compact Quill Container for Mobile */
+        .ql-editor { min-height: 100px; font-size: 14px; font-family: inherit; line-height: 1.5; padding: 10px; }
+        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; padding: 4px 8px !important; }
         .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
         
         /* Toolbar Toggle Logic */
@@ -52,12 +52,12 @@
         .hidden { display: none !important; }
 
         /* RICH TEXT FORMATTING */
-        .rich-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.5rem; }
-        .rich-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
-        .rich-text-content li { margin-bottom: 0.25rem; }
+        .rich-text-content ul { list-style-type: disc; margin-left: 1.2rem; margin-bottom: 0.5rem; }
+        .rich-text-content ol { list-style-type: decimal; margin-left: 1.2rem; margin-bottom: 0.5rem; }
+        .rich-text-content li { margin-bottom: 0.2rem; }
         .rich-text-content strong, .rich-text-content b { font-weight: 800; color: #1e3a8a; }
 
-        /* PRINT STYLES */
+        /* STANDARD A4 PRINT STYLES */
         @page { size: A4; margin: 10mm; }
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; margin: 0 !important; overflow: visible !important;}
@@ -71,6 +71,9 @@
             table.main-print-table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
             tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
             tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
+            
+            /* Enforce Print Font Sizes for Rich Text */
+            .rich-text-content { font-size: 12px !important; line-height: 1.5 !important; }
         }
     </style>
 </head>
@@ -86,23 +89,23 @@
     <!-- PRINT SETTINGS MODAL -->
     <div id="print-modal" class="fixed inset-0 bg-slate-900/50 z-[9999] hidden flex items-center justify-center p-4 print-hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <h3 class="font-black text-navy text-lg flex items-center gap-2"><i class="ph-bold ph-printer text-azure"></i> Print Layout</h3>
                 <button onclick="closePrintModal()" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <div class="p-6 space-y-5">
+            <div class="p-5 space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Max Exercises Per Page</label>
-                    <select id="print-ex-layout" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure text-sm font-bold text-slate-700">
-                        <option value="2">2 Exercises (Extra Large Images)</option>
-                        <option value="4">4 Exercises (Large Images)</option>
+                    <select id="print-ex-layout" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure text-sm font-bold text-slate-700">
+                        <option value="2">2 Exercises (Extra Large)</option>
+                        <option value="4">4 Exercises (Large)</option>
                         <option value="6" selected>6 Exercises (Standard Recommended)</option>
-                        <option value="8">8 Exercises (Compact Layout)</option>
-                        <option value="10">10 Exercises (Small Layout)</option>
-                        <option value="12">12 Exercises (Max Grid Capacity)</option>
+                        <option value="8">8 Exercises (Compact)</option>
+                        <option value="10">10 Exercises (Small)</option>
+                        <option value="12">12 Exercises (Max Capacity)</option>
                     </select>
                 </div>
-                <button onclick="executePrint()" class="w-full bg-azure text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2">
+                <button onclick="executePrint()" class="w-full bg-azure text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2">
                     <i class="ph-bold ph-file-pdf"></i> Generate Document
                 </button>
             </div>
@@ -134,23 +137,23 @@
     <!-- VIEW 3: DASHBOARD MAIN -->
     <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans print-hidden">
         
-        <!-- Sidebar (Restored Aesthetic) -->
-        <aside id="sidebar" class="w-full md:w-[350px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-sm">
-            <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+        <!-- Sidebar (Compact Mobile Aesthetic) -->
+        <aside id="sidebar" class="w-full md:w-[320px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-soft">
+            <div class="p-3 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
                 <div>
-                    <h1 class="font-black text-navy text-xl leading-tight">Clinical Portal</h1>
-                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-1">Doctor</p>
+                    <h1 class="font-black text-navy text-lg leading-tight">Clinical Portal</h1>
+                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Doctor</p>
                 </div>
-                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-2xl"></i></button>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-xl"></i></button>
             </div>
             
-            <div class="p-4 shrink-0 bg-white border-b border-slate-200 shadow-sm z-10">
-                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-3 rounded-xl text-sm shadow-sm hover:bg-blue-700 transition mb-4 flex items-center justify-center gap-2">
+            <div class="p-3 shrink-0 bg-white border-b border-slate-200 shadow-sm z-10">
+                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-2.5 rounded-xl text-sm shadow-sm hover:bg-blue-700 transition mb-3 flex items-center justify-center gap-2">
                     <i class="ph-bold ph-plus text-lg"></i> New Record
                 </button>
                 <div class="relative">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-3 text-slate-400 text-lg"></i>
-                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-azure text-sm font-medium text-slate-700" />
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-lg"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 outline-none focus:border-azure text-sm font-medium text-slate-700" />
                 </div>
             </div>
 
@@ -171,127 +174,127 @@
             <!-- Active Editor -->
             <div id="active-editor" class="hidden flex-col h-full animate-in slide-in-from-right-4 md:slide-in-from-right-0">
                 
-                <header class="bg-white border-b border-slate-200 p-3 sm:px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
-                    <div class="flex items-center gap-3">
-                        <button onclick="closeEditorMobile()" class="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-xl"></i></button>
-                        <h2 id="editor-title" class="font-black text-navy text-lg">Patient Record</h2>
+                <header class="bg-white border-b border-slate-200 p-2.5 sm:px-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeEditorMobile()" class="md:hidden p-1 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-xl"></i></button>
+                        <h2 id="editor-title" class="font-black text-navy text-base">Patient Record</h2>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3">
-                        <button onclick="handlePrint()" class="bg-slate-100 text-navy px-3 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-200 transition flex items-center gap-2">
+                        <button onclick="handlePrint()" class="bg-slate-100 text-navy px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-200 transition flex items-center gap-1.5">
                             <i class="ph-bold ph-printer text-lg"></i> <span class="hidden sm:inline">Print</span>
                         </button>
-                        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg">
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg hidden sm:flex">
                             <input type="checkbox" id="input-published" class="accent-azure w-4 h-4" onchange="updateActiveData('isPublished', this.checked)" />
-                            <span class="text-xs font-bold text-slate-600 hidden sm:inline">Published</span>
+                            <span class="text-xs font-bold text-slate-600">Published</span>
                         </label>
-                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2">
-                            <i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save Data</span>
+                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-3 sm:px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-1.5">
+                            <i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save</span>
                         </button>
                     </div>
                 </header>
 
-                <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                <div class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
                     
                     <!-- Section 1: Demographics -->
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-identification-card text-azure mr-1"></i> Demographics</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft space-y-3">
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-identification-card text-azure mr-1"></i> Demographics</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="sm:col-span-2">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Full Name *</label>
-                                <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Patient Name" />
+                                <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Patient Name" />
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">UPID (ID) *</label>
                                 <!-- UPID becomes disabled (greyed out) once patient is saved -->
-                                <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="e.g. 4092" />
+                                <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="e.g. 4092" />
                             </div>
                         </div>
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-3 gap-3">
                             <div class="col-span-1 sm:col-span-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Age</label>
-                                <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Yrs" />
+                                <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Yrs" />
                             </div>
                             <div class="col-span-2 sm:col-span-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
-                                <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure bg-white text-slate-800">
+                                <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure bg-white text-slate-800">
                                     <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
                                 </select>
                             </div>
                             <div class="col-span-3 sm:col-span-1">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone Number *</label>
-                                <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2.5 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="10 Digits" />
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mobile No *</label>
+                                <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="10 Digits" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Section 2: Clinical Notes & Tables -->
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-6">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-stethoscope text-azure mr-1"></i> Clinical Notes</h3>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft space-y-4">
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-stethoscope text-azure mr-1"></i> Clinical Notes</h3>
                         
                         <div>
-                            <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex justify-between items-center mb-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase">Chief Complaints</label>
-                                <button onclick="toggleToolbar('wrapper-cc')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                <button onclick="toggleToolbar('wrapper-cc')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
                             </div>
                             <div id="wrapper-cc" class="quill-wrapper"><div id="quill-cc"></div></div>
                         </div>
                         
                         <div class="pt-2">
-                            <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex justify-between items-center mb-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase">Medical History</label>
-                                <button onclick="toggleToolbar('wrapper-mh')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                <button onclick="toggleToolbar('wrapper-mh')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
                             </div>
                             <div id="wrapper-mh" class="quill-wrapper"><div id="quill-mh"></div></div>
                         </div>
                         
-                        <div class="pt-4 border-t border-slate-100">
-                            <div class="flex justify-between items-center mb-1.5">
+                        <div class="pt-3 border-t border-slate-100">
+                            <div class="flex justify-between items-center mb-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase">Physical Assessment</label>
-                                <button onclick="toggleToolbar('wrapper-pa')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                <button onclick="toggleToolbar('wrapper-pa')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
                             </div>
-                            <div id="wrapper-pa" class="quill-wrapper mb-3"><div id="quill-pa"></div></div>
+                            <div id="wrapper-pa" class="quill-wrapper mb-2"><div id="quill-pa"></div></div>
                             <!-- Assessment Custom Tables -->
                             <div id="ctables-assessment"></div>
-                            <button onclick="addCustomTable('assessment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1 mt-2"><i class="ph-bold ph-table"></i> Add Assessment Table</button>
+                            <button onclick="addCustomTable('assessment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-plus"></i> Add Assessment Table</button>
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100">
+                        <div class="pt-3 border-t border-slate-100">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Diagnosis</label>
-                            <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-3 text-base font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition text-slate-800" placeholder="Primary Diagnosis" />
+                            <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition text-slate-800" placeholder="Primary Diagnosis" />
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100">
-                            <div class="flex justify-between items-center mb-1.5">
+                        <div class="pt-3 border-t border-slate-100">
+                            <div class="flex justify-between items-center mb-1">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase">Treatment Plan & Advice</label>
-                                <button onclick="toggleToolbar('wrapper-tp')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                <button onclick="toggleToolbar('wrapper-tp')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
                             </div>
-                            <div id="wrapper-tp" class="quill-wrapper mb-3"><div id="quill-tp"></div></div>
+                            <div id="wrapper-tp" class="quill-wrapper mb-2"><div id="quill-tp"></div></div>
                             <!-- Treatment Custom Tables -->
                             <div id="ctables-treatment"></div>
-                            <button onclick="addCustomTable('treatment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1 mt-2"><i class="ph-bold ph-table"></i> Add Treatment Table</button>
+                            <button onclick="addCustomTable('treatment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-plus"></i> Add Treatment Table</button>
                         </div>
                     </div>
 
                     <!-- Section 3: Reassessment Tables -->
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-chart-line-up text-azure mr-1"></i> Reassessment & Tracking</h3>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft">
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-chart-line-up text-azure mr-1"></i> Reassessment & Tracking</h3>
                         <div id="ctables-reassessment"></div>
-                        <button onclick="addCustomTable('reassessment')" class="text-xs font-bold text-azure hover:underline flex items-center gap-1"><i class="ph-bold ph-table"></i> Add Reassessment Table</button>
+                        <button onclick="addCustomTable('reassessment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-table"></i> Add Reassessment Table</button>
                     </div>
 
                     <!-- Section 4: Exercises -->
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"><i class="ph-bold ph-person-simple-walk text-azure mr-1"></i> Prescribed Exercises</h3>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft">
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-3"><i class="ph-bold ph-person-simple-walk text-azure mr-1"></i> Prescribed Exercises</h3>
                         
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Select Exercises from Library</label>
-                            <div id="exercise-library" class="h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div id="exercise-library" class="h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <!-- Injected via JS -->
                             </div>
                         </div>
 
-                        <div id="exercise-configs" class="space-y-3 mt-4 border-t border-slate-100 pt-4 hidden">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Configure Selected Exercises</label>
+                        <div id="exercise-configs" class="space-y-2 mt-3 border-t border-slate-100 pt-3 hidden">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Configure Selected Exercises</label>
                             <div id="exercise-configs-list" class="space-y-2"></div>
                         </div>
                     </div>
@@ -302,7 +305,7 @@
     </div>
 
     <!-- PRINT CONTAINER (Hidden in Web, Displayed in Print) -->
-    <div id="print-container" class="hidden text-[#1e40af] text-[16px] font-sans h-full w-full relative">
+    <div id="print-container" class="hidden text-[#1e40af] text-[14px] font-sans h-full w-full relative">
         <!-- Injected Dynamically on Print -->
     </div>
 
@@ -341,7 +344,7 @@
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             document.getElementById('toast-icon').className = isError ? "ph-bold ph-warning-circle text-white" : "ph-bold ph-check-circle text-emerald-400";
-            document.getElementById('toast-content').className = `text-white px-4 py-3 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
+            document.getElementById('toast-content').className = `text-white px-4 py-2.5 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
             
             t.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
             t.classList.add('opacity-100', 'translate-y-0');
@@ -472,12 +475,12 @@
             }
 
             container.innerHTML = filtered.map(p => `
-                <div onclick="openPatient('${p.id}')" class="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50/50' : ''}">
+                <div onclick="openPatient('${p.id}')" class="px-4 py-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50/50' : ''}">
                     <div>
-                        <h4 class="font-bold text-slate-800 text-[15px]">${p.name || 'Unnamed Patient'}</h4>
+                        <h4 class="font-bold text-slate-800 text-[14px]">${p.name || 'Unnamed Patient'}</h4>
                         <p class="text-[11px] font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
                     </div>
-                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition text-lg"></i>
+                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition text-base"></i>
                 </div>
             `).join('');
         }
@@ -538,11 +541,9 @@
 
             document.getElementById('editor-title').innerText = activePatient.id ? 'Edit Record' : 'New Patient Record';
             
-            // Populate Inputs
             document.getElementById('input-published').checked = activePatient.isPublished !== false;
             document.getElementById('input-name').value = activePatient.name || '';
             
-            // Handle UPID Locking
             const upidInput = document.getElementById('input-upid');
             upidInput.value = activePatient.ipId || '';
             upidInput.disabled = !!activePatient.id;
@@ -552,10 +553,9 @@
             document.getElementById('input-phone').value = activePatient.contact || '';
             document.getElementById('input-diagnosis').value = activePatient.diagnosis || '';
 
-            // Reset Editor Wrappers to hide toolbars
+            // Reset Editor Wrappers
             document.querySelectorAll('.quill-wrapper').forEach(el => el.classList.remove('show-toolbar'));
 
-            // Populate Quills
             qCC.root.innerHTML = activePatient.chiefComplaints || '';
             qMH.root.innerHTML = activePatient.history || '';
             qPA.root.innerHTML = activePatient.assessmentNote || '';
@@ -637,21 +637,21 @@
             const tables = (activePatient.customTables || []).filter(t => t.section === section);
             
             container.innerHTML = tables.map(t => `
-                <div class="border border-slate-200 rounded-lg p-4 mb-4 bg-slate-50/50 shadow-sm mt-3">
-                    <div class="flex justify-between items-center mb-3">
-                        <input type="text" value="${t.title}" onchange="updateCTableField('${t.id}', 'title', this.value)" class="font-black text-navy text-sm bg-transparent border-b border-slate-300 outline-none w-2/3 focus:border-azure px-1" placeholder="Table Title">
-                        <button onclick="deleteCTable('${t.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold transition flex items-center gap-1"><i class="ph-bold ph-trash"></i> Delete Table</button>
+                <div class="border border-slate-200 rounded-lg p-3 mb-3 bg-slate-50/50 shadow-sm mt-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <input type="text" value="${t.title}" onchange="updateCTableField('${t.id}', 'title', this.value)" class="font-black text-navy text-xs bg-transparent border-b border-slate-300 outline-none w-2/3 focus:border-azure px-1" placeholder="Table Title">
+                        <button onclick="deleteCTable('${t.id}')" class="text-red-500 hover:text-red-700 text-[10px] font-bold transition flex items-center gap-1"><i class="ph-bold ph-trash"></i> Delete Table</button>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="text-[9px] uppercase font-bold text-slate-500 mb-1 block">Headers (comma separated)</label>
-                        <input type="text" value="${t.headers.join(', ')}" onchange="updateCTableField('${t.id}', 'headers', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-white shadow-sm" placeholder="e.g. Date, Joint, ROM">
+                        <input type="text" value="${t.headers.join(', ')}" onchange="updateCTableField('${t.id}', 'headers', this.value)" class="w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-white shadow-sm" placeholder="e.g. Date, Joint, ROM">
                     </div>
                     <div class="overflow-x-auto rounded border border-slate-200 bg-white">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr>
-                                    ${t.headers.map(h => `<th class="p-2 border-b border-slate-200 text-xs font-bold text-navy bg-slate-100">${h}</th>`).join('')}
-                                    <th class="p-2 border-b border-slate-200 bg-slate-100 w-10"></th>
+                                    ${t.headers.map(h => `<th class="p-1.5 border-b border-slate-200 text-[11px] font-bold text-navy bg-slate-100">${h}</th>`).join('')}
+                                    <th class="p-1.5 border-b border-slate-200 bg-slate-100 w-8"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -659,7 +659,7 @@
                                     <tr>
                                         ${row.map((cell, cIdx) => `
                                             <td class="p-1 border-b border-slate-100 border-r last:border-r-0">
-                                                <textarea oninput="updateCTableCell('${t.id}', ${rIdx}, ${cIdx}, this.value)" class="w-full text-xs p-1.5 outline-none resize-y min-h-[36px] bg-transparent text-slate-700">${cell}</textarea>
+                                                <textarea oninput="updateCTableCell('${t.id}', ${rIdx}, ${cIdx}, this.value)" class="w-full text-xs p-1 outline-none resize-y min-h-[30px] bg-transparent text-slate-700">${cell}</textarea>
                                             </td>
                                         `).join('')}
                                         <td class="p-1 border-b border-slate-100 text-center">
@@ -670,7 +670,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <button onclick="addCTableRow('${t.id}')" class="mt-3 text-xs font-bold text-azure flex items-center gap-1 hover:underline bg-blue-50 px-2 py-1 rounded"><i class="ph-bold ph-plus"></i> Add Row</button>
+                    <button onclick="addCTableRow('${t.id}')" class="mt-2 text-[10px] font-bold text-azure flex items-center gap-1 hover:underline bg-blue-50 px-2 py-1 rounded w-fit"><i class="ph-bold ph-plus"></i> Add Row</button>
                 </div>
             `).join('');
         }
@@ -690,10 +690,10 @@
             libContainer.innerHTML = siteExercises.map(ex => {
                 const isChecked = activePatient.prescribedExercises.includes(ex.id);
                 return `
-                    <label class="flex items-center gap-3 p-2 bg-white rounded-lg cursor-pointer border hover:border-azure transition shadow-sm ${isChecked ? 'border-azure bg-blue-50/20' : 'border-slate-200'}">
-                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${ex.id}', this.checked)" class="accent-azure w-4 h-4 shrink-0" />
-                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-10 h-10 rounded object-cover border border-slate-100 bg-white" />` : `<div class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center text-lg">🏃</div>`}
-                        <span class="text-xs font-bold text-slate-700 leading-tight">${ex.name}</span>
+                    <label class="flex items-center gap-2 p-1.5 bg-white rounded-lg cursor-pointer border hover:border-azure transition shadow-sm ${isChecked ? 'border-azure bg-blue-50/20' : 'border-slate-200'}">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${ex.id}', this.checked)" class="accent-azure w-3.5 h-3.5 shrink-0 ml-1" />
+                        ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-8 h-8 rounded object-cover border border-slate-100 bg-white" />` : `<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-sm">🏃</div>`}
+                        <span class="text-[11px] font-bold text-slate-700 leading-tight">${ex.name}</span>
                     </label>
                 `;
             }).join('');
@@ -705,18 +705,18 @@
                     if(!exInfo) return '';
                     const p = activePatient.exerciseParams[exId] || { reps: '', sets: '', freq: '', note: '' };
                     return `
-                        <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col sm:flex-row gap-3">
-                            <div class="w-12 h-12 shrink-0 bg-slate-50 rounded border border-slate-100 flex items-center justify-center hidden sm:flex">
+                        <div class="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col sm:flex-row gap-2.5">
+                            <div class="w-10 h-10 shrink-0 bg-slate-50 rounded border border-slate-100 flex items-center justify-center hidden sm:flex">
                                 ${exInfo.imageUrl ? `<img src="${exInfo.imageUrl}" class="max-w-full max-h-full mix-blend-multiply rounded" />` : `🏃`}
                             </div>
                             <div class="flex-1">
-                                <div class="font-bold text-sm text-navy mb-2 leading-tight">${exInfo.name}</div>
-                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
-                                    <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
-                                    <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
-                                    <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq (e.g. 2x/day)" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                <div class="font-bold text-xs text-navy mb-1.5 leading-tight">${exInfo.name}</div>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mb-1.5">
+                                    <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
                                 </div>
-                                <input type="text" placeholder="Special Instructions / Note..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure italic bg-slate-50 focus:bg-white" />
+                                <input type="text" placeholder="Special Instructions..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure italic bg-slate-50 focus:bg-white" />
                             </div>
                         </div>
                     `;
@@ -784,12 +784,12 @@
                 console.error(e);
                 showToast("Save Error: Ensure you are authorized.", true);
             } finally {
-                btn.innerHTML = `<i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save Data</span>`;
+                btn.innerHTML = `<i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save</span>`;
                 btn.disabled = false;
             }
         }
 
-        // 11. ADVANCED PRINT ENGINE (With Pagination Options)
+        // 11. ADVANCED PRINT ENGINE (Scales perfectly to A4 pages)
         function executePrint() {
             closePrintModal();
             if (!activePatient) return;
@@ -804,22 +804,22 @@
             let html = `
                 <div class="flex justify-between items-start pb-2 text-left">
                     <div>
-                        <h1 class="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style="text-shadow: 0px 0px 1px #1e40af; line-height: 1;">${dName}</h1>
-                        <p class="text-[18px] mt-2 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
-                        <p class="text-[18px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
-                        ${doctorProfile.regNumber ? `<p class="text-[14px] font-bold text-slate-600 mt-1">${doctorProfile.regNumber}</p>` : ''}
+                        <h1 class="text-[26px] font-bold italic tracking-wide text-[#1e40af]" style="line-height: 1.1;">${dName}</h1>
+                        <p class="text-[13px] mt-1 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
+                        <p class="text-[13px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
+                        ${doctorProfile.regNumber ? `<p class="text-[10px] font-bold text-slate-600 mt-0.5">${doctorProfile.regNumber}</p>` : ''}
                     </div>
                     ${activePatient.id ? `
-                    <div class="flex flex-col items-center justify-center pt-2 px-6">
-                        <img src="${qrUrl}" alt="QR Code" class="w-[85px] h-[85px]" />
-                        <span class="text-[11px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                    <div class="flex flex-col items-center justify-center px-4">
+                        <img src="${qrUrl}" alt="QR Code" class="w-[60px] h-[60px]" />
+                        <span class="text-[8px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
                     </div>` : ''}
-                    <div class="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                        <div class="flex items-center gap-2 font-black text-[32px] mb-6">
-                            <i class="ph-fill ph-phone-call text-[32px]"></i> +91 ${doctorProfile.phone || ''}
+                    <div class="text-right flex flex-col items-end text-[#1e40af]">
+                        <div class="flex items-center gap-1.5 font-black text-[18px] mb-3">
+                            <i class="ph-fill ph-phone-call text-[20px]"></i> +91 ${doctorProfile.phone || ''}
                         </div>
-                        <div class="text-[18px] flex items-center gap-2 font-semibold">
-                            <span>Date:</span> <span class="border-b border-[#1e40af] w-32 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
+                        <div class="text-[13px] flex items-center gap-2 font-semibold">
+                            <span>Date:</span> <span class="border-b border-[#1e40af] w-24 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
                         </div>
                     </div>
                 </div>
@@ -827,12 +827,12 @@
                 
                 <table class="main-print-table">
                     <thead class="print-table-header">
-                        <tr><td class="pb-5 pt-3">
-                            <div class="flex justify-between items-end pb-3 text-[18px] font-bold text-[#1e40af]">
+                        <tr><td class="pb-3 pt-2">
+                            <div class="flex justify-between items-end pb-2 text-[12px] font-bold text-[#1e40af]">
                                 <div class="flex-1 flex items-end"><span class="whitespace-nowrap">Patient's name:</span> <span class="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.name || ''}</span></div>
-                                <div class="w-28 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.age || ''}</span></div>
-                                <div class="w-40 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.gender || ''}</span></div>
-                                <div class="w-36 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.ipId || ''}</span></div>
+                                <div class="w-24 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.age || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.gender || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.ipId || ''}</span></div>
                             </div>
                             <div class="border-b border-[#1e40af]"></div>
                         </td></tr>
@@ -842,9 +842,9 @@
 
             // Clinical Notes
             if (activePatient.chiefComplaints || activePatient.history) {
-                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-5">`;
-                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-5"><span class="font-bold text-[22px]">Chief Complaint :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
-                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[22px]">Medical History :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.history}</div></div>`;
+                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-4">`;
+                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-3"><span class="font-bold text-[14px] block mb-0.5">Chief Complaint :-</span><div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
+                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Medical History :-</span><div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.history}</div></div>`;
                 html += `</td></tr>`;
             }
 
@@ -852,14 +852,14 @@
             const buildCustomTables = (section) => {
                 const tables = (activePatient.customTables || []).filter(t => t.section === section);
                 if(tables.length === 0) return '';
-                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-5 pl-5 pr-2">';
+                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-3 pl-4 pr-2">';
                 tables.forEach(t => {
-                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[20px] text-[#1e40af] mb-2">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
-                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-2 bg-blue-50/30 text-[18px]">${h}</th>`);
+                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[13px] text-[#1e40af] mb-1">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
+                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-1.5 bg-blue-50/30 text-[12px]">${h}</th>`);
                     tHtml += `</tr></thead><tbody>`;
                     t.rows.forEach(r => {
                         tHtml += `<tr class="print-break-inside-avoid">`;
-                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-2 text-[18px] align-top whitespace-pre-wrap">${c}</td>`);
+                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-1.5 text-[12px] align-top whitespace-pre-wrap">${c}</td>`);
                         tHtml += `</tr>`;
                     });
                     tHtml += `</tbody></table></div>`;
@@ -869,25 +869,25 @@
             };
 
             if (activePatient.assessmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'assessment'))) {
-                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Assessment :-</span>`;
-                if(activePatient.assessmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.assessmentNote}</div>`;
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Assessment :-</span>`;
+                if(activePatient.assessmentNote) html += `<div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.assessmentNote}</div>`;
                 html += buildCustomTables('assessment');
                 html += `</div></td></tr>`;
             }
 
             if (activePatient.diagnosis) {
-                html += `<tr class="main-print-row"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px]">Diagnosis:</span><span class="ml-3 text-slate-900 font-bold text-[22px]">${activePatient.diagnosis}</span></div></td></tr>`;
+                html += `<tr class="main-print-row"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[14px]">Diagnosis:</span><span class="ml-2 text-slate-900 font-bold text-[14px]">${activePatient.diagnosis}</span></div></td></tr>`;
             }
 
             if (activePatient.treatmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'treatment'))) {
-                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-8"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Treatment Plan / Advice :-</span>`;
-                if(activePatient.treatmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Treatment Plan / Advice :-</span>`;
+                if(activePatient.treatmentNote) html += `<div class="ml-4 text-slate-900 text-[12px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
                 html += buildCustomTables('treatment');
                 html += `</div></td></tr>`;
             }
 
             const rTablesHtml = buildCustomTables('reassessment');
-            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-6 text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
+            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-4 text-[#1e40af]"><span class="font-bold text-[14px] block mb-2">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
 
             // Exercises Print Logic (With User Selected Grid Cap)
             if (activePatient.prescribedExercises && activePatient.prescribedExercises.length > 0) {
@@ -896,41 +896,39 @@
                     
                     const exsPerPage = parseInt(document.getElementById('print-ex-layout').value) || 6;
                     
-                    // Break exercises into chunks based on the user's selected limit
                     const chunks = [];
                     for(let i = 0; i < pExs.length; i += exsPerPage) {
                         chunks.push(pExs.slice(i, i + exsPerPage));
                     }
 
-                    // Dynamically size images and grid based on how many fit on the page
                     let gridClass = exsPerPage >= 12 ? 'grid-cols-3' : 'grid-cols-2';
-                    let imgHeight = 'h-36';
+                    let imgHeight = 'h-32';
                     if (exsPerPage <= 2) imgHeight = 'h-64';
-                    else if (exsPerPage <= 4) imgHeight = 'h-48';
-                    else if (exsPerPage <= 6) imgHeight = 'h-36';
-                    else if (exsPerPage <= 8) imgHeight = 'h-28';
+                    else if (exsPerPage <= 4) imgHeight = 'h-40';
+                    else if (exsPerPage <= 6) imgHeight = 'h-32';
+                    else if (exsPerPage <= 8) imgHeight = 'h-24';
                     else imgHeight = 'h-20'; 
 
                     chunks.forEach((chunk, cIdx) => {
                         html += `<tr class="print-break-after-always"><td></td></tr>`;
-                        html += `<tr class="main-print-row-allow-break"><td class="pt-8 px-0 pb-6"><div class="text-[#1e40af] mb-6 border-b-2 border-[#1e40af] inline-block pr-8"><span class="font-bold text-[26px]">Prescribed Exercises ${cIdx > 0 ? '(Continued)' : ''}</span></div>`;
-                        html += `<div class="flex-1 w-full"><div class="grid ${gridClass} gap-x-8 gap-y-8 w-full">`;
+                        html += `<tr class="main-print-row-allow-break"><td class="pt-6 px-0 pb-4"><div class="text-[#1e40af] mb-4 border-b border-[#1e40af] inline-block pr-6"><span class="font-bold text-[18px]">Prescribed Exercises ${cIdx > 0 ? '(Continued)' : ''}</span></div>`;
+                        html += `<div class="flex-1 w-full"><div class="grid ${gridClass} gap-x-6 gap-y-6 w-full">`;
                         
                         chunk.forEach(ex => {
                             const params = activePatient.exerciseParams?.[ex.id] || {};
                             html += `
-                                <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-4 rounded-xl">
-                                    <div class="${imgHeight} w-full flex items-center justify-center mb-4 bg-slate-50 rounded-lg">
+                                <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-3 rounded-lg">
+                                    <div class="${imgHeight} w-full flex items-center justify-center mb-3 bg-slate-50 rounded">
                                         <img src="${ex.imageUrl||''}" alt="${ex.name}" class="max-w-full max-h-full object-contain mix-blend-multiply" />
                                     </div>
                                     <div class="w-full text-left">
-                                        <h4 class="font-bold text-slate-800 text-[16px] mb-2 text-left leading-tight">${ex.name}</h4>
-                                        <div class="flex justify-start items-center space-x-3 text-[12px] font-bold text-[#1e3a8a] mb-2 flex-wrap bg-blue-50/50 p-2 rounded">
+                                        <h4 class="font-bold text-slate-800 text-[13px] mb-1.5 text-left leading-tight">${ex.name}</h4>
+                                        <div class="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1.5 flex-wrap bg-blue-50/50 p-1.5 rounded">
                                             ${params.reps ? `<span>Reps: <span class="text-black">${params.reps}</span></span>` : ''}
                                             ${params.sets ? `<span>Sets: <span class="text-black">${params.sets}</span></span>` : ''}
                                             ${params.freq ? `<span>Freq: <span class="text-black">${params.freq}</span></span>` : ''}
                                         </div>
-                                        ${params.note ? `<p class="text-[13px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
+                                        ${params.note ? `<p class="text-[11px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
                                     </div>
                                 </div>
                             `;
