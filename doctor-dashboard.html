@@ -3,45 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doctor Dashboard - Physio Hub</title>
+    <title>Doctor Portal - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://www.gstatic.com">
-    
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- PURE FIREBASE COMPAT LIBRARIES (Crash-Proof, No Imports, No React) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <!-- Quill Editor (For Clinical Notes) -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- Tailwind & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f4f7fb', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 2px 10px rgba(29, 78, 216, 0.05)' }
+            colors: { navy: '#1e3a8a', azure: '#2563eb', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
+            boxShadow: { 'soft': '0 2px 10px rgba(15, 23, 42, 0.04)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
           }
         }
       }
     </script>
 
     <style>
-        /* General Styles */
-        .editable-cell { min-width: 30px; max-width: 100%; outline: none; word-break: break-word; white-space: pre-wrap; transition: background-color 0.2s; }
-        .editable-cell:not([contenteditable="false"]):empty:before { content: attr(data-placeholder); color: #cbd5e1; pointer-events: none; display: block; }
-        .editable-cell:not([contenteditable="false"]):focus { background-color: rgba(219, 234, 254, 0.5); }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--appbg); color: #0f172a; overflow-x: hidden; }
         .h-scroll::-webkit-scrollbar { display: none; }
         .h-scroll { scrollbar-width: none; }
         
-        /* Instant Loading Spinner Animation */
         @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+        .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #2563eb; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
+
+        /* Compact Quill Container for Mobile */
+        .ql-editor { min-height: 100px; font-size: 14px; font-family: inherit; line-height: 1.5; padding: 10px; }
+        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; padding: 4px 8px !important; }
+        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
+        
+        /* Toolbar Toggle Logic */
+        .quill-wrapper .ql-toolbar { display: none; }
+        .quill-wrapper.show-toolbar .ql-toolbar { display: block; }
+
+        /* Custom Table Editable Cell */
+        .editable-cell { min-width: 30px; outline: none; white-space: pre-wrap; transition: background-color 0.2s; }
+        .editable-cell:focus { background-color: rgba(219, 234, 254, 0.5); }
+
+        .hidden { display: none !important; }
 
         /* Custom Toggle Switch Styles */
         .toggle-container { display: flex; background: #f1f5f9; border-radius: 100px; padding: 4px; position: relative; }
@@ -49,1302 +61,914 @@
         .toggle-btn.active { color: #1d4ed8; }
         .toggle-slider { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: white; border-radius: 100px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); z-index: 0; }
 
-        /* Quill Editor Compact Styles */
-        .ql-editor { min-height: 100px; font-size: 14px; font-family: inherit; line-height: 1.5; padding: 10px; }
-        .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; padding: 4px 8px !important; }
-        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
-        .quill-wrapper .ql-toolbar { display: none; }
-        .quill-wrapper.show-toolbar .ql-toolbar { display: block; }
+        /* RICH TEXT FORMATTING */
         .rich-text-content ul { list-style-type: disc; margin-left: 1.2rem; margin-bottom: 0.5rem; }
         .rich-text-content ol { list-style-type: decimal; margin-left: 1.2rem; margin-bottom: 0.5rem; }
         .rich-text-content li { margin-bottom: 0.2rem; }
         .rich-text-content strong, .rich-text-content b { font-weight: 800; color: #1e3a8a; }
 
-        /* Print Layout Rules */
+        /* STANDARD A4 PRINT STYLES */
         @page { size: A4; margin: 10mm; }
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; margin: 0 !important; overflow: visible !important;}
-            .print-hidden { display: none !important; }
+            .print-hidden, #view-loading, #view-login, #view-dashboard, #toast { display: none !important; }
+            #print-container { display: block !important; position: static; width: 100%; background: white; }
+            
             .print-shadow-none { box-shadow: none !important; border: none !important; }
             .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
             .print-break-after-always { page-break-after: always; }
-            .print-break-after-auto { page-break-after: auto; }
             thead.print-table-header { display: table-header-group; }
             table.main-print-table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
             tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
             tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
-            .editable-cell:empty:before { content: none !important; display: none !important; }
+            
+            /* Enforce Print Font Sizes for Rich Text */
             .rich-text-content { font-size: 12px !important; line-height: 1.5 !important; }
         }
     </style>
 </head>
-<body class="bg-[#f4f7fb]">
-    
-    <div id="root">
-        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: sans-serif; color: #1e3a8a;">
-            <div class="native-loader"></div>
-            <div style="font-weight: bold; font-size: 1.1rem;">Loading PhysioCare...</div>
+<body>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none">
+        <div id="toast-content" class="text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 bg-slate-800">
+            <i id="toast-icon" class="ph-bold ph-check-circle text-emerald-400"></i> <span id="toast-msg">Success</span>
         </div>
     </div>
 
-    <script type="text/babel" data-type="module">
-        const { useState, useEffect, useRef } = React;
+    <!-- VIEW 1: LOADING -->
+    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans print-hidden">
+        <div class="native-loader"></div>
+        <div id="loading-text" class="text-lg font-black text-navy tracking-tight mt-4">Connecting to Secure Server...</div>
+    </div>
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    <!-- VIEW 2: LOGIN -->
+    <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4 print-hidden">
+        <div class="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
+            <i class="ph-fill ph-stethoscope text-5xl text-azure mb-3"></i>
+            <h1 class="text-2xl font-black text-navy tracking-tight mb-2">Staff Portal</h1>
+            <p class="text-sm text-slate-500 mb-6">Log in with your registered Google Workspace account to access patient records.</p>
+            
+            <div id="auth-error" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 mb-4"></div>
+            
+            <button onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Authenticate with Google
+            </button>
+        </div>
+    </div>
 
-        const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-
-        // ==========================================
-        // DUAL DATABASE ARCHITECTURE
-        // ==========================================
+    <!-- VIEW 3: DASHBOARD MAIN -->
+    <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans print-hidden">
         
-        // 1. PRIVATE DATABASE: Strictly for Patient Records, Metrics, and Reports
+        <!-- Sidebar (Compact Mobile Aesthetic) -->
+        <aside id="sidebar" class="w-full md:w-[320px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-soft">
+            <div class="p-3 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+                <div>
+                    <h1 class="font-black text-navy text-lg leading-tight">Clinical Portal</h1>
+                    <p id="doc-name-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Doctor</p>
+                </div>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 transition"><i class="ph-bold ph-sign-out text-xl"></i></button>
+            </div>
+            
+            <div class="p-3 shrink-0 bg-white border-b border-slate-200 shadow-sm z-10">
+                <button onclick="createNewPatient()" class="w-full bg-azure text-white font-bold py-2.5 rounded-xl text-sm shadow-sm hover:bg-blue-700 transition mb-3 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-plus text-lg"></i> New Record
+                </button>
+                <div class="relative">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-lg"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, UPID..." onkeyup="renderPatientList()" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 outline-none focus:border-azure text-sm font-medium text-slate-700" />
+                </div>
+            </div>
+
+            <div id="patient-list-container" class="flex-1 overflow-y-auto bg-white">
+                <!-- Injected via JS -->
+            </div>
+        </aside>
+
+        <!-- Main Editor Area -->
+        <main id="editor-area" class="hidden md:flex flex-1 bg-appbg flex-col h-full w-full absolute md:relative top-0 left-0 z-30">
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">
+                <i class="ph-fill ph-folder-open text-6xl mb-4 opacity-20"></i>
+                <p class="font-bold text-lg text-slate-500">Select a patient record to view or edit.</p>
+            </div>
+
+            <!-- Active Editor -->
+            <div id="active-editor" class="hidden flex-col h-full animate-in slide-in-from-right-4 md:slide-in-from-right-0">
+                
+                <header class="bg-white border-b border-slate-200 p-2.5 sm:px-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeEditorMobile()" class="md:hidden p-1 text-slate-500 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-arrow-left text-xl"></i></button>
+                        <h2 id="editor-title" class="font-black text-navy text-base">Patient Record</h2>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <!-- Print Layout Dropdown & Button Inline -->
+                        <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                            <select id="print-ex-layout" class="bg-transparent text-[11px] font-bold text-navy outline-none pl-2 pr-1 py-1.5 cursor-pointer border-r border-slate-200 hidden sm:block">
+                                <option value="2">2 / Pg</option>
+                                <option value="4">4 / Pg</option>
+                                <option value="6" selected>6 / Pg</option>
+                                <option value="8">8 / Pg</option>
+                                <option value="10">10 / Pg</option>
+                                <option value="12">12 / Pg</option>
+                            </select>
+                            <button onclick="handlePrint()" class="text-navy px-3 py-1.5 text-sm font-bold hover:bg-slate-200 transition flex items-center gap-1.5">
+                                <i class="ph-bold ph-printer text-lg"></i> <span class="hidden sm:inline">Print</span>
+                            </button>
+                        </div>
+
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg hidden sm:flex shadow-sm hover:bg-slate-100 transition">
+                            <input type="checkbox" id="input-published" class="accent-azure w-4 h-4" onchange="updateActiveData('isPublished', this.checked)" />
+                            <span class="text-xs font-bold text-slate-600">Published</span>
+                        </label>
+                        <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-3 sm:px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-1.5">
+                            <i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
+                    
+                    <!-- TAB TOGGLE -->
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+                        <div class="toggle-container w-[160px] sm:w-[200px]">
+                            <div id="tab-slider" class="toggle-slider" style="transform: translateX(0)"></div>
+                            <button id="btn-tab-rx" class="toggle-btn active" onclick="switchTab('rx')">Main Rx</button>
+                            <button id="btn-tab-ex" class="toggle-btn" onclick="switchTab('ex')">Exercise</button>
+                        </div>
+                        <div class="flex items-center gap-1.5 ml-auto">
+                            <div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-200 shadow-sm">
+                                <span class="text-[9px] font-bold text-slate-400">DATE:</span>
+                                <input type="date" id="input-date" onchange="updateActiveData('date', this.value)" class="text-[10px] font-bold outline-none bg-transparent text-slate-800 w-[85px]" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ======================= MAIN RX TAB ======================= -->
+                    <div id="tab-rx" class="space-y-4 block animate-in fade-in">
+                        
+                        <!-- Section 1: Demographics -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft space-y-3">
+                            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-identification-card text-azure mr-1"></i> Demographics</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Full Name *</label>
+                                    <input type="text" id="input-name" oninput="updateActiveData('name', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Patient Name" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">UPID (ID) *</label>
+                                    <!-- Locked visually and functionally if patient exists -->
+                                    <input type="text" id="input-upid" oninput="updateActiveData('ipId', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="e.g. 4092" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="col-span-1 sm:col-span-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Age</label>
+                                    <input type="number" id="input-age" oninput="updateActiveData('age', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="Yrs" />
+                                </div>
+                                <div class="col-span-2 sm:col-span-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gender</label>
+                                    <select id="input-gender" onchange="updateActiveData('gender', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure bg-white text-slate-800">
+                                        <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-3 sm:col-span-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone Number *</label>
+                                    <input type="tel" id="input-phone" oninput="updateActiveData('contact', this.value)" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg outline-none focus:border-azure text-slate-800" placeholder="10 Digits" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Clinical Notes & Tables -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft space-y-4">
+                            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-stethoscope text-azure mr-1"></i> Clinical Notes</h3>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Chief Complaints</label>
+                                    <button onclick="toggleToolbar('wrapper-cc')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                </div>
+                                <div id="wrapper-cc" class="quill-wrapper"><div id="quill-cc"></div></div>
+                            </div>
+                            
+                            <div class="pt-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Medical History</label>
+                                    <button onclick="toggleToolbar('wrapper-mh')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                </div>
+                                <div id="wrapper-mh" class="quill-wrapper"><div id="quill-mh"></div></div>
+                            </div>
+                            
+                            <div class="pt-3 border-t border-slate-100">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Physical Assessment</label>
+                                    <button onclick="toggleToolbar('wrapper-pa')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                </div>
+                                <div id="wrapper-pa" class="quill-wrapper mb-2"><div id="quill-pa"></div></div>
+                                <!-- Assessment Custom Tables -->
+                                <div id="ctables-assessment"></div>
+                                <button onclick="addCustomTable('assessment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-table"></i> Add Assessment Table</button>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Diagnosis</label>
+                                <input type="text" id="input-diagnosis" oninput="updateActiveData('diagnosis', this.value)" class="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-lg outline-none focus:border-azure bg-slate-50 focus:bg-white transition text-slate-800" placeholder="Primary Diagnosis" />
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Treatment Plan & Advice</label>
+                                    <button onclick="toggleToolbar('wrapper-tp')" class="text-[10px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 flex items-center gap-1 transition"><i class="ph-bold ph-text-t"></i> Format Text</button>
+                                </div>
+                                <div id="wrapper-tp" class="quill-wrapper mb-2"><div id="quill-tp"></div></div>
+                                <!-- Treatment Custom Tables -->
+                                <div id="ctables-treatment"></div>
+                                <button onclick="addCustomTable('treatment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-table"></i> Add Treatment Table</button>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Reassessment Tables -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft">
+                            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2"><i class="ph-bold ph-chart-line-up text-azure mr-1"></i> Reassessment & Tracking</h3>
+                            <div id="ctables-reassessment"></div>
+                            <button onclick="addCustomTable('reassessment')" class="text-[11px] font-bold text-azure hover:underline flex items-center gap-1 mt-1"><i class="ph-bold ph-table"></i> Add Reassessment Table</button>
+                        </div>
+
+                    </div>
+
+                    <!-- ======================= EXERCISE TAB ======================= -->
+                    <div id="tab-ex" class="hidden animate-in fade-in">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-soft">
+                            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-3"><i class="ph-bold ph-person-simple-walk text-azure mr-1"></i> Prescribed Exercises</h3>
+                            
+                            <div class="mb-3">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Select Exercises from Library</label>
+                                <div class="relative mb-2">
+                                    <i class="ph-bold ph-magnifying-glass absolute left-2 top-2 text-slate-400"></i>
+                                    <input type="text" id="ex-search" placeholder="Search exercises..." onkeyup="renderExercises()" class="w-full text-xs border border-slate-200 rounded py-1.5 pl-7 pr-2 focus:outline-none focus:border-azure bg-slate-50" />
+                                </div>
+                                <div id="exercise-library" class="h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2 h-scroll">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+
+                            <div id="exercise-configs" class="space-y-2 mt-3 border-t border-slate-100 pt-3 hidden">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Configure Selected Exercises</label>
+                                <div id="exercise-configs-list" class="space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PRINT CONTAINER (Hidden in Web, Displayed in Print) -->
+    <div id="print-container" class="hidden text-[#1e40af] text-[14px] font-sans h-full w-full relative">
+        <!-- Injected Dynamically on Print -->
+    </div>
+
+    <!-- PURE VANILLA JAVASCRIPT ENGINE -->
+    <script>
+        // 1. FIREBASE SETUP
         const recordsConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
-            projectId: "patient-records-arpan",
-            storageBucket: "patient-records-arpan.firebasestorage.app",
-            messagingSenderId: "599041105903",
-            appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
+            projectId: "patient-records-arpan"
         };
-        const appRecords = initializeApp(recordsConfig, "AppRecords");
-        const auth = getAuth(appRecords);
-        const db = getFirestore(appRecords);
+        const appRecords = firebase.initializeApp(recordsConfig, "AppRecords");
+        const authRecords = appRecords.auth();
+        const dbRecords = appRecords.firestore();
         
-        setPersistence(auth, browserLocalPersistence).catch((error) => console.error("Persistence error:", error));
-
-        // 2. PUBLIC DATABASE: Fetch Exercises & Admin Doctors
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
-            authDomain: "clinic-bdf92.firebaseapp.com",
             databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
             projectId: "clinic-bdf92"
         };
-        const appSite = initializeApp(siteConfig, "AppSite");
-        const rtdbSite = getDatabase(appSite); 
-        
-        const googleProvider = new GoogleAuthProvider();
-        const appId = 'physiocare-tracker';
+        const appSite = firebase.initializeApp(siteConfig, "AppSite");
+        const dbSite = appSite.database();
 
-        // Joint Data Dictionary
-        const JOINTS_DATA = {
-          'Cervical': [ { name: 'Flexion', type: 'single', normal: '45°' }, { name: 'Extension', type: 'single', normal: '45°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '45°' }, { name: 'Rotation', type: 'bilateral', normal: '60°' } ],
-          'Spine': [ { name: 'Flexion', type: 'single', normal: '80°' }, { name: 'Extension', type: 'single', normal: '25°' }, { name: 'Lat. Flexion', type: 'bilateral', normal: '35°' }, { name: 'Rotation', type: 'bilateral', normal: '45°' } ],
-          'Shoulder': [ { name: 'Flexion', type: 'bilateral', normal: '180°' }, { name: 'Extension', type: 'bilateral', normal: '60°' }, { name: 'Abduction', type: 'bilateral', normal: '180°' }, { name: 'Adduction', type: 'bilateral', normal: '50°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '70°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '90°' } ],
-          'Elbow': [ { name: 'Flexion', type: 'bilateral', normal: '150°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
-          'Forearm': [ { name: 'Pronation', type: 'bilateral', normal: '80°' }, { name: 'Supination', type: 'bilateral', normal: '80°' } ],
-          'Wrist': [ { name: 'Flexion', type: 'bilateral', normal: '80°' }, { name: 'Extension', type: 'bilateral', normal: '70°' }, { name: 'Radial Dev.', type: 'bilateral', normal: '20°' }, { name: 'Ulnar Dev.', type: 'bilateral', normal: '30°' } ],
-          'Hip': [ { name: 'Flexion', type: 'bilateral', normal: '120°' }, { name: 'Extension', type: 'bilateral', normal: '30°' }, { name: 'Abduction', type: 'bilateral', normal: '45°' }, { name: 'Adduction', type: 'bilateral', normal: '30°' }, { name: 'Int. Rotation', type: 'bilateral', normal: '45°' }, { name: 'Ext. Rotation', type: 'bilateral', normal: '45°' } ],
-          'Knee': [ { name: 'Flexion', type: 'bilateral', normal: '135°' }, { name: 'Extension', type: 'bilateral', normal: '0°' } ],
-          'Ankle': [ { name: 'Dorsiflexion', type: 'bilateral', normal: '20°' }, { name: 'Plantarflexion', type: 'bilateral', normal: '50°' }, { name: 'Inversion', type: 'bilateral', normal: '35°' }, { name: 'Eversion', type: 'bilateral', normal: '15°' } ]
-        };
+        // 2. GLOBAL STATE
+        let currentUser = null;
+        let doctorProfile = null;
+        let patients = [];
+        let siteExercises = [];
+        let activePatient = null;
 
-        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+        // Quill Instances
+        let qCC, qMH, qPA, qTP;
 
-        // Quill Component for React
-        function QuillEditor({ value, onChange, placeholder, showToolbar }) {
-            const editorRef = useRef(null);
-            const quillInstance = useRef(null);
-
-            useEffect(() => {
-                if (!quillInstance.current && editorRef.current) {
-                    quillInstance.current = new Quill(editorRef.current, {
-                        theme: 'snow',
-                        placeholder: placeholder || 'Write here...',
-                        modules: { toolbar: [['bold', 'italic', 'underline'], [{'list': 'ordered'}, {'list': 'bullet'}], ['clean']] }
-                    });
-                    if (value) quillInstance.current.root.innerHTML = value;
-                    quillInstance.current.on('text-change', () => {
-                        onChange(quillInstance.current.root.innerHTML);
-                    });
-                }
-            }, []);
-
-            useEffect(() => {
-                if (quillInstance.current && value !== quillInstance.current.root.innerHTML) {
-                    const currentSelection = quillInstance.current.getSelection();
-                    quillInstance.current.root.innerHTML = value || '';
-                    if (currentSelection) quillInstance.current.setSelection(currentSelection);
-                }
-            }, [value]);
-
-            return (
-                <div className={`quill-wrapper ${showToolbar ? 'show-toolbar' : ''}`}>
-                    <div ref={editorRef} className="bg-white"></div>
-                </div>
-            );
+        // 3. UI CONTROLLERS
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').className = isError ? "ph-bold ph-warning-circle text-white" : "ph-bold ph-check-circle text-emerald-400";
+            document.getElementById('toast-content').className = `text-white px-4 py-2.5 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 ${isError ? 'bg-red-600' : 'bg-slate-800'}`;
+            
+            t.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                t.classList.remove('opacity-100', 'translate-y-0');
+                t.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 3000);
         }
 
-        function CustomTableEditor({ table, updateTable, removeTable, readOnly = false }) {
-            const addRow = () => updateTable({ ...table, rows: [...table.rows, Array(table.headers.length).fill('')] });
-            const addCol = () => updateTable({ ...table, headers: [...table.headers, 'New Col'], rows: table.rows.map(r => [...r, '']) });
-            const removeRow = (idx) => updateTable({ ...table, rows: table.rows.filter((_, i) => i !== idx) });
-            const removeCol = (idx) => updateTable({ ...table, headers: table.headers.filter((_, i) => i !== idx), rows: table.rows.map(r => r.filter((_, i) => i !== idx)) });
-            const updateHeader = (idx, val) => updateTable({ ...table, headers: table.headers.map((h, i) => i === idx ? val : h) });
-            const updateCell = (rIdx, cIdx, val) => updateTable({ ...table, rows: table.rows.map((row, i) => i === rIdx ? row.map((cell, j) => j === cIdx ? val : cell) : row) });
-            const updateTitle = (val) => updateTable({ ...table, title: val });
+        function switchView(viewId) {
+            document.getElementById('view-loading').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
 
-            return (
-                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto print:border-none print:shadow-none print-break-inside-avoid print:overflow-visible mt-2">
-                    <div className={`bg-ice/30 px-2 py-1.5 flex items-center justify-between border-b border-slate-200 print:bg-transparent print:px-0 ${table.title ? 'print:border-b print:border-[#1e40af]' : 'print:border-none print:p-0'}`}>
-                        <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateTitle(e.currentTarget.innerText)} className={`font-bold text-[13px] text-navy outline-none editable-cell w-auto print:text-[#1e40af] print:text-[14px] ${!table.title && readOnly ? 'hidden' : ''}`} data-placeholder={readOnly ? '' : "Table Title"}>{table.title}</div>
-                        {!readOnly && (
-                            <div className="flex gap-1 print:hidden ml-3">
-                                <button onClick={addCol} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Col</button>
-                                <button onClick={addRow} className="text-[10px] bg-white border border-slate-300 text-slate-600 px-1.5 py-0.5 rounded">+ Row</button>
-                                <button onClick={removeTable} className="text-[10px] text-red-500 px-1.5 py-0.5"><i className="ph-bold ph-trash"></i></button>
-                            </div>
-                        )}
+        function closeEditorMobile() {
+            document.getElementById('editor-area').classList.add('hidden');
+            document.getElementById('editor-area').classList.remove('flex');
+            document.getElementById('sidebar').classList.remove('hidden');
+            activePatient = null;
+        }
+
+        window.toggleToolbar = function(wrapperId) {
+            document.getElementById(wrapperId).classList.toggle('show-toolbar');
+        };
+
+        window.switchTab = function(tabId) {
+            if(tabId === 'rx') {
+                document.getElementById('tab-rx').classList.remove('hidden');
+                document.getElementById('tab-ex').classList.add('hidden');
+                document.getElementById('btn-tab-rx').classList.add('active');
+                document.getElementById('btn-tab-ex').classList.remove('active');
+                document.getElementById('tab-slider').style.transform = 'translateX(0)';
+            } else {
+                document.getElementById('tab-rx').classList.add('hidden');
+                document.getElementById('tab-ex').classList.remove('hidden');
+                document.getElementById('btn-tab-ex').classList.add('active');
+                document.getElementById('btn-tab-rx').classList.remove('active');
+                document.getElementById('tab-slider').style.transform = 'translateX(100%)';
+            }
+        };
+
+        // 4. AUTHENTICATION LOGIC
+        authRecords.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const snap = await dbSite.ref('site/doctors').once('value');
+                    let isAuthorized = false;
+                    
+                    if (snap.exists()) {
+                        const allDocs = snap.val();
+                        const docArray = Array.isArray(allDocs) ? allDocs : Object.values(allDocs);
+                        const match = docArray.find(d => d && d.gmail && d.gmail.toLowerCase() === user.email.toLowerCase());
+                        
+                        if (match) {
+                            isAuthorized = true;
+                            doctorProfile = match;
+                            currentUser = user;
+                        }
+                    }
+
+                    if (isAuthorized) {
+                        let dName = doctorProfile.name || 'Doctor';
+                        if(!dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+                        document.getElementById('doc-name-display').innerText = dName;
+                        
+                        fetchData();
+                    } else {
+                        await authRecords.signOut();
+                        showAuthError(`Access Denied: Email (${user.email}) not found in Admin Panel.`);
+                        switchView('view-login');
+                    }
+                } catch (e) {
+                    showAuthError("Error verifying credentials.");
+                    switchView('view-login');
+                }
+            } else {
+                switchView('view-login');
+            }
+        });
+
+        function handleGoogleLogin() {
+            document.getElementById('auth-error').classList.add('hidden');
+            const provider = new firebase.auth.GoogleAuthProvider();
+            authRecords.signInWithPopup(provider).catch(e => {
+                showAuthError("Google Sign-In failed or was cancelled.");
+            });
+        }
+
+        function handleLogout() {
+            authRecords.signOut().then(() => window.location.reload());
+        }
+
+        function showAuthError(msg) {
+            const errBox = document.getElementById('auth-error');
+            errBox.innerText = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        // 5. DATA FETCHING
+        function fetchData() {
+            switchView('view-dashboard');
+            
+            dbSite.ref('site/exercises').once('value').then(snap => {
+                if(snap.exists()) {
+                    const data = snap.val();
+                    siteExercises = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+                    if(activePatient) renderExercises();
+                }
+            });
+
+            dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients')
+                .orderBy('date', 'desc').limit(100).onSnapshot(snap => {
+                    patients = [];
+                    snap.forEach(doc => patients.push({ id: doc.id, ...doc.data() }));
+                    renderPatientList();
+                });
+        }
+
+        // 6. RENDER SIDEBAR
+        function renderPatientList() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const container = document.getElementById('patient-list-container');
+            
+            const filtered = patients.filter(p => 
+                (p.name && p.name.toLowerCase().includes(query)) || 
+                (p.ipId && p.ipId.includes(query)) || 
+                (p.contact && p.contact.includes(query))
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-medium">No records found.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => `
+                <div onclick="openPatient('${p.id}')" class="px-4 py-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50/50' : ''}">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-[14px]">${p.name || 'Unnamed Patient'}</h4>
+                        <p class="text-[11px] font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
                     </div>
-                    <div className="p-1.5 print:p-0 print:mt-1">
-                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
+                    <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-azure transition text-base"></i>
+                </div>
+            `).join('');
+        }
+
+        // 7. EDITOR MANAGEMENT
+        function initQuillEditors() {
+            if(!qCC) {
+                const qOptions = { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{'list': 'ordered'}, {'list': 'bullet'}], ['clean']] } };
+                qCC = new Quill('#quill-cc', { ...qOptions, placeholder: 'Primary symptoms...' });
+                qMH = new Quill('#quill-mh', { ...qOptions, placeholder: 'Past medical history...' });
+                qPA = new Quill('#quill-pa', { ...qOptions, placeholder: 'Findings from physical exam...' });
+                qTP = new Quill('#quill-tp', { ...qOptions, placeholder: 'Plan of care...' });
+
+                qCC.on('text-change', () => activePatient.chiefComplaints = qCC.root.innerHTML);
+                qMH.on('text-change', () => activePatient.history = qMH.root.innerHTML);
+                qPA.on('text-change', () => activePatient.assessmentNote = qPA.root.innerHTML);
+                qTP.on('text-change', () => activePatient.treatmentNote = qTP.root.innerHTML);
+            }
+        }
+
+        function createNewPatient() {
+            activePatient = {
+                name: "", ipId: "", contact: "", age: "", gender: "Male",
+                chiefComplaints: "", history: "", assessmentNote: "", diagnosis: "", treatmentNote: "",
+                isPublished: true, prescribedExercises: [], exerciseParams: {}, customTables: [],
+                date: new Date().toISOString().split('T')[0]
+            };
+            loadEditorUI();
+        }
+
+        function openPatient(id) {
+            const p = patients.find(x => x.id === id);
+            if(p) {
+                activePatient = JSON.parse(JSON.stringify(p)); 
+                if(!activePatient.prescribedExercises) activePatient.prescribedExercises = [];
+                if(!activePatient.exerciseParams) activePatient.exerciseParams = {};
+                if(!activePatient.customTables) activePatient.customTables = [];
+                if(!activePatient.date) activePatient.date = new Date().toISOString().split('T')[0];
+                loadEditorUI();
+            }
+        }
+
+        function updateActiveData(key, value) {
+            if(activePatient) activePatient[key] = value;
+        }
+
+        function loadEditorUI() {
+            initQuillEditors();
+            renderPatientList(); 
+            switchTab('rx');
+            
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('active-editor').classList.remove('hidden');
+            document.getElementById('active-editor').classList.add('flex');
+            
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('editor-area').classList.remove('hidden');
+                document.getElementById('editor-area').classList.add('flex');
+            }
+
+            document.getElementById('editor-title').innerText = activePatient.id ? 'Edit Record' : 'New Patient Record';
+            
+            // Populate Inputs
+            document.getElementById('input-published').checked = activePatient.isPublished !== false;
+            document.getElementById('input-date').value = activePatient.date || '';
+            document.getElementById('input-name').value = activePatient.name || '';
+            
+            // UPID LOCKED IF ID EXISTS
+            const upidInput = document.getElementById('input-upid');
+            upidInput.value = activePatient.ipId || '';
+            upidInput.disabled = !!activePatient.id;
+            
+            document.getElementById('input-age').value = activePatient.age || '';
+            document.getElementById('input-gender').value = activePatient.gender || 'Male';
+            document.getElementById('input-phone').value = activePatient.contact || '';
+            document.getElementById('input-diagnosis').value = activePatient.diagnosis || '';
+
+            // Reset Editor Wrappers
+            document.querySelectorAll('.quill-wrapper').forEach(el => el.classList.remove('show-toolbar'));
+
+            qCC.root.innerHTML = activePatient.chiefComplaints || '';
+            qMH.root.innerHTML = activePatient.history || '';
+            qPA.root.innerHTML = activePatient.assessmentNote || '';
+            qTP.root.innerHTML = activePatient.treatmentNote || '';
+
+            renderAllCustomTables();
+            renderExercises();
+        }
+
+        // 8. TABLE BUILDER SYSTEM
+        window.addCustomTable = function(section) {
+            if(!activePatient.customTables) activePatient.customTables = [];
+            activePatient.customTables.push({ id: 'ct_' + Date.now(), section: section, title: "New Table", headers: ["Column 1", "Column 2"], rows: [["", ""]] });
+            renderAllCustomTables();
+        };
+
+        window.updateCTableField = function(id, field, val) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(!t) return;
+            if (field === 'title') { t.title = val; } 
+            else if (field === 'headers') {
+                const newHeaders = val.split(',').map(s => s.trim());
+                t.headers = newHeaders;
+                t.rows = t.rows.map(r => {
+                    let newRow = [...r];
+                    if(newRow.length > newHeaders.length) newRow.length = newHeaders.length;
+                    while(newRow.length < newHeaders.length) newRow.push("");
+                    return newRow;
+                });
+            }
+            renderAllCustomTables();
+        };
+
+        window.updateCTableCell = function(id, rIdx, cIdx, val) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t && t.rows[rIdx]) t.rows[rIdx][cIdx] = val;
+        };
+
+        window.addCTableRow = function(id) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t) { t.rows.push(Array(t.headers.length).fill("")); renderAllCustomTables(); }
+        };
+
+        window.deleteCTableRow = function(id, rIdx) {
+            const t = activePatient.customTables.find(x => x.id === id);
+            if(t) { t.rows.splice(rIdx, 1); renderAllCustomTables(); }
+        };
+
+        window.deleteCTable = function(id) {
+            if(confirm("Delete this table?")) {
+                activePatient.customTables = activePatient.customTables.filter(x => x.id !== id);
+                renderAllCustomTables();
+            }
+        };
+
+        function renderAllCustomTables() {
+            renderCustomTableGroup('assessment');
+            renderCustomTableGroup('treatment');
+            renderCustomTableGroup('reassessment');
+        }
+
+        function renderCustomTableGroup(section) {
+            const container = document.getElementById(`ctables-${section}`);
+            if(!container) return;
+            const tables = (activePatient.customTables || []).filter(t => t.section === section);
+            
+            container.innerHTML = tables.map(t => `
+                <div class="border border-slate-200 rounded-lg p-3 mb-3 bg-slate-50/50 shadow-sm mt-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <input type="text" value="${t.title}" onchange="updateCTableField('${t.id}', 'title', this.value)" class="font-black text-navy text-xs bg-transparent border-b border-slate-300 outline-none w-2/3 focus:border-azure px-1" placeholder="Table Title">
+                        <button onclick="deleteCTable('${t.id}')" class="text-red-500 hover:text-red-700 text-[10px] font-bold transition flex items-center gap-1"><i class="ph-bold ph-trash"></i> Delete Table</button>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-[9px] uppercase font-bold text-slate-500 mb-1 block">Headers (comma separated)</label>
+                        <input type="text" value="${t.headers.join(', ')}" onchange="updateCTableField('${t.id}', 'headers', this.value)" class="w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-white shadow-sm" placeholder="e.g. Date, Joint, ROM">
+                    </div>
+                    <div class="overflow-x-auto rounded border border-slate-200 bg-white">
+                        <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr>
-                                    {table.headers.map((h, i) => (
-                                        <th key={i} className="relative group border border-slate-200 p-0 bg-slate-50 print:border print:border-[#1e40af] print:bg-blue-50/30 print-break-inside-avoid">
-                                            <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateHeader(i, e.currentTarget.innerText)} className={`editable-cell font-bold text-navy text-[11px] p-1.5 print:text-[#1e40af] print:font-bold print:text-[12px] ${readOnly ? 'cursor-default' : ''}`} data-placeholder="Header">{h}</div>
-                                            {!readOnly && table.headers.length > 1 && ( <button onClick={() => removeCol(i)} className="absolute -top-1.5 -right-1.5 bg-red-100 text-red-600 rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity print:hidden text-[8px] z-10"><i className="ph-bold ph-x"></i></button> )}
-                                        </th>
-                                    ))}
-                                    {!readOnly && <th className="w-6 border-none print:hidden"></th>}
+                                    ${t.headers.map(h => `<th class="p-1.5 border-b border-slate-200 text-[11px] font-bold text-navy bg-slate-100">${h}</th>`).join('')}
+                                    <th class="p-1.5 border-b border-slate-200 bg-slate-100 w-8"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {table.rows.map((row, rIdx) => (
-                                    <tr key={rIdx} className="group print-break-inside-avoid">
-                                        {row.map((cell, cIdx) => (
-                                            <td key={cIdx} className="border border-slate-200 p-0 align-top print:border print:border-[#1e40af]">
-                                                <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={(e) => updateCell(rIdx, cIdx, e.currentTarget.innerText)} className={`editable-cell text-slate-700 text-[11px] p-1.5 min-h-[28px] print:text-slate-900 print:min-h-0 print:py-1 print:px-1.5 print:text-[12px] ${readOnly ? 'min-h-[auto] cursor-default' : ''}`}>{cell}</div>
+                                ${t.rows.map((row, rIdx) => `
+                                    <tr>
+                                        ${row.map((cell, cIdx) => `
+                                            <td class="p-1 border-b border-slate-100 border-r last:border-r-0">
+                                                <textarea oninput="updateCTableCell('${t.id}', ${rIdx}, ${cIdx}, this.value)" class="w-full text-xs p-1 outline-none resize-y min-h-[30px] bg-transparent text-slate-700">${cell}</textarea>
                                             </td>
-                                        ))}
-                                        {!readOnly && (
-                                            <td className="w-6 text-center border-none p-0 align-middle print:hidden">
-                                                {table.rows.length > 1 && ( <button onClick={() => removeRow(rIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"><i className="ph-bold ph-trash text-[10px]"></i></button> )}
-                                            </td>
-                                        )}
+                                        `).join('')}
+                                        <td class="p-1 border-b border-slate-100 text-center">
+                                            <button onclick="deleteCTableRow('${t.id}', ${rIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="ph-bold ph-x"></i></button>
+                                        </td>
                                     </tr>
-                                ))}
+                                `).join('')}
                             </tbody>
                         </table>
                     </div>
+                    <button onclick="addCTableRow('${t.id}')" class="mt-2 text-[10px] font-bold text-azure flex items-center gap-1 hover:underline bg-blue-50 px-2 py-1 rounded w-fit"><i class="ph-bold ph-plus"></i> Add Row</button>
                 </div>
-            );
+            `).join('');
         }
 
-        // ==========================================
-        // MAIN APP COMPONENT
-        // ==========================================
-        function App() {
-          const [allPatients, setAllPatients] = useState([]);
-          const [isPatientsLoaded, setIsPatientsLoaded] = useState(false);
-          const [draftPatient, setDraftPatient] = useState(null); 
-          const [viewMode, setViewMode] = useState('patient_login_form'); 
-          const [authRole, setAuthRole] = useState(null); 
-          
-          const [activePatientId, setActivePatientId] = useState(null);
-          const [searchQuery, setSearchQuery] = useState('');
-          const [isSaving, setIsSaving] = useState(false);
-          
-          const [user, setUser] = useState(null);
-          const [isConnecting, setIsConnecting] = useState(true);
-          const [isCheckingSession, setIsCheckingSession] = useState(true);
-          const [loginError, setLoginError] = useState("");
-          const [currentDoctor, setCurrentDoctor] = useState(null); 
+        // 9. EXERCISE MANAGEMENT
+        window.renderExercises = function() {
+            const q = (document.getElementById('ex-search')?.value || '').toLowerCase();
+            const libContainer = document.getElementById('exercise-library');
+            const confArea = document.getElementById('exercise-configs');
+            const confList = document.getElementById('exercise-configs-list');
 
-          const [patientLoginId, setPatientLoginId] = useState("");
-          const [patientLoginPhone, setPatientLoginPhone] = useState("");
-          
-          const [exercises, setExercises] = useState([]);
+            if(siteExercises.length === 0) {
+                libContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center col-span-2">No exercises found in Admin Panel.</div>';
+                confArea.classList.add('hidden');
+                return;
+            }
 
-          const draftPatientRef = useRef(null);
-          useEffect(() => { draftPatientRef.current = draftPatient; }, [draftPatient]);
+            libContainer.innerHTML = siteExercises
+                .filter(e => (e.name||'').toLowerCase().includes(q) || (e.tags||[]).some(t => t.includes(q)))
+                .map(ex => {
+                    const isChecked = activePatient.prescribedExercises.includes(ex.id);
+                    return `
+                        <label class="flex items-center gap-2 p-1.5 bg-white rounded-lg cursor-pointer border hover:border-azure transition shadow-sm ${isChecked ? 'border-azure bg-blue-50/20' : 'border-slate-200'}">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${ex.id}', this.checked)" class="accent-azure w-3.5 h-3.5 shrink-0 ml-1" />
+                            ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="w-8 h-8 rounded object-cover border border-slate-100 bg-white" />` : `<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-sm">🏃</div>`}
+                            <span class="text-[11px] font-bold text-slate-700 leading-tight">${ex.name}</span>
+                        </label>
+                    `;
+                }).join('');
 
-          useEffect(() => {
-              const handleHashChange = () => {
-                  const hash = window.location.hash;
-                  if (hash.startsWith('#/reports/')) {
-                      const upid = hash.replace('#/reports/', '');
-                      if (draftPatientRef.current && draftPatientRef.current.ipId === upid) return;
-                      if (allPatients.length > 0) {
-                          const match = allPatients.find(p => p.ipId === upid);
-                          if (match) {
-                              if (authRole === 'patient' && activePatientId !== match.id) {
-                                  setViewMode('patient_login_form'); 
-                              } else if (authRole === 'doctor' || authRole === 'patient') {
-                                  setActivePatientId(match.id);
-                                  setViewMode('patient');
-                              } else {
-                                  setPatientLoginId(upid);
-                                  setViewMode('patient_login_form');
-                              }
-                          } else { window.location.hash = ''; }
-                      }
-                  } else if (hash === '' || hash === '#/') {
-                      if (authRole === 'doctor' && viewMode === 'patient') {
-                          setViewMode('home');
-                          setActivePatientId(null);
-                          setDraftPatient(null);
-                      }
-                  }
-              };
-              window.addEventListener('hashchange', handleHashChange);
-              if (!isConnecting && !isCheckingSession) handleHashChange();
-              return () => window.removeEventListener('hashchange', handleHashChange);
-          }, [allPatients, isConnecting, isCheckingSession, authRole, viewMode, activePatientId]);
-
-          useEffect(() => {
-              const initAuth = async () => {
-                  try { await setPersistence(auth, browserLocalPersistence); } catch (err) {}
-                  onAuthStateChanged(auth, async (currentUser) => { 
-                      if (currentUser) { setUser(currentUser); setIsConnecting(false); } 
-                      else { try { await signInAnonymously(auth); } catch(e) { setIsConnecting(false); } }
-                  });
-              };
-              initAuth();
-          }, []);
-
-          useEffect(() => {
-              if(!user) return;
-              const fetchEx = async () => {
-                  try {
-                      const snapshot = await get(ref(rtdbSite, 'site/exercises'));
-                      if (snapshot.exists()) {
-                          const data = snapshot.val();
-                          let exArray = [];
-                          if (Array.isArray(data)) exArray = data.filter(Boolean);
-                          else exArray = Object.keys(data).map(key => ({ ...data[key], id: data[key].id || key }));
-                          setExercises(exArray.reverse()); 
-                      } else { setExercises([]); }
-                  } catch (e) { console.error(e); }
-              };
-              fetchEx();
-          }, [user]);
-
-          useEffect(() => {
-            if (!user) return;
-            const unsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'patients'), (snapshot) => {
-              const data = [];
-              snapshot.forEach(doc => {
-                  const p = doc.data();
-                  if (p.customTables) {
-                      p.customTables = p.customTables.map(t => {
-                          let parsedRows = [['', '']];
-                          try { parsedRows = typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows; } catch(e) {}
-                          return { ...t, rows: parsedRows };
-                      });
-                  }
-                  data.push({ id: doc.id, ...p });
-              });
-              setAllPatients(data);
-              setIsPatientsLoaded(true); 
-            }, (error) => { setIsPatientsLoaded(true); });
-            return () => unsubscribe();
-          }, [user]);
-
-          useEffect(() => {
-              if (!user) { if (!isConnecting) setIsCheckingSession(false); return; }
-              const checkLoginState = async () => {
-                  if (!user.isAnonymous) {
-                      try {
-                          const docSnap = await get(ref(rtdbSite, 'site/doctors'));
-                          const rawDoctors = docSnap.val() || [];
-                          const doctorsArray = Array.isArray(rawDoctors) ? rawDoctors.filter(Boolean) : Object.values(rawDoctors).filter(Boolean);
-                          const userEmail = (user.email || "").toLowerCase().trim();
-                          const matchedDoc = doctorsArray.find(d => d && d.gmail && d.gmail.toLowerCase().trim() === userEmail);
-                          if (matchedDoc) {
-                              setAuthRole('doctor');
-                              setCurrentDoctor(matchedDoc);
-                              if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) setViewMode('home');
-                          } else {
-                              await signOut(auth);
-                              setLoginError(`Access Denied: Email (${userEmail}) not registered.`);
-                              setViewMode('patient_login_form');
-                          }
-                      } catch(e) {}
-                      setIsCheckingSession(false); return;
-                  }
-                  if (!isPatientsLoaded) return; 
-                  try {
-                      const docSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState'));
-                      if (docSnap.exists()) {
-                          const data = docSnap.data();
-                          if (data.role === 'patient' && data.patientId) {
-                              setAuthRole('patient'); setActivePatientId(data.patientId);
-                              if(!window.location.hash.startsWith('#/reports/')) {
-                                  const pat = allPatients.find(p=> p.id === data.patientId);
-                                  if(pat) window.location.hash = `#/reports/${pat.ipId}`;
-                                  setViewMode('patient');
-                              }
-                              setIsCheckingSession(false); return;
-                          }
-                      }
-                  } catch (e) {}
-                  if(!window.location.hash.startsWith('#/reports/')) setViewMode('patient_login_form');
-                  setIsCheckingSession(false);
-              };
-              checkLoginState();
-          }, [user, isConnecting, isPatientsLoaded]); 
-
-          const handleDoctorGoogleLogin = async () => { 
-              setLoginError(""); 
-              try { 
-                  await setPersistence(auth, browserLocalPersistence);
-                  const result = await signInWithPopup(auth, googleProvider); 
-                  const docSnap = await get(ref(rtdbSite, 'site/doctors'));
-                  const rawDoctors = docSnap.val() || [];
-                  const doctorsArray = Array.isArray(rawDoctors) ? rawDoctors.filter(Boolean) : Object.values(rawDoctors).filter(Boolean);
-                  const userEmail = (result.user.email || "").toLowerCase().trim();
-                  const matchedDoc = doctorsArray.find(d => d && d.gmail && d.gmail.toLowerCase().trim() === userEmail);
-                  if (!matchedDoc) {
-                      await signOut(auth);
-                      setLoginError(`Access Denied: Email (${userEmail}) not registered.`);
-                  } else { setCurrentDoctor(matchedDoc); setAuthRole('doctor'); }
-              } catch (error) { setLoginError("Staff login failed. Please try again."); } 
-          };
-
-          const handlePatientLoginSubmit = async (e) => {
-              e.preventDefault(); setLoginError("");
-              const safeInputId = patientLoginId.toLowerCase().trim(); const safeInputPhone = patientLoginPhone.trim();
-              const match = allPatients.find(p => { const safeName = (p.name || '').toLowerCase().trim(); const safeIpId = (p.ipId || '').toLowerCase().trim(); return (safeIpId === safeInputId || safeName === safeInputId) && (p.contact || '').trim() === safeInputPhone; });
-              if (match) {
-                  if (!match.isPublished) return setLoginError("Record is under review.");
-                  setAuthRole('patient'); setActivePatientId(match.id); setViewMode('patient'); window.location.hash = `#/reports/${match.ipId}`;
-                  if (user) { try { await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState'), { role: 'patient', patientId: match.id }); } catch(e) { } }
-              } else { setLoginError("Record not found."); }
-          };
-
-          const handleLogout = async () => {
-              window.location.hash = ''; setIsCheckingSession(true);
-              if (user && user.isAnonymous) { try { await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'loginState'), { role: null, patientId: null }); } catch(e){} }
-              try { await signOut(auth); } catch (error) {}
-              window.location.reload();
-          };
-
-          const handleCreatePatient = () => {
-            let newIpId;
-            do { newIpId = Math.floor(1000 + Math.random() * 9000).toString(); } while (allPatients.some(p => p.ipId === newIpId));
-            const newPatient = { 
-                id: generateId(), ipId: newIpId, doctorId: user.uid, doctorEmail: user.email,
-                doctorName: currentDoctor?.name || 'Dr. Arpan Das (PT)', doctorPhone: currentDoctor?.phone || '9641568109', doctorQual: currentDoctor?.qualification || 'BPT', doctorDesignation: currentDoctor?.designation || 'Consultant Physiotherapist', doctorReg: currentDoctor?.regNumber || '',
-                date: new Date().toISOString().split('T')[0], 
-                name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false 
-            };
-            setDraftPatient(newPatient); setActivePatientId(newPatient.id); setViewMode('patient'); window.location.hash = `#/reports/${newIpId}`; 
-          };
-
-          const handleSavePatient = async (updatedPatient) => {
-            if (authRole !== 'doctor') return;
-            setIsSaving(true);
-            try {
-                const patientToSave = { ...updatedPatient, doctorId: user.uid, doctorEmail: user.email, doctorName: currentDoctor?.name || 'Dr. Arpan Das (PT)', doctorPhone: currentDoctor?.phone || '9641568109', doctorQual: currentDoctor?.qualification || 'BPT', doctorDesignation: currentDoctor?.designation || 'Consultant Physiotherapist', doctorReg: currentDoctor?.regNumber || '' };
-                delete patientToSave.trackedMetrics; delete patientToSave.records;
-                if (patientToSave.customTables) patientToSave.customTables = patientToSave.customTables.map(t => ({ ...t, rows: JSON.stringify(t.rows) }));
-                Object.keys(patientToSave).forEach(key => { if (patientToSave[key] === undefined) delete patientToSave[key]; });
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'patients', updatedPatient.id), patientToSave);
-                setDraftPatient(null);
-            } catch(e) {}
-            setTimeout(() => setIsSaving(false), 500); 
-          };
-
-          if (isConnecting || isCheckingSession) return null; 
-
-          if (viewMode === 'patient_login_form') {
-              return (
-                  <div className="min-h-screen bg-appbg flex flex-col items-center justify-center p-4 relative">
-                      <button onClick={handleDoctorGoogleLogin} className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 text-navy px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors">
-                          <i className="ph-bold ph-stethoscope"></i> Staff
-                      </button>
-                      <div className="max-w-sm w-full bg-surface rounded-xl shadow-soft border border-slate-200 p-6">
-                          <div className="text-center mb-6">
-                              <i className="ph-fill ph-activity text-4xl text-azure mb-1"></i>
-                              <h1 className="text-xl font-bold text-navy">Patient Records</h1>
-                          </div>
-                          <form onSubmit={handlePatientLoginSubmit} className="space-y-4">
-                              {loginError && <div className="p-2 bg-red-50 text-red-600 text-xs rounded border border-red-100">{loginError}</div>}
-                              <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name or UPID</label><input type="text" required value={patientLoginId} onChange={e => setPatientLoginId(e.target.value)} placeholder="e.g. John or 4092" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure focus:ring-1 focus:ring-azure" /></div>
-                              <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label><input type="tel" required value={patientLoginPhone} onChange={e => setPatientLoginPhone(e.target.value)} placeholder="9876543210" className="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure focus:ring-1 focus:ring-azure" /></div>
-                              <button type="submit" className="w-full bg-azure text-white font-bold py-2.5 rounded-md hover:bg-navy shadow-sm mt-2 text-sm transition-colors">View Records</button>
-                          </form>
-                      </div>
-                  </div>
-              );
-          }
-
-          const doctorPatients = allPatients.filter(p => p.doctorId === user?.uid || p.doctorEmail === user?.email);
-          const activePatient = draftPatient || allPatients.find(p => p.id === activePatientId) || { id: activePatientId };
-
-          return (
-            <div className="min-h-screen bg-appbg text-slate-800 font-sans print:bg-white print:m-0 print:p-0">
-              {viewMode === 'home' ? (
-                  <>
-                      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center print:hidden">
-                        <div className="w-full max-w-6xl mx-auto px-3 flex justify-between items-center">
-                          <div className="flex items-center gap-1.5 text-navy">
-                            <i className="ph-bold ph-activity text-xl text-azure"></i>
-                            <h1 className="text-base font-bold tracking-tight">Records</h1>
-                          </div>
-                          <div className="flex items-center gap-2">
-                              <button onClick={handleCreatePatient} className="flex items-center gap-1 bg-azure text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-navy shadow-sm"><i className="ph-bold ph-plus"></i> New</button>
-                              <button onClick={handleLogout} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 ml-1"><i className="ph-bold ph-sign-out text-sm"></i></button>
-                          </div>
+            if (activePatient.prescribedExercises.length > 0) {
+                confArea.classList.remove('hidden');
+                confList.innerHTML = activePatient.prescribedExercises.map(exId => {
+                    const exInfo = siteExercises.find(e => e.id === exId);
+                    if(!exInfo) return '';
+                    const p = activePatient.exerciseParams[exId] || { reps: '', sets: '', freq: '', note: '' };
+                    return `
+                        <div class="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col sm:flex-row gap-2.5">
+                            <div class="w-10 h-10 shrink-0 bg-slate-50 rounded border border-slate-100 flex items-center justify-center hidden sm:flex">
+                                ${exInfo.imageUrl ? `<img src="${exInfo.imageUrl}" class="max-w-full max-h-full mix-blend-multiply rounded" />` : `🏃`}
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-xs text-navy mb-1.5 leading-tight">${exInfo.name}</div>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mb-1.5">
+                                    <div><input type="text" placeholder="Reps" value="${p.reps}" oninput="updateExParam('${exId}', 'reps', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div><input type="text" placeholder="Sets" value="${p.sets}" oninput="updateExParam('${exId}', 'sets', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                    <div class="col-span-1 sm:col-span-2"><input type="text" placeholder="Freq" value="${p.freq}" oninput="updateExParam('${exId}', 'freq', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure bg-slate-50 focus:bg-white" /></div>
+                                </div>
+                                <input type="text" placeholder="Special Instructions..." value="${p.note}" oninput="updateExParam('${exId}', 'note', this.value)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded outline-none focus:border-azure italic bg-slate-50 focus:bg-white" />
+                            </div>
                         </div>
-                      </header>
-                      <main className="max-w-6xl mx-auto px-2 sm:px-4 py-4 print:hidden">
-                          <HomeView patients={doctorPatients.filter(p => p.ipId?.toLowerCase().includes(searchQuery.toLowerCase()) || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.contact?.includes(searchQuery) || p.diagnosis?.toLowerCase().includes(searchQuery.toLowerCase()))} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onOpenPatient={(p) => { setActivePatientId(p.id); setViewMode('patient'); window.location.hash = `#/reports/${p.ipId}`; }} />
-                      </main>
-                  </>
-              ) : (
-                  <PatientDetailView 
-                      patient={activePatient} 
-                      exercises={exercises}
-                      onSave={handleSavePatient} 
-                      onCancel={() => { 
-                          setDraftPatient(null); 
-                          if(authRole === 'doctor') { setViewMode('home'); setActivePatientId(null); window.location.hash = ''; } 
-                          else { handleLogout(); } 
-                      }} 
-                      readOnly={authRole === 'patient'} 
-                      authRole={authRole}
-                      isSaving={isSaving}
-                  />
-              )}
-            </div>
-          );
+                    `;
+                }).join('');
+            } else {
+                confArea.classList.add('hidden');
+                confList.innerHTML = '';
+            }
         }
 
-        // --- COMPACT HOME VIEW (Doctor Only) ---
-        function HomeView({ patients, searchQuery, setSearchQuery, onOpenPatient }) {
-          return (
-            <div className="space-y-3 print:hidden animate-in fade-in">
-              <div className="bg-surface p-2.5 rounded-xl shadow-soft border border-slate-200 flex items-center gap-2">
-                <i className="ph-bold ph-magnifying-glass text-slate-400 ml-1"></i>
-                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search patients..." className="w-full bg-transparent outline-none text-sm text-slate-700" />
-              </div>
-              
-              <div className="bg-surface rounded-xl shadow-soft border border-slate-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-left text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                        <th className="py-3 px-3 w-14">ID</th>
-                        <th className="py-3 px-3 w-40">Patient</th>
-                        <th className="py-3 px-3">Diagnosis</th>
-                        <th className="py-3 px-3 w-20 text-center">Status</th>
-                      </tr>
+        window.toggleExercise = function(exId, isChecked) {
+            if (isChecked) {
+                if(!activePatient.prescribedExercises.includes(exId)) activePatient.prescribedExercises.push(exId);
+                if(!activePatient.exerciseParams[exId]) activePatient.exerciseParams[exId] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
+            } else {
+                activePatient.prescribedExercises = activePatient.prescribedExercises.filter(id => id !== exId);
+            }
+            renderExercises();
+        };
+
+        window.updateExParam = function(exId, field, val) {
+            if(!activePatient.exerciseParams[exId]) activePatient.exerciseParams[exId] = { reps: '', sets: '', freq: '', note: '' };
+            activePatient.exerciseParams[exId][field] = val;
+        };
+
+        // 10. SAVE TO DATABASE
+        window.savePatientData = async function() {
+            if(!activePatient.name || !activePatient.ipId || !activePatient.contact) {
+                return showToast("Name, UPID, and Phone Number are required.", true);
+            }
+
+            const btn = document.getElementById('btn-save');
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i> <span class="hidden sm:inline">Saving...</span>`;
+            btn.disabled = true;
+
+            try {
+                let dName = doctorProfile.name || '';
+                if(dName && !dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+
+                const dataToSave = {
+                    ...activePatient,
+                    doctorName: dName,
+                    doctorQual: doctorProfile.qualification || '',
+                    doctorDesignation: doctorProfile.designation || '',
+                    doctorReg: doctorProfile.regNumber || '',
+                    doctorPhone: doctorProfile.phone || '',
+                    lastEditedBy: currentUser.email
+                };
+
+                const coll = dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients');
+                
+                if (activePatient.id) {
+                    await coll.doc(activePatient.id).set(dataToSave, { merge: true });
+                } else {
+                    const newRef = coll.doc();
+                    dataToSave.id = newRef.id;
+                    await newRef.set(dataToSave);
+                    activePatient.id = newRef.id; 
+                    
+                    // ONCE SAVED, LOCK THE UPID BOX
+                    document.getElementById('input-upid').disabled = true;
+                }
+                
+                showToast("Patient record saved securely!");
+            } catch(e) {
+                console.error(e);
+                showToast("Save Error: Ensure you are authorized.", true);
+            } finally {
+                btn.innerHTML = `<i class="ph-bold ph-floppy-disk text-lg"></i> <span class="hidden sm:inline">Save</span>`;
+                btn.disabled = false;
+            }
+        }
+
+        // 11. ADVANCED PRINT ENGINE (Scales perfectly to A4 pages based on layout select)
+        window.handlePrint = function() {
+            if (!activePatient) return;
+            
+            const pc = document.getElementById('print-container');
+            const dateStr = activePatient.date ? new Date(activePatient.date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/prescription.html#/' + activePatient.id)}`;
+            
+            let dName = doctorProfile.name || 'Doctor';
+            if(!dName.toLowerCase().startsWith('dr')) dName = "Dr. " + dName;
+
+            // Start Building Print Layout
+            let html = `
+                <div class="flex justify-between items-start pb-2 text-left">
+                    <div>
+                        <h1 class="text-[26px] font-bold italic tracking-wide text-[#1e40af]" style="line-height: 1.1;">${dName}</h1>
+                        <p class="text-[13px] mt-1 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
+                        <p class="text-[13px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
+                        ${doctorProfile.regNumber ? `<p class="text-[10px] font-bold text-slate-600 mt-0.5">${doctorProfile.regNumber}</p>` : ''}
+                    </div>
+                    ${activePatient.id ? `
+                    <div class="flex flex-col items-center justify-center px-4">
+                        <img src="${qrUrl}" alt="QR Code" class="w-[60px] h-[60px]" />
+                        <span class="text-[8px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                    </div>` : ''}
+                    <div class="text-right flex flex-col items-end text-[#1e40af]">
+                        <div class="flex items-center gap-1.5 font-black text-[18px] mb-3">
+                            <i class="ph-fill ph-phone-call text-[20px]"></i> +91 ${doctorProfile.phone || ''}
+                        </div>
+                        <div class="text-[13px] flex items-center gap-2 font-semibold">
+                            <span>Date:</span> <span class="border-b border-[#1e40af] w-24 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-b-2 border-[#1e40af] mb-1.5"></div>
+                
+                <table class="main-print-table">
+                    <thead class="print-table-header">
+                        <tr><td class="pb-3 pt-2">
+                            <div class="flex justify-between items-end pb-2 text-[12px] font-bold text-[#1e40af]">
+                                <div class="flex-1 flex items-end"><span class="whitespace-nowrap">Patient's name:</span> <span class="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.name || ''}</span></div>
+                                <div class="w-24 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.age || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.gender || ''}</span></div>
+                                <div class="w-32 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">${activePatient.ipId || ''}</span></div>
+                            </div>
+                            <div class="border-b border-[#1e40af]"></div>
+                        </td></tr>
                     </thead>
                     <tbody>
-                      {patients.length === 0 ? (
-                        <tr><td colSpan="4" className="py-8 text-center text-xs text-slate-400 font-medium">No records found.</td></tr>
-                      ) : (
-                        patients.map(p => (
-                          <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={() => onOpenPatient(p)}>
-                            <td className="py-3 px-3 text-xs font-bold text-azure align-top">#{p.ipId}</td>
-                            <td className="py-3 px-3 align-top">
-                              <div className="font-bold text-sm text-slate-800 leading-tight">{p.name || 'Unnamed'}</div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">{p.contact || '-'}</div>
-                            </td>
-                            <td className="py-3 px-3 text-xs text-slate-600 align-top">{p.diagnosis || <span className="text-slate-300 italic">None</span>}</td>
-                            <td className="py-3 px-3 text-center align-top">
-                                {p.isPublished ? 
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Published</span> : 
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Draft</span>
-                                }
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          );
-        }
+            `;
 
-        // --- PATIENT DETAIL VIEW ---
-        function PatientDetailView({ patient, exercises, onSave, onCancel, readOnly = false, authRole, isSaving }) {
-          const [formData, setFormData] = useState(() => {
-              let rTables = patient.reassessmentTables || [];
-              if (rTables.length === 0 && (patient.trackedMetrics?.length > 0 || patient.records?.length > 0)) {
-                  rTables = [{ id: 'default-reassessment', title: 'Reassessment and progression tracking :-', trackedMetrics: patient.trackedMetrics || [], records: patient.records || [] }];
-              } else if (rTables.length === 0) { rTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }]; }
-              return { 
-                  ...patient, 
-                  customTables: patient.customTables || [], 
-                  reassessmentTables: rTables, 
-                  treatmentNote: patient.treatmentNote || '', 
-                  reports: patient.reports || [], 
-                  isPublished: patient.isPublished || false,
-                  prescribedExercises: patient.prescribedExercises || [],
-                  exerciseParams: patient.exerciseParams || {}
-              };
-          });
+            // Clinical Notes
+            if (activePatient.chiefComplaints || activePatient.history) {
+                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-4">`;
+                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-3"><span class="font-bold text-[14px] block mb-0.5">Chief Complaint :-</span><div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
+                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Medical History :-</span><div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.history}</div></div>`;
+                html += `</td></tr>`;
+            }
 
-          const [activeTab, setActiveTab] = useState('rx');
-          const [exSearchQuery, setExSearchQuery] = useState("");
-          const [isUploading, setIsUploading] = useState(false);
-          const [showLinkCopied, setShowLinkCopied] = useState(false);
-          
-          // Print Setup
-          const [exsPerPage, setExsPerPage] = useState(6);
-          
-          // Quill Toolbars
-          const [toolbars, setToolbars] = useState({ cc: false, mh: false, pa: false, tp: false });
-          const toggleToolbar = (id) => setToolbars(p => ({...p, [id]: !p[id]}));
+            // Custom Tables Helper
+            const buildCustomTables = (section) => {
+                const tables = (activePatient.customTables || []).filter(t => t.section === section);
+                if(tables.length === 0) return '';
+                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-3 pl-4 pr-2">';
+                tables.forEach(t => {
+                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[13px] text-[#1e40af] mb-1">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
+                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-1.5 bg-blue-50/30 text-[12px]">${h}</th>`);
+                    tHtml += `</tr></thead><tbody>`;
+                    t.rows.forEach(r => {
+                        tHtml += `<tr class="print-break-inside-avoid">`;
+                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-1.5 text-[12px] align-top whitespace-pre-wrap">${c}</td>`);
+                        tHtml += `</tr>`;
+                    });
+                    tHtml += `</tbody></table></div>`;
+                });
+                tHtml += '</div>';
+                return tHtml;
+            };
 
-          const fileInputRef = useRef(null);
+            if (activePatient.assessmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'assessment'))) {
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Assessment :-</span>`;
+                if(activePatient.assessmentNote) html += `<div class="ml-4 text-slate-900 text-[12px] rich-text-content">${activePatient.assessmentNote}</div>`;
+                html += buildCustomTables('assessment');
+                html += `</div></td></tr>`;
+            }
 
-          useEffect(() => {
-              window.triggerPatientSave = () => { if (!readOnly) onSave(formData); };
-              return () => { delete window.triggerPatientSave; };
-          }, [formData, onSave, readOnly]);
+            if (activePatient.diagnosis) {
+                html += `<tr class="main-print-row"><td class="px-2 pb-4"><div class="text-[#1e40af]"><span class="font-bold text-[14px]">Diagnosis:</span><span class="ml-2 text-slate-900 font-bold text-[14px]">${activePatient.diagnosis}</span></div></td></tr>`;
+            }
 
-          useEffect(() => {
-              if (patient && patient.id !== formData.id && patient.id) {
-                  let rTables = patient.reassessmentTables || [];
-                  if (rTables.length === 0) rTables = [{ id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }];
-                  setFormData({ 
-                      ...patient, 
-                      customTables: patient.customTables || [], 
-                      reassessmentTables: rTables, 
-                      treatmentNote: patient.treatmentNote || '', 
-                      reports: patient.reports || [], 
-                      isPublished: patient.isPublished || false,
-                      prescribedExercises: patient.prescribedExercises || [],
-                      exerciseParams: patient.exerciseParams || {}
-                  });
-              }
-          }, [patient]);
-          
-          const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
-          const [activeReassessmentTableId, setActiveReassessmentTableId] = useState(null);
+            if (activePatient.treatmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'treatment'))) {
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[14px] block mb-0.5">Treatment Plan / Advice :-</span>`;
+                if(activePatient.treatmentNote) html += `<div class="ml-4 text-slate-900 text-[12px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
+                html += buildCustomTables('treatment');
+                html += `</div></td></tr>`;
+            }
 
-          const handleInputChange = (e) => { if (readOnly) return; const { name, value } = e; setFormData((prev) => ({ ...prev, [name]: value })); };
-          const handleAddCustomTable = (section) => { if (readOnly) return; setFormData(prev => ({ ...prev, customTables: [...prev.customTables, { id: generateId(), section: section, title: '', headers: ['Col 1', 'Col 2'], rows: [['', '']] }] })); };
-          const handleUpdateCustomTable = (upd) => { if (readOnly) return; setFormData(prev => ({ ...prev, customTables: prev.customTables.map(t => t.id === upd.id ? upd : t) })); };
-          const handleRemoveCustomTable = (id) => { if (readOnly) return; setFormData(prev => ({ ...prev, customTables: prev.customTables.filter(t => t.id !== id) })); };
-          const addReassessmentTable = () => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: [...prev.reassessmentTables, { id: generateId(), title: 'Progression Tracking', trackedMetrics: [], records: [] }] })); };
-          const removeReassessmentTable = (id) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.filter(t => t.id !== id) })); };
-          const updateReassessmentTableTitle = (id, title) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === id ? { ...t, title } : t) })); };
-          const addMetricColumn = (id, m) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === id ? { ...t, trackedMetrics: [...t.trackedMetrics, m] } : t) })); setIsMetricModalOpen(false); setActiveReassessmentTableId(null); };
-          const removeMetricColumn = (tId, mId) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, trackedMetrics: t.trackedMetrics.filter(m => m.id !== mId), records: t.records.map(rec => { const newValues = { ...rec.values }; delete newValues[mId]; return { ...rec, values: newValues }; }) }; }) })); };
-          const addDateRow = (id) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === id ? { ...t, records: [...t.records, { id: generateId(), date: new Date().toISOString().split('T')[0], values: {} }] } : t) })); };
-          const removeDateRow = (tId, rId) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => t.id === tId ? { ...t, records: t.records.filter(r => r.id !== rId) } : t) })); };
-          const updateRecordDate = (tId, rId, d) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(r => r.id === rId ? { ...r, date: d } : r) }; }) })); };
-          const updateSimpleCellValue = (tId, rId, mId, v) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== rId) return rec; return { ...rec, values: { ...rec.values, [mId]: v } }; })}; }) })); };
-          const updateMultiFieldCellValue = (tId, rId, mId, sub, v) => { if (readOnly) return; setFormData(prev => ({ ...prev, reassessmentTables: prev.reassessmentTables.map(t => { if (t.id !== tId) return t; return { ...t, records: t.records.map(rec => { if (rec.id !== rId) return rec; let nv = { ...rec.values }; nv[mId] = { ...(nv[mId] || {}), [sub]: v }; return { ...rec, values: nv }; })}; }) })); };
+            const rTablesHtml = buildCustomTables('reassessment');
+            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-4 text-[#1e40af]"><span class="font-bold text-[14px] block mb-2">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
 
-          const toggleExercise = (id) => {
-              if (readOnly) return;
-              setFormData(prev => {
-                  const isSelected = prev.prescribedExercises.includes(id);
-                  let newIds = [...prev.prescribedExercises];
-                  let newParams = { ...prev.exerciseParams };
-                  if (isSelected) {
-                      newIds = newIds.filter(e => e !== id);
-                      delete newParams[id];
-                  } else {
-                      newIds.push(id);
-                      newParams[id] = { reps: '10', sets: '3', freq: '2x/Day', note: '' };
-                  }
-                  return { ...prev, prescribedExercises: newIds, exerciseParams: newParams };
-              });
-          };
-
-          const handleExParamChange = (id, field, value) => {
-              if (readOnly) return;
-              setFormData(prev => ({
-                  ...prev,
-                  exerciseParams: { ...prev.exerciseParams, [id]: { ...(prev.exerciseParams[id] || {}), [field]: value } }
-              }));
-          };
-
-          const handleFileUpload = async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              setIsUploading(true);
-              const payload = new FormData(); payload.append('file', file); payload.append('upload_preset', 'physiocare_preset');
-              try {
-                  const res = await fetch(`https://api.cloudinary.com/v1_1/desvmq2l9/auto/upload`, { method: 'POST', body: payload });
-                  const data = await res.json();
-                  if (data.secure_url) setFormData(prev => ({ ...prev, reports: [...(prev.reports || []), { id: generateId(), url: data.secure_url, name: file.name, type: file.type || 'unknown', date: new Date().toISOString() }] }));
-                  else alert(`Upload Failed: ${data.error?.message}`);
-              } catch (err) { alert("Upload error."); } 
-              finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
-          };
-
-          const handleRemoveReport = (id) => { if (readOnly) return; if (confirm("Remove report?")) setFormData(prev => ({ ...prev, reports: prev.reports.filter(r => r.id !== id) })); };
-          
-          const togglePublish = () => { if (readOnly) return; const newState = !formData.isPublished; setFormData(prev => ({ ...prev, isPublished: newState })); onSave({ ...formData, isPublished: newState }); };
-          
-          const copyPatientLink = () => { navigator.clipboard.writeText(`${window.location.origin}/prescription#/${formData.id}`).then(() => { setShowLinkCopied(true); setTimeout(() => setShowLinkCopied(false), 2000); }); };
-          
-          const openWhatsApp = () => {
-              if(!formData.contact) return alert("No phone number saved for this patient.");
-              const msg = `Hello ${formData.name}, here is your updated prescription and exercise video chart: ${window.location.origin}/prescription#/${formData.id}`;
-              window.open(`https://wa.me/91${formData.contact.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-          };
-          
-          const formattedPrintDate = formData.date ? new Date(formData.date).toLocaleDateString('en-GB') : '';
-
-          // Conditional Render Flags for Print
-          const hasHistoryOrCC = formData.chiefComplaints || formData.history;
-          const hasAssessment = formData.assessmentNote || formData.customTables.some(t => t.section === 'assessment');
-          const hasTreatment = formData.treatmentNote || formData.customTables.some(t => t.section === 'treatment');
-          const hasReassessment = formData.customTables.some(t => t.section === 'reassessment');
-          const prescribedExData = (formData.prescribedExercises || []).map(id => exercises.find(e => e.id === id)).filter(Boolean);
-
-          // Chunk exercises based on layout limit
-          const exChunks = [];
-          for(let i=0; i<prescribedExData.length; i+=exsPerPage) {
-              exChunks.push(prescribedExData.slice(i, i+exsPerPage));
-          }
-
-          let imgHeight = 'h-32';
-          if (exsPerPage <= 2) imgHeight = 'h-64';
-          else if (exsPerPage <= 4) imgHeight = 'h-40';
-          else if (exsPerPage <= 6) imgHeight = 'h-32';
-          else if (exsPerPage <= 8) imgHeight = 'h-24';
-          else imgHeight = 'h-20'; 
-
-          return (
-            <div className="w-full relative">
-              
-              {/* HEADER UI */}
-              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-10 h-[50px] flex items-center px-2 sm:px-3 -mt-4 mb-3 w-full print:hidden">
-                <div className="w-full max-w-6xl mx-auto flex justify-between items-center">
+            // Exercises Print Logic (With Dropdown Selected Grid Cap)
+            if (activePatient.prescribedExercises && activePatient.prescribedExercises.length > 0) {
+                const pExs = activePatient.prescribedExercises.map(id => siteExercises.find(e => e.id === id)).filter(Boolean);
+                if (pExs.length > 0) {
                     
-                    <button onClick={onCancel} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-navy shrink-0">
-                        <i className="ph-bold ph-arrow-left text-lg"></i> <span className="hidden sm:inline">Edit Record</span>
-                    </button>
-
-                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
-                        <div className="flex items-center gap-1 bg-slate-50 px-1 sm:px-2 py-1 rounded border border-slate-200 shadow-sm">
-                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400">DATE:</span>
-                            <input type="date" name="date" disabled={readOnly} value={formData.date || ''} onChange={(e) => handleInputChange(e.target)} className={`text-[10px] sm:text-xs font-bold outline-none bg-transparent w-[85px] sm:w-[95px] ${readOnly?'text-navy':'text-slate-800'}`} />
-                        </div>
-                        
-                        <button className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-50 shadow-sm transition" onClick={() => window.print()}>
-                            <i className="ph-bold ph-printer text-sm"></i> <span className="hidden sm:inline">Print</span>
-                        </button>
-                        
-                        {!readOnly && (
-                            <>
-                                <label className="flex items-center gap-1.5 cursor-pointer bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-md hidden sm:flex shadow-sm hover:bg-slate-100 transition">
-                                    <input type="checkbox" checked={formData.isPublished} onChange={togglePublish} className="accent-azure w-3.5 h-3.5" />
-                                    <span className="text-[11px] font-bold text-slate-600">Published</span>
-                                </label>
-                                <button onClick={() => onSave(formData)} className="flex items-center gap-1 px-3 sm:px-4 py-1.5 bg-azure text-white rounded-md text-xs font-bold hover:bg-navy shadow-sm transition-colors">
-                                    <i className="ph-bold ph-floppy-disk text-sm"></i> Save {isSaving && "..."}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-              </header>
-              
-              <div className="w-full space-y-3 animate-in fade-in print:hidden">
-                
-                {/* TOOLBARS & QUICK ACTIONS */}
-                <div className="flex flex-wrap justify-between items-center gap-2 px-1 mb-2">
-                    <div className="toggle-container w-[160px] sm:w-[200px]">
-                        <div className="toggle-slider" style={{ transform: activeTab === 'rx' ? 'translateX(0)' : 'translateX(100%)' }}></div>
-                        <button className={`toggle-btn ${activeTab === 'rx' ? 'active' : ''}`} onClick={() => setActiveTab('rx')}>Main Rx</button>
-                        <button className={`toggle-btn ${activeTab === 'ex' ? 'active' : ''}`} onClick={() => setActiveTab('ex')}>Exercise</button>
-                    </div>
+                    const exsPerPage = parseInt(document.getElementById('print-ex-layout').value) || 6;
                     
-                    <div className="flex items-center gap-1.5 ml-auto">
-                        {authRole === 'doctor' && (
-                            <>
-                                <button onClick={openWhatsApp} className="flex items-center justify-center w-7 h-7 bg-[#25D366] text-white rounded border border-[#20b957] hover:bg-[#20b957] shadow-sm transition-colors" title="WhatsApp">
-                                    <i className="ph-bold ph-whatsapp-logo"></i>
-                                </button>
-                                <button onClick={copyPatientLink} className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm relative text-[10px] font-bold">
-                                    <i className="ph-bold ph-link"></i> Share
-                                    {showLinkCopied && <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy text-white px-1.5 py-0.5 rounded text-[9px] whitespace-nowrap">Copied!</span>}
-                                </button>
-                            </>
-                        )}
-                        <div className="px-2 py-1 rounded font-bold text-[10px] bg-ice text-navy border border-blue-200">#{formData.ipId}</div>
-                    </div>
-                </div>
+                    const chunks = [];
+                    for(let i = 0; i < pExs.length; i += exsPerPage) {
+                        chunks.push(pExs.slice(i, i + exsPerPage));
+                    }
 
-                {/* ======================= MAIN RX TAB ======================= */}
-                {activeTab === 'rx' && (
-                    <>
-                        {/* Profile */}
-                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-azure"></div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <input type="text" name="name" disabled={readOnly} value={formData.name || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-bold text-navy' : 'border-slate-200 focus:border-azure'}`} placeholder="Name" />
-                            <input type="number" name="age" disabled={readOnly} value={formData.age || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-bold text-navy' : 'border-slate-200 focus:border-azure'}`} placeholder="Age" />
-                            <select name="gender" disabled={readOnly} value={formData.gender || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-bold text-navy appearance-none' : 'border-slate-200 focus:border-azure'}`}><option value="">Gender</option><option value="Male">M</option><option value="Female">F</option></select>
-                            
-                            {/* UPID Lock implementation via ID existence */}
-                            <input type="text" name="ipId" disabled={readOnly || !!formData.id} value={formData.ipId || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${(readOnly || !!formData.id) ? 'bg-slate-100 text-slate-500 font-bold border-transparent cursor-not-allowed' : 'border-slate-200 focus:border-azure'}`} placeholder="UPID" />
-                          </div>
-                          <div className="mt-2"><input type="tel" name="contact" disabled={readOnly} value={formData.contact || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2 text-sm bg-slate-50 border rounded-md outline-none ${readOnly ? 'border-transparent font-bold text-navy' : 'border-slate-200 focus:border-azure'}`} placeholder="Mobile Number" /></div>
-                          
-                          {(formData.chiefComplaints || formData.history || !readOnly) && (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase">C/C</div>
-                                        {!readOnly && <button onClick={() => toggleToolbar('cc')} className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 transition"><i className="ph-bold ph-text-t"></i> Format</button>}
+                    let gridClass = exsPerPage >= 12 ? 'grid-cols-3' : 'grid-cols-2';
+                    let imgHeight = 'h-32';
+                    if (exsPerPage <= 2) imgHeight = 'h-64';
+                    else if (exsPerPage <= 4) imgHeight = 'h-40';
+                    else if (exsPerPage <= 6) imgHeight = 'h-32';
+                    else if (exsPerPage <= 8) imgHeight = 'h-24';
+                    else imgHeight = 'h-20'; 
+
+                    chunks.forEach((chunk, cIdx) => {
+                        html += `<tr class="print-break-after-always"><td></td></tr>`;
+                        html += `<tr class="main-print-row-allow-break"><td class="pt-6 px-0 pb-4"><div class="text-[#1e40af] mb-4 border-b border-[#1e40af] inline-block pr-6"><span class="font-bold text-[18px]">Prescribed Exercises ${cIdx > 0 ? '(Continued)' : ''}</span></div>`;
+                        html += `<div class="flex-1 w-full"><div class="grid ${gridClass} gap-x-6 gap-y-6 w-full">`;
+                        
+                        chunk.forEach(ex => {
+                            const params = activePatient.exerciseParams?.[ex.id] || {};
+                            html += `
+                                <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-3 rounded-lg">
+                                    <div class="${imgHeight} w-full flex items-center justify-center mb-3 bg-slate-50 rounded">
+                                        <img src="${ex.imageUrl||''}" alt="${ex.name}" class="max-w-full max-h-full object-contain mix-blend-multiply" />
                                     </div>
-                                    {readOnly ? ( <div className="text-sm text-slate-800 rich-text-content" dangerouslySetInnerHTML={{__html: formData.chiefComplaints}} /> ) : (
-                                        <QuillEditor showToolbar={toolbars.cc} value={formData.chiefComplaints || ''} onChange={(val) => handleInputChange({name: 'chiefComplaints', value: val})} placeholder="Chief Complaints" />
-                                    )}
-                                </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase">History</div>
-                                        {!readOnly && <button onClick={() => toggleToolbar('mh')} className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded hover:bg-blue-100 transition"><i className="ph-bold ph-text-t"></i> Format</button>}
-                                    </div>
-                                    {readOnly ? ( <div className="text-sm text-slate-800 rich-text-content" dangerouslySetInnerHTML={{__html: formData.history}} /> ) : (
-                                        <QuillEditor showToolbar={toolbars.mh} value={formData.history || ''} onChange={(val) => handleInputChange({name: 'history', value: val})} placeholder="Medical History" />
-                                    )}
-                                </div>
-                              </div>
-                          )}
-                        </section>
-
-                        {/* Assessment */}
-                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-navy"></div>
-                          <div className="flex items-center justify-between mb-2">
-                              <h2 className="font-bold text-navy text-sm uppercase tracking-wider text-[11px]"><i className="ph-fill ph-clipboard-text text-azure"></i> PHYSICAL ASSESSMENT</h2>
-                              <div className="flex items-center gap-2">
-                                {!readOnly && <button onClick={() => toggleToolbar('pa')} className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition"><i className="ph-bold ph-text-t"></i> Format</button>}
-                                {!readOnly && <button onClick={() => handleAddCustomTable('assessment')} className="text-[10px] font-bold bg-ice text-navy px-2 py-1 rounded hover:bg-blue-200">+ Table</button>}
-                              </div>
-                          </div>
-                          {readOnly ? ( <div className="text-sm text-slate-800 rich-text-content" dangerouslySetInnerHTML={{__html: formData.assessmentNote}} /> ) : (
-                              <QuillEditor showToolbar={toolbars.pa} value={formData.assessmentNote || ''} onChange={(val) => handleInputChange({name: 'assessmentNote', value: val})} placeholder="Assessment notes..." />
-                          )}
-                          {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
-                              <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'assessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}</div>
-                          )}
-                          <div className="mt-3">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Diagnosis</label>
-                            <input type="text" name="diagnosis" disabled={readOnly} value={formData.diagnosis || ''} onChange={(e) => handleInputChange(e.target)} className={`w-full p-2.5 mt-1 text-sm rounded-md outline-none font-bold ${readOnly ? 'bg-transparent text-azure px-0' : 'bg-ice/50 border border-blue-200 text-navy'}`} placeholder={readOnly ? '' : "Diagnosis..."} />
-                          </div>
-                        </section>
-
-                        {/* Treatment */}
-                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                          <div className="flex items-center justify-between mb-2">
-                              <h2 className="font-bold text-emerald-700 text-sm uppercase tracking-wider text-[11px]"><i className="ph-fill ph-bandaids text-emerald-500"></i> TREATMENT PLAN & ADVICE</h2>
-                              <div className="flex items-center gap-2">
-                                {!readOnly && <button onClick={() => toggleToolbar('tp')} className="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 transition"><i className="ph-bold ph-text-t"></i> Format</button>}
-                                {!readOnly && <button onClick={() => handleAddCustomTable('treatment')} className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-100">+ Table</button>}
-                              </div>
-                          </div>
-                          {readOnly ? ( <div className="text-sm text-slate-800 rich-text-content" dangerouslySetInnerHTML={{__html: formData.treatmentNote}} /> ) : (
-                              <QuillEditor showToolbar={toolbars.tp} value={formData.treatmentNote || ''} onChange={(val) => handleInputChange({name: 'treatmentNote', value: val})} placeholder="Treatment plan..." />
-                          )}
-                          {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
-                              <div className="flex flex-wrap gap-3 mt-2">{formData.customTables.filter(t => t.section === 'treatment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}</div>
-                          )}
-                        </section>
-
-                        {/* Attachments */}
-                        <section className="bg-surface p-3 rounded-xl shadow-soft border border-slate-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                          <div className="flex items-center justify-between mb-2">
-                              <h2 className="font-bold text-purple-700 text-sm"><i className="ph-fill ph-folder-open"></i> Reports</h2>
-                              {!readOnly && (
-                                  <div><input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*,application/pdf" /><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-1 rounded hover:bg-purple-100">{isUploading ? 'Uploading...' : '+ File'}</button></div>
-                              )}
-                          </div>
-                          {formData.reports && formData.reports.length > 0 ? (
-                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                  {formData.reports.map(report => (
-                                      <div key={report.id} className="relative group border border-slate-200 rounded bg-slate-50 flex flex-col">
-                                          <div className="h-16 flex items-center justify-center overflow-hidden">
-                                              {report.type.startsWith('image/') ? <img src={report.url} className="w-full h-full object-cover" /> : <i className={`ph-fill text-2xl ${report.type.includes('pdf') ? 'ph-file-pdf text-red-400' : 'ph-file text-slate-400'}`}></i>}
-                                          </div>
-                                          <a href={report.url} target="_blank" className="p-1 truncate text-[10px] font-bold text-navy text-center bg-white border-t border-slate-100">{report.name}</a>
-                                          {!readOnly && <button onClick={() => handleRemoveReport(report.id)} className="absolute top-1 right-1 bg-white/90 text-red-500 p-0.5 rounded opacity-0 group-hover:opacity-100"><i className="ph-bold ph-x text-[10px]"></i></button>}
-                                      </div>
-                                  ))}
-                              </div>
-                          ) : ( <p className="text-xs text-slate-400">No reports attached.</p> )}
-                        </section>
-
-                        {/* Tracking */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between px-1">
-                                <h2 className="font-bold text-sm text-navy"><i className="ph-fill ph-chart-line-up"></i> Tracking</h2>
-                                {!readOnly && <button onClick={() => handleAddCustomTable('reassessment')} className="bg-white text-navy border border-slate-200 px-2 py-1 rounded text-[10px] font-bold shadow-sm">+ Table</button>}
-                            </div>
-
-                            {formData.customTables.filter(t => t.section === 'reassessment').length > 0 && (
-                                <div className="flex flex-wrap gap-3 p-3 bg-surface border border-slate-200 rounded-xl shadow-soft">
-                                    {formData.customTables.filter(t => t.section === 'reassessment').map(table => (<CustomTableEditor key={table.id} table={table} updateTable={handleUpdateCustomTable} removeTable={() => handleRemoveCustomTable(table.id)} readOnly={readOnly} />))}
-                                </div>
-                            )}
-
-                            {formData.reassessmentTables.map((rtable) => (
-                                <section key={rtable.id} className="bg-surface rounded-xl shadow-soft border border-slate-200 overflow-hidden">
-                                  <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex justify-between gap-2 items-center">
-                                    <div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateReassessmentTableTitle(rtable.id, e.currentTarget.innerText)} className={`font-bold text-xs text-navy outline-none ${readOnly ? '' : 'border-b border-dashed border-blue-200'}`}>{rtable.title}</div>
-                                    {!readOnly && (
-                                        <div className="flex gap-1">
-                                            {formData.reassessmentTables.length > 1 && <button onClick={() => removeReassessmentTable(rtable.id)} className="text-red-500 px-1.5 py-0.5 rounded text-[10px] font-bold"><i className="ph-bold ph-trash"></i></button>}
-                                            <button onClick={() => { setActiveReassessmentTableId(rtable.id); setIsMetricModalOpen(true); }} className="bg-navy text-white px-2 py-1 rounded text-[10px] font-bold">+ Col</button>
+                                    <div class="w-full text-left">
+                                        <h4 class="font-bold text-slate-800 text-[13px] mb-1.5 text-left leading-tight">${ex.name}</h4>
+                                        <div class="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1.5 flex-wrap bg-blue-50/50 p-1.5 rounded">
+                                            ${params.reps ? `<span>Reps: <span class="text-black">${params.reps}</span></span>` : ''}
+                                            ${params.sets ? `<span>Sets: <span class="text-black">${params.sets}</span></span>` : ''}
+                                            ${params.freq ? `<span>Freq: <span class="text-black">${params.freq}</span></span>` : ''}
                                         </div>
-                                    )}
-                                  </div>
-
-                                  {rtable.trackedMetrics.length > 0 ? (
-                                      <div className="overflow-x-auto p-2 bg-white h-scroll">
-                                        <table className="w-full table-auto border-collapse text-xs border border-slate-200">
-                                          <thead>
-                                            <tr>
-                                              <th className="p-1.5 text-left text-[10px] font-bold text-navy border border-slate-200 w-20 bg-slate-50">Date</th>
-                                              {rtable.trackedMetrics.map(metric => (
-                                                  <th key={metric.id} className="text-left font-bold text-navy border border-slate-200 p-0 bg-slate-50 group min-w-[70px]">
-                                                    <div className="flex justify-between p-1">
-                                                      <div className="flex flex-col leading-tight"><span className="text-[8px] text-slate-400 uppercase">{metric.type}</span><span className="text-[10px]">{metric.title}</span></div>
-                                                      {!readOnly && <button onClick={() => removeMetricColumn(rtable.id, metric.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 p-0"><i className="ph-bold ph-x text-[10px]"></i></button>}
-                                                    </div>
-                                                    {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-0.5 text-center">L</div></div>}
-                                                    {metric.type === 'ROM with VAS' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">VAS</div><div className="flex-1 py-0.5 text-center">{metric.romMode==='Passive'?'PROM':'AROM'}</div></div>}
-                                                    {metric.type === 'Custom 2-Column' && <div className="flex w-full border-t border-slate-200 text-[9px] bg-white"><div className="flex-1 py-0.5 text-center border-r border-slate-200">{metric.col1}</div><div className="flex-1 py-0.5 text-center">{metric.col2}</div></div>}
-                                                  </th>
-                                              ))}
-                                              {!readOnly && <th className="p-1 border border-slate-200 w-6 bg-slate-50"></th>}
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {rtable.records.map(record => (
-                                              <tr key={record.id} className="border-b border-slate-200">
-                                                <td className="p-0 border border-slate-200 bg-white"><input type="date" disabled={readOnly} value={record.date} onChange={(e) => updateRecordDate(rtable.id, record.id, e.target.value)} className="w-full h-full min-h-[28px] px-1 text-[10px] font-bold outline-none bg-transparent" /></td>
-                                                {rtable.trackedMetrics.map(metric => {
-                                                  const v = record.values[metric.id];
-                                                  if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'r', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.r||''}</div></div><div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'l', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.l||''}</div></div></div></td>;
-                                                  if (metric.type === 'ROM with VAS') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'vas', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.vas||''}</div></div><div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'rom', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.rom||''}</div></div></div></td>;
-                                                  if (metric.type === 'Custom 2-Column') return <td key={metric.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[28px]"><div className="flex-1 border-r border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c1', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c1||''}</div></div><div className="flex-1"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateMultiFieldCellValue(rtable.id, record.id, metric.id, 'c2', e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px]">{v?.c2||''}</div></div></div></td>;
-                                                  return <td key={metric.id} className="p-0 border border-slate-200"><div contentEditable={!readOnly} suppressContentEditableWarning onBlur={e => updateSimpleCellValue(rtable.id, record.id, metric.id, e.currentTarget.innerText)} className="editable-cell text-center p-1 text-[11px] min-h-[28px]">{v||''}</div></td>;
-                                                })}
-                                                {!readOnly && <td className="p-0 text-center border border-slate-200"><button onClick={() => removeDateRow(rtable.id, record.id)} className="text-red-400 p-1"><i className="ph-bold ph-trash text-[10px]"></i></button></td>}
-                                              </tr>
-                                            ))}
-                                            {!readOnly && <tr><td colSpan={rtable.trackedMetrics.length + 2} className="p-0"><button onClick={() => addDateRow(rtable.id)} className="w-full py-1.5 text-[10px] text-azure font-bold bg-slate-50">+ Add Session Record</button></td></tr>}
-                                          </tbody>
-                                        </table>
-                                      </div>
-                                  ) : ( <div className="p-4 text-xs text-slate-400 text-center">No metrics tracked yet.</div> )}
-                                </section>
-                            ))}
-                            {!readOnly && <button onClick={addReassessmentTable} className="w-full py-2.5 mt-1 text-xs text-navy font-bold border border-dashed border-slate-300 rounded-xl hover:bg-slate-50">+ New Group</button>}
-                        </div>
-                    </>
-                )}
-
-                {/* ======================= EXERCISE TAB ======================= */}
-                {activeTab === 'ex' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 animate-in fade-in">
-                        {/* Left Panel: Selection */}
-                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 h-fit">
-                            <h3 className="text-base md:text-lg font-bold text-slate-800 mb-4">1. Select Exercises</h3>
-                            
-                            <div className="relative mb-2">
-                                <i className="ph-bold ph-magnifying-glass absolute left-2.5 top-2 text-slate-400"></i>
-                                <input type="text" placeholder="Search exercises..." value={exSearchQuery} onChange={(e) => setExSearchQuery(e.target.value)} className="w-full text-sm border border-slate-200 rounded-md py-1.5 pl-8 pr-2 focus:outline-none focus:border-azure" />
-                            </div>
-                            
-                            <div className="h-[400px] overflow-y-auto border border-slate-100 rounded-md p-1.5 bg-slate-50 space-y-1 h-scroll">
-                                {exercises.filter(e => (e.name || "").toLowerCase().includes(exSearchQuery.toLowerCase()) || (e.tags && e.tags.some(t => t.includes(exSearchQuery.toLowerCase())))).map(ex => {
-                                    const isSelected = formData.prescribedExercises.includes(ex.id);
-                                    return (
-                                        <label key={ex.id} className={`flex items-center p-2 rounded cursor-pointer transition-colors border ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white border-transparent hover:bg-slate-100'}`}>
-                                            <input type="checkbox" disabled={readOnly} className="w-4 h-4 rounded text-azure accent-azure" checked={isSelected} onChange={() => toggleExercise(ex.id)} />
-                                            <div className="ml-3 flex-1 min-w-0 text-left">
-                                                <p className="text-sm font-bold text-slate-800 truncate leading-tight">{ex.name}</p>
-                                                <p className="text-[10px] text-slate-500 truncate mt-0.5">{ex.tags ? ex.tags.join(', ') : ''}</p>
-                                            </div>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Right Panel: Config */}
-                        <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-soft border border-slate-200 flex flex-col">
-                            <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-                                <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                                    2. Configure Prescribed
-                                    <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{formData.prescribedExercises.length}</span>
-                                </h3>
-                                {/* UI Selection for Print Pagination */}
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Print Layout:</span>
-                                    <select value={exsPerPage} onChange={e => setExsPerPage(Number(e.target.value))} className="text-xs font-bold text-navy bg-slate-50 border border-slate-200 rounded p-1 outline-none">
-                                        <option value={2}>2 / Pg</option>
-                                        <option value={4}>4 / Pg</option>
-                                        <option value={6}>6 / Pg</option>
-                                        <option value={8}>8 / Pg</option>
-                                        <option value={10}>10 / Pg</option>
-                                        <option value={12}>12 / Pg</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-1 h-scroll" style={{maxHeight: '450px'}}>
-                                {formData.prescribedExercises.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 text-sm font-medium">
-                                        <i className="ph-fill ph-barbell text-4xl mb-2 text-slate-200"></i>
-                                        <p>No exercises selected.</p>
+                                        ${params.note ? `<p class="text-[11px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
                                     </div>
-                                ) : (
-                                    formData.prescribedExercises.map(id => {
-                                        const ex = exercises.find(e => e.id === id);
-                                        if (!ex) return null;
-                                        return (
-                                            <div key={id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    
-                                                    <a href={`/exercise/${slugify(ex.name)}`} target="_blank" className="font-bold text-sm text-azure hover:text-navy hover:underline flex items-center gap-1" title="Preview Exercise">
-                                                        {ex.name} <i className="ph-bold ph-arrow-square-out text-[10px]"></i>
-                                                    </a>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `</div></div></td></tr>`;
+                    });
+                }
+            }
 
-                                                    {!readOnly && <button onClick={() => toggleExercise(ex.id)} className="text-xs text-red-500 hover:text-red-700 font-bold">Remove</button>}
-                                                </div>
-                                                <div className="grid grid-cols-3 gap-2 mb-2">
-                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Reps</label><input type="text" disabled={readOnly} value={formData.exerciseParams[ex.id]?.reps || ''} onChange={(e) => handleExParamChange(ex.id, 'reps', e.target.value)} placeholder="10" className={`w-full text-xs p-1.5 border rounded outline-none ${readOnly?'bg-transparent border-transparent':'bg-white border-slate-300 focus:border-azure'}`} /></div>
-                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Sets</label><input type="text" disabled={readOnly} value={formData.exerciseParams[ex.id]?.sets || ''} onChange={(e) => handleExParamChange(ex.id, 'sets', e.target.value)} placeholder="3" className={`w-full text-xs p-1.5 border rounded outline-none ${readOnly?'bg-transparent border-transparent':'bg-white border-slate-300 focus:border-azure'}`} /></div>
-                                                    <div><label className="block text-[9px] font-bold text-navy uppercase mb-0.5">Freq</label><input type="text" disabled={readOnly} value={formData.exerciseParams[ex.id]?.freq || ''} onChange={(e) => handleExParamChange(ex.id, 'freq', e.target.value)} placeholder="2x/Day" className={`w-full text-xs p-1.5 border rounded outline-none ${readOnly?'bg-transparent border-transparent':'bg-white border-slate-300 focus:border-azure'}`} /></div>
-                                                </div>
-                                                <input type="text" disabled={readOnly} value={formData.exerciseParams[ex.id]?.note || ''} onChange={(e) => handleExParamChange(ex.id, 'note', e.target.value)} placeholder={readOnly?'':"Custom Instructions (e.g. Hold 5s)"} className={`w-full text-xs p-1.5 border rounded outline-none ${readOnly?'bg-transparent border-transparent text-slate-600 font-medium italic':'bg-white border-slate-300 focus:border-azure'}`}/>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-              </div>
-
-              {/* ========================================================================= */}
-              {/* COMBINED MASTER PRINT VIEW (Hidden on screen, Block on Print)              */}
-              {/* ========================================================================= */}
-              <div className="hidden print:block bg-white text-[#1e40af] text-[16px] font-sans h-full w-full relative">
-                  
-                  {/* Print Header */}
-                  <div className="flex justify-between items-start pb-2 text-left">
-                      <div>
-                          <h1 className="text-[26px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1.1" }}>
-                              {formData.doctorName || 'Dr. Arpan Das (PT)'}
-                          </h1>
-                          <p className="text-[13px] mt-1 font-bold text-[#1e40af]">
-                              {formData.doctorQual || 'BPT (KPC Medical College and Hospital)'}
-                          </p>
-                          <p className="text-[13px] font-bold text-[#1e40af]">
-                              {formData.doctorDesignation || 'Consultant Physiotherapist'}
-                          </p>
-                          {(formData.doctorReg || !formData.doctorName) && (
-                              <p className="text-[10px] font-bold text-slate-600 mt-0.5">
-                                  {formData.doctorReg || 'Reg. No 202105633 (WBUHS)'}
-                              </p>
-                          )}
-                      </div>
-                      
-                      {formData.id && (
-                      <div className="flex flex-col items-center justify-center pt-2 px-4">
-                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://therapeutichub.in/prescription#/' + formData.id)}`} alt="QR Code" className="w-[60px] h-[60px]" />
-                          <span className="text-[8px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
-                      </div>
-                      )}
-
-                      <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                          <div className="flex items-center gap-1.5 font-black text-xl mb-4">
-                              <i className="ph-fill ph-phone-call text-[20px]"></i> +91 {formData.doctorPhone || '9641568109'}
-                          </div>
-                          <div className="text-[13px] flex items-center gap-2 font-semibold">
-                              <span>Date:</span> <span className="border-b border-[#1e40af] w-24 text-center text-slate-800 font-bold pb-0.5">{formattedPrintDate}</span>
-                          </div>
-                      </div>
-                  </div>
-
-                  <div className="border-b-2 border-[#1e40af] mb-1.5"></div>
-
-                  <table className="main-print-table">
-                      <thead className="print-table-header">
-                          <tr>
-                              <td className="pb-3 pt-2">
-                                  <div className="flex justify-between items-end pb-2 text-[12px] font-bold text-[#1e40af]">
-                                      <div className="flex-1 flex items-end">
-                                          <span className="whitespace-nowrap">Patient's name:</span> 
-                                          <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">{formData.name}</span>
-                                      </div>
-                                      <div className="w-24 flex items-end">
-                                          <span className="whitespace-nowrap">Age:</span> 
-                                          <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">{formData.age}</span>
-                                      </div>
-                                      <div className="w-32 flex items-end">
-                                          <span className="whitespace-nowrap">Gender:</span> 
-                                          <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">{formData.gender}</span>
-                                      </div>
-                                      <div className="w-32 flex items-end">
-                                          <span className="whitespace-nowrap">UPID:</span> 
-                                          <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5 border-b border-dashed border-[#1e40af]/30">{formData.ipId}</span>
-                                      </div>
-                                  </div>
-                                  <div className="border-b border-[#1e40af]"></div>
-                              </td>
-                          </tr>
-                      </thead>
-
-                      <tbody>
-                          {hasHistoryOrCC && (
-                              <tr className="main-print-row">
-                                  <td className="pt-2 px-2 pb-4">
-                                      {formData.chiefComplaints && (
-                                          <div className="text-[#1e40af] mb-3">
-                                              <span className="font-bold text-[14px]">Chief Complaint :-</span>
-                                              <div className="mt-1 ml-4 text-slate-900 text-[12px] rich-text-content" dangerouslySetInnerHTML={{__html: formData.chiefComplaints}} />
-                                          </div>
-                                      )}
-                                      {formData.history && (
-                                          <div className="text-[#1e40af]">
-                                              <span className="font-bold text-[14px]">History :-</span>
-                                              <div className="mt-1 ml-4 text-slate-900 text-[12px] rich-text-content" dangerouslySetInnerHTML={{__html: formData.history}} />
-                                          </div>
-                                      )}
-                                  </td>
-                              </tr>
-                          )}
-
-                          {hasAssessment && (
-                              <tr className="main-print-row-allow-break">
-                                  <td className="px-2 pb-4">
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[14px] block mb-1">Assessment :-</span>
-                                          {formData.assessmentNote && <div className="ml-4 text-slate-900 text-[12px] rich-text-content" dangerouslySetInnerHTML={{__html: formData.assessmentNote}} />}
-                                          {formData.customTables.filter(t => t.section === 'assessment').length > 0 && (
-                                              <div className="flex flex-wrap items-start gap-4 mt-2 pl-4 pr-2">
-                                                  {formData.customTables.filter(t => t.section === 'assessment').map(table => (
-                                                      <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                                  ))}
-                                              </div>
-                                          )}
-                                      </div>
-                                  </td>
-                              </tr>
-                          )}
-
-                          {formData.diagnosis && (
-                              <tr className="main-print-row">
-                                  <td className="px-2 pb-4">
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[14px]">Diagnosis:</span>
-                                          <span className="ml-2 text-slate-900 font-bold text-[14px]">{formData.diagnosis}</span>
-                                      </div>
-                                  </td>
-                              </tr>
-                          )}
-
-                          {hasTreatment && (
-                              <tr className="main-print-row-allow-break">
-                                  <td className="px-2 pb-4">
-                                      <div className="text-[#1e40af]">
-                                          <span className="font-bold text-[14px] block mb-1">Treatment Plan / Advice :-</span>
-                                          {formData.treatmentNote && <div className="ml-4 text-slate-900 text-[12px] rich-text-content leading-relaxed" dangerouslySetInnerHTML={{__html: formData.treatmentNote}} />}
-                                          {formData.customTables.filter(t => t.section === 'treatment').length > 0 && (
-                                              <div className="flex flex-wrap items-start gap-4 mt-2 pl-4 pr-2">
-                                                  {formData.customTables.filter(t => t.section === 'treatment').map(table => (
-                                                      <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                                  ))}
-                                              </div>
-                                          )}
-                                      </div>
-                                  </td>
-                              </tr>
-                          )}
-
-                          {hasReassessment && (
-                              <tr className="main-print-row">
-                                  <td className="px-2 pb-4 text-[#1e40af]">
-                                      <span className="font-bold text-[14px] block mb-2">Reassessment Data :-</span>
-                                      <div className="flex flex-wrap items-start gap-4 pl-4 pr-2">
-                                          {formData.customTables.filter(t => t.section === 'reassessment').map(table => (
-                                              <CustomTableEditor key={table.id} table={table} updateTable={()=>{}} removeTable={()=>{}} readOnly={true} />
-                                          ))}
-                                      </div>
-                                  </td>
-                              </tr>
-                          )}
-
-                          {/* Metric Tables */}
-                          {formData.reassessmentTables.map((rtable) => {
-                              if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0) return null;
-                              return (
-                                  <tr key={rtable.id} className="main-print-row">
-                                      <td className="px-2 pb-4 text-[#1e40af]">
-                                          <span className="font-bold text-[14px] block mb-2">{rtable.title}</span>
-                                          <div className="pl-4 pr-2 w-full">
-                                              <table className="w-full table-auto border-collapse text-[11px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
-                                                  <thead>
-                                                      <tr>
-                                                          <th className="p-1.5 text-left border border-[#1e40af] w-20 text-[#1e40af] font-bold">Date</th>
-                                                          {rtable.trackedMetrics.map(metric => (
-                                                              <th key={metric.id} className="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
-                                                                  <div className="flex flex-col h-full justify-between">
-                                                                      <span className="leading-tight px-1 mb-1 pt-1 text-[10px]">{metric.title}</span>
-                                                                      {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[9px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-0.5 font-bold">L</div></div> )}
-                                                                      {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[9px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-0.5 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
-                                                                      {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[9px] text-[#1e40af] mt-auto"><div className="flex-1 py-0.5 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-0.5 font-bold">{metric.col2}</div></div> )}
-                                                                  </div>
-                                                              </th>
-                                                          ))}
-                                                      </tr>
-                                                  </thead>
-                                                  <tbody>
-                                                      {rtable.records.map(record => (
-                                                          <tr key={record.id} className="print-break-inside-avoid">
-                                                              <td className="p-1.5 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[11px]">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
-                                                              {rtable.trackedMetrics.map(metric => {
-                                                                  const cellValue = record.values[metric.id];
-                                                                  if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return ( <td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.r || '-'}</div><div className="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.l || '-'}</div></div></td> );
-                                                                  if (metric.type === 'ROM with VAS') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.vas || '-'}</div><div className="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.rom || '-'}</div></div></td>);
-                                                                  if (metric.type === 'Custom 2-Column') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div><div className="flex-1 flex items-center justify-center p-1 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div></div></td>);
-                                                                  return ( <td key={metric.id} className="p-1.5 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> );
-                                                              })}
-                                                          </tr>
-                                                      ))}
-                                                  </tbody>
-                                              </table>
-                                          </div>
-                                      </td>
-                                  </tr>
-                              );
-                          })}
-
-                          {/* Split Exercises based on Print Layout Configuration */}
-                          {prescribedExData.length > 0 && (
-                              (() => {
-                                  const exChunks = [];
-                                  for (let i = 0; i < prescribedExData.length; i += exsPerPage) {
-                                      exChunks.push(prescribedExData.slice(i, i + exsPerPage));
-                                  }
-                                  
-                                  let imgHeight = 'h-32';
-                                  if (exsPerPage <= 2) imgHeight = 'h-64';
-                                  else if (exsPerPage <= 4) imgHeight = 'h-40';
-                                  else if (exsPerPage <= 6) imgHeight = 'h-32';
-                                  else if (exsPerPage <= 8) imgHeight = 'h-24';
-                                  else imgHeight = 'h-20'; 
-
-                                  return exChunks.map((chunk, cIdx) => (
-                                      <React.Fragment key={cIdx}>
-                                          <tr className="print-break-after-always"><td></td></tr>
-                                          <tr className="main-print-row-allow-break">
-                                              <td className="pt-6 px-0 pb-4">
-                                                  <div className="text-[#1e40af] mb-4 border-b border-[#1e40af] inline-block pr-6">
-                                                      <span className="font-bold text-[18px]">Prescribed Exercises {cIdx > 0 ? '(Continued)' : ''}</span>
-                                                  </div>
-                                                  <div className="flex-1 w-full">
-                                                      <div className={`grid ${exsPerPage >= 12 ? 'grid-cols-3' : 'grid-cols-2'} gap-x-6 gap-y-6 w-full`}>
-                                                          {chunk.map((ex) => {
-                                                              const params = formData.exerciseParams?.[ex.id] || {};
-                                                              return (
-                                                                  <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-3 rounded-lg">
-                                                                      <div className={`${imgHeight} w-full flex items-center justify-center mb-3 bg-slate-50 rounded`}>
-                                                                          <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                                      </div>
-                                                                      <div className="w-full text-left">
-                                                                          <h4 className="font-bold text-slate-800 text-[13px] mb-1.5 text-left leading-tight">{ex.name}</h4>
-                                                                          <div className="flex justify-start items-center space-x-2 text-[10px] font-bold text-[#1e3a8a] mb-1.5 flex-wrap bg-blue-50/50 p-1.5 rounded">
-                                                                              {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                                              {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                                              {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                                          </div>
-                                                                          {params.note && (
-                                                                              <p className="text-[11px] text-slate-600 leading-tight font-medium text-left mt-1 italic">{params.note}</p>
-                                                                          )}
-                                                                      </div>
-                                                                  </div>
-                                                              );
-                                                          })}
-                                                      </div>
-                                                  </div>
-                                              </td>
-                                          </tr>
-                                      </React.Fragment>
-                                  ));
-                              })()
-                          )}
-                      </tbody>
-                  </table>
-              </div>
-
-              {isMetricModalOpen && <AddMetricModal onClose={() => { setIsMetricModalOpen(false); setActiveReassessmentTableId(null); }} onAdd={(metricObj) => addMetricColumn(activeReassessmentTableId, metricObj)} />}
-            </div>
-          );
+            html += `</tbody></table>`;
+            pc.innerHTML = html;
+            
+            setTimeout(() => { window.print(); }, 200);
         }
-
-        function AddMetricModal({ onClose, onAdd }) {
-          const [type, setType] = useState('ROM'); 
-          const [romMode, setRomMode] = useState('Active');
-          const jointsList = Object.keys(JOINTS_DATA); 
-          const [selectedJointGroup, setSelectedJointGroup] = useState(jointsList[2]); 
-          const [selectedMovementIdx, setSelectedMovementIdx] = useState(0); 
-          const [side, setSide] = useState('R'); 
-          const [customName, setCustomName] = useState('');
-          const [col1Name, setCol1Name] = useState('Col 1');
-          const [col2Name, setCol2Name] = useState('Col 2');
-          
-          const handleAdd = () => {
-            let title = ''; const movement = JOINTS_DATA[selectedJointGroup][selectedMovementIdx];
-            let isBilateral = false; let normalVal = ''; let c1 = '', c2 = '';
-            if (type === 'ROM') { title = `${romMode} ${selectedJointGroup} ${movement.name}`; normalVal = movement.normal; isBilateral = movement.type === 'bilateral'; } 
-            else if (type === 'ROM with VAS') { title = `${selectedJointGroup} ${movement.name}`; normalVal = movement.normal; if (movement.type === 'bilateral') title += ` (${side})`; isBilateral = false; }
-            else if (type === 'MMT') { title = `${selectedJointGroup} ${movement.name}`; isBilateral = movement.type === 'bilateral'; normalVal = '5/5'; } 
-            else if (type === 'VAS') { title = customName || 'VAS'; isBilateral = false; normalVal = '0-10'; }
-            else if (type === 'Custom 2-Column') { title = customName || 'Custom Tracker'; c1 = col1Name || 'Col 1'; c2 = col2Name || 'Col 2'; isBilateral = false; }
-            else { title = customName || 'Custom Column'; isBilateral = false; normalVal = ''; }
-            onAdd({ id: generateId(), type, title, isBilateral, normal: normalVal, romMode, col1: c1, col2: c2 });
-          };
-          const currentMovements = JOINTS_DATA[selectedJointGroup]; 
-          const selectedMovement = currentMovements[selectedMovementIdx] || currentMovements[0]; 
-
-          return (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-3 print:hidden">
-              <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
-                <div className="flex justify-between items-center p-3 border-b border-slate-100 bg-slate-50"><h3 className="font-bold text-sm text-navy">New Column</h3><button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-200 rounded-full"><i className="ph-bold ph-x"></i></button></div>
-                <div className="p-4 space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type</label>
-                    <select value={type} onChange={(e) => setType(e.target.value)} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure"><option value="ROM">Range of Motion (ROM)</option><option value="MMT">Manual Muscle Test (MMT)</option><option value="ROM with VAS">ROM + VAS (Single Side)</option><option value="VAS">VAS (Pain Scale)</option><option value="Custom 2-Column">Custom 2-Column</option><option value="Other">Other</option></select>
-                  </div>
-                  {(type === 'ROM' || type === 'ROM with VAS' || type === 'MMT') && (
-                    <>
-                      {(type === 'ROM' || type === 'ROM with VAS') && (<div className="flex gap-4"><label className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><input type="radio" checked={romMode === 'Active'} onChange={() => setRomMode('Active')} className="accent-azure" /> Active</label><label className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><input type="radio" checked={romMode === 'Passive'} onChange={() => setRomMode('Passive')} className="accent-azure" /> Passive</label></div>)}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Joint</label><select value={selectedJointGroup} onChange={(e) => { setSelectedJointGroup(e.target.value); setSelectedMovementIdx(0); }} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure">{Object.keys(JOINTS_DATA).map(j => <option key={j} value={j}>{j}</option>)}</select></div>
-                        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Move</label><select value={selectedMovementIdx} onChange={(e) => setSelectedMovementIdx(Number(e.target.value))} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure">{currentMovements.map((m, i) => <option key={i} value={i}>{m.name}</option>)}</select></div>
-                      </div>
-                      {type === 'ROM with VAS' && selectedMovement.type === 'bilateral' && (<div className="flex gap-4"><label className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><input type="radio" checked={side === 'R'} onChange={() => setSide('R')} className="accent-azure" /> Right</label><label className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><input type="radio" checked={side === 'L'} onChange={() => setSide('L')} className="accent-azure" /> Left</label></div>)}
-                    </>
-                  )}
-                  {type === 'Custom 2-Column' && ( <div className="space-y-3"><input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="Main Name (e.g. Balance)" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" /><div className="grid grid-cols-2 gap-3"><input type="text" value={col1Name} onChange={(e) => setCol1Name(e.target.value)} placeholder="Left Col (e.g. Test)" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" /><input type="text" value={col2Name} onChange={(e) => setCol2Name(e.target.value)} placeholder="Right Col (e.g. Score)" className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" /></div></div> )}
-                  {(type === 'Other' || type === 'VAS') && ( <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder={type === 'VAS' ? "e.g. Resting VAS" : "Name"} className="w-full p-2 text-sm bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-azure" /> )}
-                </div>
-                <div className="p-3 border-t border-slate-100 bg-slate-50"><button onClick={handleAdd} className="w-full py-2 bg-azure text-white rounded-lg text-sm font-bold hover:bg-navy">Add Column</button></div>
-              </div>
-            </div>
-          );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
     </script>
 </body>
 </html>
