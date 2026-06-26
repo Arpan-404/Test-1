@@ -6,10 +6,6 @@
     <title>My Prescription - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -19,18 +15,11 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
-        window.addEventListener('error', function(event) {
-            const root = document.getElementById('root');
-            if(root && event.message) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center; margin-top: 50px;"><b>System Error:</b><br/>' + event.message + '</div>';
-        });
-    </script>
-
-    <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: { navy: '#1e3a8a', azure: '#1d4ed8', ice: '#dbeafe', appbg: '#f8fafc', surface: '#ffffff' },
-            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)', 'float': '0 10px 30px rgba(15, 23, 42, 0.08)' }
+            boxShadow: { 'soft': '0 4px 20px rgba(15, 23, 42, 0.05)' }
           }
         }
       }
@@ -59,20 +48,131 @@
         .rich-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
         .rich-text-content li { margin-bottom: 0.25rem; }
         .rich-text-content strong, .rich-text-content b { font-weight: 800; color: #1e3a8a; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
-            <div class="native-loader"></div>
-            <div style="font-weight: bold;">Loading Application...</div>
+
+    <header id="main-header" class="hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full">
+        <a href="/" class="flex items-center shrink-0">
+            <img id="clinic-logo" src="" alt="Logo" class="w-10 h-10 rounded-xl object-contain hidden" />
+            <div id="clinic-logo-fallback" class="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
+        </a>
+        <div class="flex items-center gap-3 ml-auto">
+            <button id="btn-logout" class="hidden text-slate-500 hover:text-red-500 transition font-bold text-sm" onclick="handleLogout()">Logout</button>
+        </div>
+        <div class="flex items-center shrink-0 ml-4">
+            <button onclick="toggleMenu()" class="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
+                <i class="ph-bold ph-list text-2xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <aside class="mobile-menu" id="mobileMenu">
+        <div class="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
+            <h2 class="text-lg font-black text-navy m-0">Menu</h2>
+            <button class="close-menu" onclick="toggleMenu()"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <ul>
+            <li><a href="/" class="main-nav-link"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Home</a></li>
+            <li><a href="/services" class="main-nav-link"><i class="ph-bold ph-first-aid" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Clinical Services</a></li>
+            <li><a href="/doctors" class="main-nav-link"><i class="ph-bold ph-stethoscope" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Clinical Team</a></li>
+            <li><a href="/products" class="main-nav-link"><i class="ph-bold ph-shopping-bag" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Wellness Products</a></li>
+            <li><a href="/articles" class="main-nav-link"><i class="ph-bold ph-article" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Health Articles</a></li>
+            <li><a href="/exercises" class="main-nav-link"><i class="ph-bold ph-person-simple-walk" style="margin-right: 12px; font-size: 1.3rem; color: #475569;"></i> Rehabilitation Exercises</a></li>
+            <li><a href="/prescription.html" class="main-nav-link" style="color: #1d4ed8; background-color: #eff6ff;"><i class="ph-bold ph-folder-open" style="margin-right: 12px; font-size: 1.3rem; color: #1d4ed8;"></i> Patient Records</a></li>
+        </ul>
+    </aside>
+
+    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans">
+        <div class="native-loader"></div>
+        <div class="text-lg font-black text-navy tracking-tight" id="loading-text">Connecting to Secure Server...</div>
+    </div>
+
+    <div id="view-login" class="hidden min-h-screen bg-appbg font-sans pt-32 flex flex-col items-center p-4">
+        <div class="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8">
+            <div class="text-center mb-6">
+                <i class="ph-fill ph-folder-user text-5xl text-azure mb-3"></i>
+                <h1 class="text-2xl font-black text-navy tracking-tight">Access Records</h1>
+                <p class="text-xs text-slate-500 mt-2 font-medium">Enter your details to securely view your prescriptions and exercise charts.</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div id="login-error" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 text-center"></div>
+                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Patient UPID</label>
+                    <input type="text" id="login-id" required placeholder="e.g. 4092" class="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
+                </div>
+                
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Registered Mobile Number</label>
+                    <input type="tel" id="login-phone" required placeholder="9876543210" class="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
+                </div>
+                
+                <button type="submit" id="btn-login-submit" class="w-full bg-azure text-white font-bold py-3.5 rounded-xl hover:bg-navy shadow-md transition-all mt-2">
+                    View Medical Records
+                </button>
+            </form>
         </div>
     </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <main id="view-dashboard" class="hidden max-w-5xl mx-auto px-4 pt-24 pb-12">
+        <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden mb-6">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 id="dash-name" class="text-2xl font-black text-navy"></h1>
+                    <p id="dash-sub" class="text-sm font-bold text-slate-500 mt-1"></p>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</div>
+                    <div id="dash-date" class="font-bold text-navy"></div>
+                </div>
+            </div>
+        </div>
 
-        // Firebase Configuration 1: Patient Records
+        <div id="dash-exercises" class="hidden bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6 mb-6">
+            <h3 class="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                <i class="ph-fill ph-barbell text-azure"></i> Prescribed Exercises
+            </h3>
+            <div id="dash-exercises-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+
+        <div id="dash-locked-area" class="hidden bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-8 text-center relative">
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
+            <i class="ph-fill ph-lock-key text-5xl text-slate-300 mb-3 relative z-10"></i>
+            <h3 class="text-xl font-black text-navy relative z-10">Clinical Notes Locked</h3>
+            <p class="text-sm text-slate-500 mt-2 max-w-md mx-auto relative z-10">For your privacy, please verify your registered mobile number to view your full medical history, diagnosis, and progression tracking.</p>
+            
+            <form onsubmit="handleUnlock(event)" class="mt-6 max-w-xs mx-auto relative z-10">
+                <div id="unlock-error" class="hidden p-2 mb-3 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100"></div>
+                <input type="tel" id="unlock-phone" required placeholder="Enter 10-digit mobile number" class="w-full p-3 text-center text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure mb-3" />
+                <button type="submit" class="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-azure shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-unlock"></i> Unlock Records
+                </button>
+            </form>
+        </div>
+
+        <div id="dash-unlocked-area" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
+                <div class="p-6 space-y-6" id="medical-data-container">
+                    </div>
+            </div>
+
+            <div id="reassessment-area" class="hidden bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
+                <h3 class="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Tracking & Reassessment</h3>
+                <div id="reassessment-container" class="space-y-6">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // DUAL DATABASE CONFIGURATION
+        // ==========================================
         const recordsConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -85,7 +185,6 @@
         const authRecords = appRecords.auth();
         const dbRecords = appRecords.firestore();
         
-        // Firebase Configuration 2: Clinic Site Data
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
@@ -95,453 +194,327 @@
         const appSite = firebase.initializeApp(siteConfig, "AppSite");
         const dbSite = appSite.database();
 
-        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+        // Global State
+        let siteData = { hero: {}, exercises: [] };
+        let patientData = null;
+        let isPhoneVerified = false;
 
-        // Read Only Table Component
-        function ReadOnlyCustomTable({ table }) {
+        // Helpers
+        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+        const renderRichText = (text) => {
+            if (!text) return '';
+            if (/<[a-z][\s\S]*>/i.test(text)) return text;
+            return text.replace(/\n/g, '<br/>');
+        };
+
+        function toggleMenu() {
+            document.getElementById('mobileMenu').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function showView(viewId) {
+            document.getElementById('view-loading').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            if(patientData) {
+                document.getElementById('btn-logout').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-logout').classList.add('hidden');
+            }
+        }
+
+        // Generate Custom Table HTML string
+        function createCustomTableHtml(table) {
             let rows = table.rows || [];
             if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch(e) { rows = []; } }
-
-            return (
-                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg overflow-x-auto">
-                    {table.title && (
-                        <div className="bg-ice/30 px-3 py-2 border-b border-slate-200 font-bold text-[14px] text-navy">
-                            {table.title}
-                        </div>
-                    )}
-                    <div className="p-1.5">
-                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto">
-                            <thead>
-                                <tr>
-                                    {table.headers.map((h, i) => (
-                                        <th key={i} className="border border-slate-200 p-2 bg-slate-50 font-bold text-navy text-[12px]">{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rows.map((row, rIdx) => (
-                                    <tr key={rIdx}>
-                                        {row.map((cell, cIdx) => (
-                                            <td key={cIdx} className="border border-slate-200 p-2 text-slate-700 text-[12px] align-top whitespace-pre-wrap">{cell}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            );
+            
+            let html = `<div class="w-fit max-w-full bg-white border border-slate-200 rounded-lg overflow-x-auto mb-4">`;
+            if (table.title) {
+                html += `<div class="bg-ice/30 px-3 py-2 border-b border-slate-200 font-bold text-[14px] text-navy">${table.title}</div>`;
+            }
+            html += `<div class="p-1.5"><table class="w-auto min-w-[150px] text-left border-collapse table-auto"><thead><tr>`;
+            (table.headers || []).forEach(h => {
+                html += `<th class="border border-slate-200 p-2 bg-slate-50 font-bold text-navy text-[12px]">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+            rows.forEach(row => {
+                html += `<tr>`;
+                row.forEach(cell => {
+                    html += `<td class="border border-slate-200 p-2 text-slate-700 text-[12px] align-top whitespace-pre-wrap">${cell}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
         }
 
-        function App() {
-            const [siteData, setSiteData] = useState({ hero: {}, exercises: [] });
-            const [patientData, setPatientData] = useState(null);
-            const [loginId, setLoginId] = useState("");
-            const [loginPhone, setLoginPhone] = useState("");
-            const [loginError, setLoginError] = useState("");
-            const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-            const [isMenuOpen, setIsMenuOpen] = useState(false);
-            const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-            const [verifyPhoneInput, setVerifyPhoneInput] = useState("");
-            const [verifyError, setVerifyError] = useState("");
+        // Core Dashboard Renderer
+        function buildDashboard() {
+            showView('view-dashboard');
+            
+            // Header Stats
+            document.getElementById('dash-name').innerText = patientData.name || 'Unknown Patient';
+            document.getElementById('dash-sub').innerText = `UPID: #${patientData.ipId || '--'} • ${patientData.age || '--'} Yrs • ${patientData.gender || '--'}`;
+            document.getElementById('dash-date').innerText = patientData.date ? new Date(patientData.date).toLocaleDateString('en-GB') : '--';
 
-            const renderRichText = (text) => {
-                if (!text) return { __html: '' };
-                if (/<[a-z][\s\S]*>/i.test(text)) return { __html: text };
-                return { __html: text.replace(/\n/g, '<br/>') };
-            };
+            // Exercises
+            const prescribedExData = (patientData.prescribedExercises || []).map(id => siteData.exercises.find(e => e.id === id)).filter(Boolean);
+            if (prescribedExData.length > 0) {
+                document.getElementById('dash-exercises').classList.remove('hidden');
+                let exHtml = '';
+                prescribedExData.forEach(ex => {
+                    const params = patientData.exerciseParams?.[ex.id] || {};
+                    exHtml += `
+                        <a href="/?view=exercise&id=${slugify(ex.name)}" target="_blank" class="border border-slate-200 rounded-xl overflow-hidden group hover:border-azure transition flex flex-col cursor-pointer bg-white">
+                            <div class="w-full h-56 bg-slate-50 flex items-center justify-center p-3 border-b border-slate-100 relative">
+                                <img src="${ex.imageUrl || ''}" class="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-300" />
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 backdrop-blur-sm">
+                                    <span class="bg-white text-navy font-bold text-sm px-4 py-2 rounded-full shadow-sm">View Full Instructions</span>
+                                </div>
+                            </div>
+                            <div class="p-4 flex-1 flex flex-col">
+                                <h4 class="font-bold text-navy text-base mb-2 leading-tight">${ex.name}</h4>
+                                <div class="flex flex-wrap gap-2 text-xs font-bold text-slate-500 mb-2">
+                                    ${params.reps ? `<span class="bg-slate-100 px-2 py-1 rounded">Reps: <span class="text-navy">${params.reps}</span></span>` : ''}
+                                    ${params.sets ? `<span class="bg-slate-100 px-2 py-1 rounded">Sets: <span class="text-navy">${params.sets}</span></span>` : ''}
+                                    ${params.freq ? `<span class="bg-slate-100 px-2 py-1 rounded">Freq: <span class="text-navy">${params.freq}</span></span>` : ''}
+                                </div>
+                                ${params.note ? `<p class="text-xs text-slate-600 italic bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 mt-auto">${params.note}</p>` : ''}
+                            </div>
+                        </a>
+                    `;
+                });
+                document.getElementById('dash-exercises-grid').innerHTML = exHtml;
+            } else {
+                document.getElementById('dash-exercises').classList.add('hidden');
+            }
 
-            // Fetch Clinic Info (Logo, Exercises)
-            useEffect(() => {
-                const siteRef = dbSite.ref('site');
-                siteRef.on('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        let exArray = [];
-                        if (data && data.exercises) {
-                            if (Array.isArray(data.exercises)) exArray = data.exercises.filter(Boolean);
-                            else exArray = Object.keys(data.exercises).map(key => ({ ...data.exercises[key], id: data.exercises[key].id || key }));
-                        }
-                        setSiteData({ hero: data?.hero || {}, exercises: exArray });
+            // Locked vs Unlocked Notes
+            if (!isPhoneVerified) {
+                document.getElementById('dash-locked-area').classList.remove('hidden');
+                document.getElementById('dash-unlocked-area').classList.add('hidden');
+            } else {
+                document.getElementById('dash-locked-area').classList.add('hidden');
+                document.getElementById('dash-unlocked-area').classList.remove('hidden');
+
+                // Build Medical Data
+                let medHtml = '';
+                if (patientData.chiefComplaints || patientData.history) {
+                    medHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
+                    if (patientData.chiefComplaints) {
+                        medHtml += `<div><h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chief Complaints</h3><div class="text-sm text-slate-700 rich-text-content">${renderRichText(patientData.chiefComplaints)}</div></div>`;
+                    }
+                    if (patientData.history) {
+                        medHtml += `<div><h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Medical History</h3><div class="text-sm text-slate-700 rich-text-content">${renderRichText(patientData.history)}</div></div>`;
+                    }
+                    medHtml += `</div>`;
+                }
+
+                if (patientData.assessmentNote) {
+                    medHtml += `<div class="border-t border-slate-100 pt-6"><h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment</h3><div class="text-sm text-slate-700 rich-text-content">${renderRichText(patientData.assessmentNote)}</div></div>`;
+                }
+                const assessTables = (patientData.customTables || []).filter(t => t.section === 'assessment');
+                if(assessTables.length > 0) {
+                    medHtml += `<div class="flex flex-wrap gap-4">${assessTables.map(createCustomTableHtml).join('')}</div>`;
+                }
+
+                if (patientData.diagnosis) {
+                    medHtml += `<div class="border-t border-slate-100 pt-6"><h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</h3><p class="text-lg font-bold text-azure">${patientData.diagnosis}</p></div>`;
+                }
+
+                if (patientData.treatmentNote) {
+                    medHtml += `<div class="border-t border-slate-100 pt-6"><h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Treatment Plan / Advice</h3><div class="text-sm text-slate-700 rich-text-content">${renderRichText(patientData.treatmentNote)}</div></div>`;
+                }
+                const treatTables = (patientData.customTables || []).filter(t => t.section === 'treatment');
+                if(treatTables.length > 0) {
+                    medHtml += `<div class="flex flex-wrap gap-4">${treatTables.map(createCustomTableHtml).join('')}</div>`;
+                }
+                document.getElementById('medical-data-container').innerHTML = medHtml;
+
+                // Build Reassessment Area
+                const reTables = (patientData.customTables || []).filter(t => t.section === 'reassessment');
+                const hasReTables = patientData.reassessmentTables?.length > 0 && patientData.reassessmentTables[0].records?.length > 0;
+                
+                if (reTables.length > 0 || hasReTables) {
+                    document.getElementById('reassessment-area').classList.remove('hidden');
+                    let reHtml = '';
+                    
+                    if(reTables.length > 0) {
+                        reHtml += `<div class="flex flex-wrap gap-4 mb-6">${reTables.map(createCustomTableHtml).join('')}</div>`;
+                    }
+
+                    if (hasReTables) {
+                        (patientData.reassessmentTables || []).forEach(rtable => {
+                            if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0 || !rtable.records || rtable.records.length === 0) return;
+                            
+                            reHtml += `
+                            <div class="border border-slate-200 rounded-xl overflow-hidden mb-6">
+                                <div class="bg-slate-50 px-4 py-3 font-bold text-base text-navy border-b border-slate-200">${rtable.title}</div>
+                                <div class="overflow-x-auto p-2">
+                                    <table class="w-full table-auto border-collapse text-sm border border-slate-200 bg-white">
+                                        <thead>
+                                            <tr>
+                                                <th class="p-2 text-left font-bold text-navy border border-slate-200 bg-slate-50 w-24">Date</th>`;
+                            
+                            rtable.trackedMetrics.forEach(m => {
+                                reHtml += `<th class="p-0 border border-slate-200 bg-slate-50">
+                                    <div class="p-2 text-center font-bold text-navy">
+                                        <span class="text-[10px] text-slate-400 uppercase block">${m.type}</span>${m.title}
+                                    </div>
+                                    ${m.isBilateral ? `<div class="flex w-full border-t border-slate-200 text-xs"><div class="flex-1 py-1.5 text-center border-r border-slate-200">R</div><div class="flex-1 py-1.5 text-center">L</div></div>` : ''}
+                                </th>`;
+                            });
+
+                            reHtml += `</tr></thead><tbody>`;
+
+                            rtable.records.forEach(rec => {
+                                reHtml += `<tr><td class="p-2 border border-slate-200 font-bold">${rec.date ? new Date(rec.date).toLocaleDateString('en-GB') : ''}</td>`;
+                                rtable.trackedMetrics.forEach(m => {
+                                    const v = rec.values ? rec.values[m.id] : null;
+                                    if (m.isBilateral) {
+                                        reHtml += `<td class="p-0 border border-slate-200"><div class="flex h-full min-h-[40px]"><div class="flex-1 border-r border-slate-200 flex items-center justify-center p-2">${v?.r||'-'}</div><div class="flex-1 flex items-center justify-center p-2">${v?.l||'-'}</div></div></td>`;
+                                    } else {
+                                        reHtml += `<td class="p-2 border border-slate-200 text-center">${v||'-'}</td>`;
+                                    }
+                                });
+                                reHtml += `</tr>`;
+                            });
+
+                            reHtml += `</tbody></table></div></div>`;
+                        });
+                    }
+                    document.getElementById('reassessment-container').innerHTML = reHtml;
+                } else {
+                    document.getElementById('reassessment-area').classList.add('hidden');
+                }
+            }
+        }
+
+        // API Setup & Boot
+        function bootApplication() {
+            // 1. Fetch Realtime DB Setup Info
+            dbSite.ref('site').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    let exArray = [];
+                    if (data && data.exercises) {
+                        if (Array.isArray(data.exercises)) exArray = data.exercises.filter(Boolean);
+                        else exArray = Object.keys(data.exercises).map(key => ({ ...data.exercises[key], id: data.exercises[key].id || key }));
+                    }
+                    siteData = { hero: data?.hero || {}, exercises: exArray };
+                    
+                    if(siteData.hero.logoUrl) {
+                        document.getElementById('clinic-logo').src = siteData.hero.logoUrl;
+                        document.getElementById('clinic-logo').classList.remove('hidden');
+                        document.getElementById('clinic-logo-fallback').classList.add('hidden');
+                    }
+                    if(patientData) buildDashboard(); // Re-render if patient data already loaded
+                }
+            });
+
+            // 2. Authenticate and Route
+            authRecords.onAuthStateChanged((user) => {
+                if (!user) {
+                    authRecords.signInAnonymously().catch(e => {
+                        document.getElementById('loading-text').innerText = "Network Auth Failed. Please refresh.";
+                    });
+                } else {
+                    // Check URL for Patient ID Hash
+                    const hash = window.location.hash.replace('#/', '');
+                    if (hash && hash.length > 3) {
+                        dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients').doc(hash).get()
+                        .then(docSnap => {
+                            if (docSnap.exists && docSnap.data().isPublished) {
+                                patientData = { id: docSnap.id, ...docSnap.data() };
+                                isPhoneVerified = false;
+                                buildDashboard();
+                            } else {
+                                alert("Record not found or not published.");
+                                window.location.hash = '';
+                                showView('view-login');
+                            }
+                        }).catch(e => {
+                            alert("Database fetch failed.");
+                            showView('view-login');
+                        });
+                    } else {
+                        // No Hash -> Show Login
+                        showView('view-login');
+                    }
+                }
+            });
+        }
+
+        // Form Handlers
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login-submit');
+            const errBox = document.getElementById('login-error');
+            const inputId = document.getElementById('login-id').value.toLowerCase().replace(/\s+/g, '');
+            const inputPhone = document.getElementById('login-phone').value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+
+            btn.innerText = "Searching...";
+            errBox.classList.add('hidden');
+
+            try {
+                const querySnap = await dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients').where("ipId", "==", inputId).get();
+                let match = null;
+                querySnap.forEach((doc) => {
+                    const p = doc.data();
+                    if (p.isPublished) {
+                        const dbPhone = (p.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
+                        if (dbPhone === inputPhone) match = { id: doc.id, ...p };
                     }
                 });
-                return () => siteRef.off();
-            }, []);
 
-            // Login System
-            useEffect(() => {
-                const initializePatientAuth = async () => {
-                    try {
-                        await new Promise((resolve) => {
-                            let isResolved = false;
-                            const forceResolve = () => { if (!isResolved) { isResolved = true; resolve(); } };
-                            const fallbackTimeout = setTimeout(forceResolve, 4000); 
-
-                            const unsubscribe = authRecords.onAuthStateChanged((user) => {
-                                if (user) {
-                                    clearTimeout(fallbackTimeout);
-                                    unsubscribe();
-                                    forceResolve();
-                                } else {
-                                    authRecords.signInAnonymously().catch(e => {
-                                        clearTimeout(fallbackTimeout);
-                                        unsubscribe();
-                                        forceResolve(); 
-                                    });
-                                }
-                            });
-                        });
-                        
-                        const hash = window.location.hash.replace('#/', '');
-                        if (hash && hash.length > 3) { 
-                            const docRef = dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients').doc(hash);
-                            const docSnap = await docRef.get();
-                            if (docSnap.exists && docSnap.data().isPublished) {
-                                setPatientData({ id: docSnap.id, ...docSnap.data() });
-                                setIsPhoneVerified(false); 
-                            } else {
-                                setLoginError("Record not found or not published.");
-                                window.location.hash = '';
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Initialization error:", e);
-                    } finally {
-                        setIsCheckingAuth(false);
-                    }
-                };
-                initializePatientAuth();
-            }, []);
-
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                setLoginError("");
-                setIsCheckingAuth(true);
-
-                try {
-                    const cleanInput = loginId.toLowerCase().replace(/\s+/g, '');
-                    const cleanPhone = loginPhone.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-
-                    const patientsRef = dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients');
-                    const querySnapshot = await patientsRef.where("ipId", "==", cleanInput).get();
-
-                    let match = null;
-                    querySnapshot.forEach((doc) => {
-                        const p = doc.data();
-                        if (p.isPublished) {
-                            const dbPhone = (p.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
-                            if (dbPhone === cleanPhone) {
-                                match = { id: doc.id, ...p };
-                            }
-                        }
-                    });
-
-                    if (match) {
-                        setPatientData(match);
-                        setIsPhoneVerified(true); 
-                        window.location.hash = `#/${match.id}`;
-                    } else {
-                        setLoginError("Could not find a matching published record. Please check your details.");
-                    }
-                } catch (err) {
-                    setLoginError("Database connection error. Please try again.");
-                } finally {
-                    setIsCheckingAuth(false);
-                }
-            };
-
-            const handleUnlock = (e) => {
-                e.preventDefault();
-                const cleanInput = verifyPhoneInput.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-                const dbPhone = (patientData.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
-                
-                if (cleanInput === dbPhone) {
-                    setIsPhoneVerified(true);
-                    setVerifyError("");
+                if (match) {
+                    patientData = match;
+                    isPhoneVerified = true;
+                    window.location.hash = `#/${match.id}`;
+                    buildDashboard();
                 } else {
-                    setVerifyError("Incorrect phone number. Please try again.");
+                    errBox.innerText = "Could not find a matching published record. Please check your details.";
+                    errBox.classList.remove('hidden');
                 }
-            };
-
-            const handleLogout = () => {
-                setPatientData(null);
-                setLoginId("");
-                setLoginPhone("");
-                setVerifyPhoneInput("");
-                setIsPhoneVerified(false);
-                window.location.hash = '';
-            };
-
-            if (isCheckingAuth) {
-                return (
-                    <div className="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans">
-                        <div className="w-12 h-12 border-4 border-ice border-t-azure rounded-full animate-spin mb-4"></div>
-                        <div className="text-lg font-black text-navy tracking-tight">Verifying Secure Connection...</div>
-                    </div>
-                );
+            } catch (err) {
+                errBox.innerText = "Database connection error. Please try again.";
+                errBox.classList.remove('hidden');
             }
-
-            const renderHeader = () => (
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full">
-                    <a href="/" className="flex items-center shrink-0">
-                        {siteData.hero.logoUrl ? 
-                            <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
-                            <div className="w-10 h-10 rounded-xl bg-azure text-white flex items-center justify-center font-black text-xl shadow-sm">T</div>
-                        }
-                    </a>
-                    {patientData && (
-                        <div className="flex items-center gap-3 ml-auto">
-                            <button onClick={handleLogout} className="text-slate-500 hover:text-red-500 transition font-bold text-sm">Logout</button>
-                        </div>
-                    )}
-                    <div className="flex items-center shrink-0 ml-4">
-                        <button onClick={() => setIsMenuOpen(true)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy rounded-full transition">
-                            <i className="ph-bold ph-list text-2xl"></i>
-                        </button>
-                    </div>
-                </header>
-            );
-
-            const renderMenu = () => (
-                <>
-                    <div className={`overlay ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}></div>
-                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
-                            <h2 className="text-lg font-black text-navy m-0">Menu</h2>
-                            <button className="close-menu" onClick={() => setIsMenuOpen(false)}><i className="ph-bold ph-x"></i></button>
-                        </div>
-                        <ul>
-                            <li><a href="/" className="main-nav-link"><i className="ph-bold ph-house" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Home</a></li>
-                            <li><a href="/services" className="main-nav-link"><i className="ph-bold ph-first-aid" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Services</a></li>
-                            <li><a href="/doctors" className="main-nav-link"><i className="ph-bold ph-stethoscope" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Clinical Team</a></li>
-                            <li><a href="/products" className="main-nav-link"><i className="ph-bold ph-shopping-bag" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Wellness Products</a></li>
-                            <li><a href="/articles" className="main-nav-link"><i className="ph-bold ph-article" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Health Articles</a></li>
-                            <li><a href="/exercises" className="main-nav-link"><i className="ph-bold ph-person-simple-walk" style={{marginRight: '12px', fontSize: '1.3rem', color: '#475569'}}></i> Rehabilitation Exercises</a></li>
-                            <li><a href="/prescription.html" className="main-nav-link" style={{color: '#1d4ed8', backgroundColor: '#eff6ff'}}><i className="ph-bold ph-folder-open" style={{marginRight: '12px', fontSize: '1.3rem', color: '#1d4ed8'}}></i> Patient Records</a></li>
-                        </ul>
-                    </aside>
-                </>
-            );
-
-            // Login Screen
-            if (!patientData) {
-                return (
-                    <div className="min-h-screen bg-appbg font-sans">
-                        {renderHeader()}
-                        {renderMenu()}
-                        <div className="pt-32 flex flex-col items-center justify-center p-4">
-                            <div className="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8">
-                                <div className="text-center mb-6">
-                                    <i className="ph-fill ph-folder-user text-5xl text-azure mb-3"></i>
-                                    <h1 className="text-2xl font-black text-navy tracking-tight">Access Records</h1>
-                                    <p className="text-xs text-slate-500 mt-2 font-medium">Enter your details to securely view your prescriptions and exercise charts.</p>
-                                </div>
-                                
-                                <form onSubmit={handleLogin} className="space-y-5">
-                                    {loginError && <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 text-center">{loginError}</div>}
-                                    
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Patient UPID</label>
-                                        <input type="text" required value={loginId} onChange={e => setLoginId(e.target.value)} placeholder="e.g. 4092" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
-                                    </div>
-                                    
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Registered Mobile Number</label>
-                                        <input type="tel" required value={loginPhone} onChange={e => setLoginPhone(e.target.value)} placeholder="9876543210" className="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure transition" />
-                                    </div>
-                                    
-                                    <button type="submit" className="w-full bg-azure text-white font-bold py-3.5 rounded-xl hover:bg-navy shadow-md hover:shadow-lg transition-all mt-2">
-                                        View Medical Records
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            const prescribedExData = (patientData.prescribedExercises || []).map(id => siteData.exercises.find(e => e.id === id)).filter(Boolean);
-            const formattedDate = patientData.date ? new Date(patientData.date).toLocaleDateString('en-GB') : '';
-
-            // Dashboard Screen
-            return (
-                <div className="min-h-screen bg-appbg font-sans">
-                    {renderHeader()}
-                    {renderMenu()}
-                    
-                    <main className="max-w-5xl mx-auto px-4 pt-24 pb-12 animate-in fade-in">
-                        
-                        <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden mb-6">
-                            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-4">
-                                <div>
-                                    <h1 className="text-2xl font-black text-navy">{patientData.name}</h1>
-                                    <p className="text-sm font-bold text-slate-500 mt-1">UPID: #{patientData.ipId} • {patientData.age} Yrs • {patientData.gender}</p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</div>
-                                    <div className="font-bold text-navy">{formattedDate}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {prescribedExData.length > 0 && (
-                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6 mb-6">
-                                <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-                                    <i className="ph-fill ph-barbell text-azure"></i> Prescribed Exercises
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {prescribedExData.map(ex => {
-                                        const params = patientData.exerciseParams?.[ex.id] || {};
-                                        return (
-                                            <a key={ex.id} href={`/?view=exercise&id=${slugify(ex.name)}`} target="_blank" className="border border-slate-200 rounded-xl overflow-hidden group hover:border-azure transition hover:shadow-md flex flex-col cursor-pointer bg-white">
-                                                <div className="w-full h-56 bg-slate-50 flex items-center justify-center p-3 border-b border-slate-100 relative">
-                                                    <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-300" />
-                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 backdrop-blur-sm">
-                                                        <span className="bg-white text-navy font-bold text-sm px-4 py-2 rounded-full shadow-sm">View Full Instructions</span>
-                                                    </div>
-                                                </div>
-                                                <div className="p-4 flex-1 flex flex-col">
-                                                    <h4 className="font-bold text-navy text-base mb-2 leading-tight">{ex.name}</h4>
-                                                    <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-500 mb-2">
-                                                        {params.reps && <span className="bg-slate-100 px-2 py-1 rounded">Reps: <span className="text-navy">{params.reps}</span></span>}
-                                                        {params.sets && <span className="bg-slate-100 px-2 py-1 rounded">Sets: <span className="text-navy">{params.sets}</span></span>}
-                                                        {params.freq && <span className="bg-slate-100 px-2 py-1 rounded">Freq: <span className="text-navy">{params.freq}</span></span>}
-                                                    </div>
-                                                    {params.note && <p className="text-xs text-slate-600 italic bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 mt-auto">{params.note}</p>}
-                                                </div>
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {!isPhoneVerified ? (
-                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-8 text-center relative">
-                                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000)', backgroundPosition: '0 0, 10px 10px', backgroundSize: '20px 20px' }}></div>
-                                <i className="ph-fill ph-lock-key text-5xl text-slate-300 mb-3 relative z-10"></i>
-                                <h3 className="text-xl font-black text-navy relative z-10">Clinical Notes Locked</h3>
-                                <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto relative z-10">For your privacy, please verify your registered mobile number to view your full medical history, diagnosis, and progression tracking.</p>
-                                
-                                <form onSubmit={handleUnlock} className="mt-6 max-w-xs mx-auto relative z-10">
-                                    {verifyError && <div className="p-2 mb-3 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100">{verifyError}</div>}
-                                    <input type="tel" required value={verifyPhoneInput} onChange={e => setVerifyPhoneInput(e.target.value)} placeholder="Enter 10-digit mobile number" className="w-full p-3 text-center text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure mb-3" />
-                                    <button type="submit" className="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-azure shadow-md transition-all flex items-center justify-center gap-2">
-                                        <i className="ph-bold ph-unlock"></i> Unlock Records
-                                    </button>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="space-y-6 animate-in slide-in-from-bottom-4">
-                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
-                                    <div className="p-6 space-y-6">
-                                        {(patientData.chiefComplaints || patientData.history) && (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {patientData.chiefComplaints && (
-                                                    <div>
-                                                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chief Complaints</h3>
-                                                        <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.chiefComplaints)} />
-                                                    </div>
-                                                )}
-                                                {patientData.history && (
-                                                    <div>
-                                                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Medical History</h3>
-                                                        <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.history)} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {patientData.assessmentNote && (
-                                            <div className="border-t border-slate-100 pt-6">
-                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment</h3>
-                                                <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.assessmentNote)} />
-                                            </div>
-                                        )}
-                                        {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (
-                                            <div className="flex flex-wrap gap-4">
-                                                {patientData.customTables.filter(t => t.section === 'assessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                            </div>
-                                        )}
-
-                                        {patientData.diagnosis && (
-                                            <div className="border-t border-slate-100 pt-6">
-                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</h3>
-                                                <p className="text-lg font-bold text-azure">{patientData.diagnosis}</p>
-                                            </div>
-                                        )}
-
-                                        {patientData.treatmentNote && (
-                                            <div className="border-t border-slate-100 pt-6">
-                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Treatment Plan / Advice</h3>
-                                                <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.treatmentNote)} />
-                                            </div>
-                                        )}
-                                        {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (
-                                            <div className="flex flex-wrap gap-4">
-                                                {patientData.customTables.filter(t => t.section === 'treatment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {(patientData.reassessmentTables?.length > 0 && patientData.reassessmentTables[0].records?.length > 0) && (
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
-                                        <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Tracking & Reassessment</h3>
-                                        <div className="space-y-6">
-                                            {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (
-                                                <div className="flex flex-wrap gap-4">
-                                                    {patientData.customTables.filter(t => t.section === 'reassessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                                </div>
-                                            )}
-
-                                            {patientData.reassessmentTables.map(rtable => rtable.trackedMetrics?.length > 0 && rtable.records?.length > 0 ? (
-                                                <div key={rtable.id} className="border border-slate-200 rounded-xl overflow-hidden">
-                                                    <div className="bg-slate-50 px-4 py-3 font-bold text-base text-navy border-b border-slate-200">{rtable.title}</div>
-                                                    <div className="overflow-x-auto p-2">
-                                                        <table className="w-full table-auto border-collapse text-sm border border-slate-200 bg-white">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th className="p-2 text-left font-bold text-navy border border-slate-200 bg-slate-50 w-24">Date</th>
-                                                                    {rtable.trackedMetrics.map(m => (
-                                                                        <th key={m.id} className="p-0 border border-slate-200 bg-slate-50">
-                                                                            <div className="p-2 text-center font-bold text-navy">
-                                                                                <span className="text-[10px] text-slate-400 uppercase block">{m.type}</span>
-                                                                                {m.title}
-                                                                            </div>
-                                                                            {m.isBilateral && <div className="flex w-full border-t border-slate-200 text-xs"><div className="flex-1 py-1.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-1.5 text-center">L</div></div>}
-                                                                        </th>
-                                                                    ))}
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {rtable.records.map(rec => (
-                                                                    <tr key={rec.id}>
-                                                                        <td className="p-2 border border-slate-200 font-bold">{rec.date ? new Date(rec.date).toLocaleDateString('en-GB') : ''}</td>
-                                                                        {rtable.trackedMetrics.map(m => {
-                                                                            const v = rec.values[m.id];
-                                                                            if (m.isBilateral) return <td key={m.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[40px]"><div className="flex-1 border-r border-slate-200 flex items-center justify-center p-2">{v?.r||'-'}</div><div className="flex-1 flex items-center justify-center p-2">{v?.l||'-'}</div></div></td>;
-                                                                            return <td key={m.id} className="p-2 border border-slate-200 text-center">{v||'-'}</td>;
-                                                                        })}
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            ) : null)}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </main>
-                </div>
-            );
+            btn.innerText = "View Medical Records";
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        function handleUnlock(e) {
+            e.preventDefault();
+            const errBox = document.getElementById('unlock-error');
+            const cleanInput = document.getElementById('unlock-phone').value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            const dbPhone = (patientData.contact || '').replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            
+            if (cleanInput === dbPhone) {
+                isPhoneVerified = true;
+                errBox.classList.add('hidden');
+                buildDashboard();
+            } else {
+                errBox.innerText = "Incorrect phone number. Please try again.";
+                errBox.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            patientData = null;
+            isPhoneVerified = false;
+            document.getElementById('login-id').value = '';
+            document.getElementById('login-phone').value = '';
+            document.getElementById('unlock-phone').value = '';
+            window.location.hash = '';
+            showView('view-login');
+        }
+
+        // Start App
+        bootApplication();
     </script>
 </body>
 </html>
