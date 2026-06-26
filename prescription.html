@@ -6,22 +6,18 @@
     <title>My Prescription - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Firebase Compat Libraries (100% Immune to Mobile Import Crashes) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     
-    <!-- Tailwind & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Global Crash Preventer & Catcher -->
     <script>
         window.addEventListener('error', function(event) {
             const root = document.getElementById('root');
@@ -50,64 +46,33 @@
         @keyframes instantSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .native-loader { width: 40px; height: 40px; border: 4px solid #dbeafe; border-top: 4px solid #1d4ed8; border-radius: 50%; animation: instantSpin 1s linear infinite; margin: 0 auto 15px; }
 
-        /* Smooth, Solid Sidebar Menu */
-        .mobile-menu { 
-            position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
-            background: #ffffff; z-index: 1001; 
-            transform: translateX(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); 
-            overflow-y: auto; border-left: 1px solid #e2e8f0;
-        }
+        .mobile-menu { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: #ffffff; z-index: 1001; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 1rem 0 2rem; box-shadow: -5px 0 25px rgba(15, 23, 42, 0.1); overflow-y: auto; border-left: 1px solid #e2e8f0; }
         .mobile-menu.active { transform: translateX(0); } 
         .mobile-menu ul { list-style: none; }
         .mobile-menu ul li a.main-nav-link { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; font-weight: 600; font-size: 1rem; color: #0f172a; transition: color 0.2s;}
         .mobile-menu ul li a.main-nav-link:hover { color: #1d4ed8; }
         .close-menu { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .close-menu:hover { background: #e2e8f0; color: #0f172a; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 999; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;}
         .overlay.active { visibility: visible; opacity: 1; }
 
-        /* RICH TEXT FORMATTING */
         .rich-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.5rem; }
         .rich-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
         .rich-text-content li { margin-bottom: 0.25rem; }
         .rich-text-content strong, .rich-text-content b { font-weight: 800; color: #1e3a8a; }
-
-        /* Read-Only Table Overrides */
-        .editable-cell { min-width: 30px; max-width: 100%; word-break: break-word; white-space: pre-wrap; cursor: default; }
-
-        /* Print Layout Rules */
-        @page { size: A4; margin: 10mm; }
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; margin: 0 !important; }
-            .print-hidden { display: none !important; }
-            .print-shadow-none { box-shadow: none !important; border: none !important; }
-            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-            .print-break-after-always { page-break-after: always; }
-            .print-break-after-auto { page-break-after: auto; }
-            thead.print-table-header { display: table-header-group; }
-            table.main-print-table { page-break-inside: auto; width: 100%; }
-            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
-            tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
-        }
     </style>
 </head>
 <body>
     <div id="root">
         <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
             <div class="native-loader"></div>
-            <div style="font-weight: bold;">Loading Application Engine...</div>
+            <div style="font-weight: bold;">Loading Application...</div>
         </div>
     </div>
 
-    <!-- STANDARD BABEL SCRIPT (0% Imports = 100% Immune to Mobile Crashes) -->
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ==========================================
-        // DUAL DATABASE ARCHITECTURE (Using Firebase Compat)
-        // ==========================================
+        // Firebase Configuration 1: Patient Records
         const recordsConfig = {
             apiKey: "AIzaSyCPhZY9CrsXJHIr5nBPaGPNVHsc70yfVus",
             authDomain: "patient-records-arpan.firebaseapp.com",
@@ -116,48 +81,48 @@
             messagingSenderId: "599041105903",
             appId: "1:599041105903:web:7f0c1c10f38f12cc2ee01a"
         };
-        // Safely boot Patient Records Database
         const appRecords = firebase.initializeApp(recordsConfig, "AppRecords");
         const authRecords = appRecords.auth();
         const dbRecords = appRecords.firestore();
         
+        // Firebase Configuration 2: Clinic Site Data
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
             authDomain: "clinic-bdf92.firebaseapp.com",
             databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
             projectId: "clinic-bdf92"
         };
-        // Safely boot Clinic Admin Database
         const appSite = firebase.initializeApp(siteConfig, "AppSite");
         const dbSite = appSite.database();
 
         const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
 
+        // Read Only Table Component
         function ReadOnlyCustomTable({ table }) {
             let rows = table.rows || [];
             if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch(e) { rows = []; } }
 
             return (
-                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg overflow-x-auto print:border-none print:shadow-none print-break-inside-avoid print:overflow-visible">
+                <div className="w-fit max-w-full bg-white border border-slate-200 rounded-lg overflow-x-auto">
                     {table.title && (
-                        <div className="bg-ice/30 px-3 py-2 border-b border-slate-200 font-bold text-[14px] text-navy print:bg-transparent print:px-0 print:border-[#1e40af] print:text-[20px]">
+                        <div className="bg-ice/30 px-3 py-2 border-b border-slate-200 font-bold text-[14px] text-navy">
                             {table.title}
                         </div>
                     )}
-                    <div className="p-1.5 print:p-0 print:mt-2">
-                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto print:border print:border-[#1e40af]">
+                    <div className="p-1.5">
+                        <table className="w-auto min-w-[150px] text-left border-collapse table-auto">
                             <thead>
                                 <tr>
                                     {table.headers.map((h, i) => (
-                                        <th key={i} className="border border-slate-200 p-2 bg-slate-50 font-bold text-navy text-[12px] print:border-[#1e40af] print:bg-blue-50/30 print:text-[18px]">{h}</th>
+                                        <th key={i} className="border border-slate-200 p-2 bg-slate-50 font-bold text-navy text-[12px]">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((row, rIdx) => (
-                                    <tr key={rIdx} className="print-break-inside-avoid">
+                                    <tr key={rIdx}>
                                         {row.map((cell, cIdx) => (
-                                            <td key={cIdx} className="border border-slate-200 p-2 text-slate-700 text-[12px] align-top whitespace-pre-wrap print:border-[#1e40af] print:text-[18px]">{cell}</td>
+                                            <td key={cIdx} className="border border-slate-200 p-2 text-slate-700 text-[12px] align-top whitespace-pre-wrap">{cell}</td>
                                         ))}
                                     </tr>
                                 ))}
@@ -186,7 +151,7 @@
                 return { __html: text.replace(/\n/g, '<br/>') };
             };
 
-            // Fetch General Site Data
+            // Fetch Clinic Info (Logo, Exercises)
             useEffect(() => {
                 const siteRef = dbSite.ref('site');
                 siteRef.on('value', (snapshot) => {
@@ -203,14 +168,14 @@
                 return () => siteRef.off();
             }, []);
 
-            // Secure Patient Authentication
+            // Login System
             useEffect(() => {
                 const initializePatientAuth = async () => {
                     try {
                         await new Promise((resolve) => {
                             let isResolved = false;
                             const forceResolve = () => { if (!isResolved) { isResolved = true; resolve(); } };
-                            const fallbackTimeout = setTimeout(forceResolve, 6000); 
+                            const fallbackTimeout = setTimeout(forceResolve, 4000); 
 
                             const unsubscribe = authRecords.onAuthStateChanged((user) => {
                                 if (user) {
@@ -231,7 +196,6 @@
                         if (hash && hash.length > 3) { 
                             const docRef = dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients').doc(hash);
                             const docSnap = await docRef.get();
-                            // Fix for v8 Compat checking
                             if (docSnap.exists && docSnap.data().isPublished) {
                                 setPatientData({ id: docSnap.id, ...docSnap.data() });
                                 setIsPhoneVerified(false); 
@@ -249,7 +213,6 @@
                 initializePatientAuth();
             }, []);
 
-            // Patient Manual Login
             const handleLogin = async (e) => {
                 e.preventDefault();
                 setLoginError("");
@@ -319,7 +282,7 @@
             }
 
             const renderHeader = () => (
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full print-hidden">
+                <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 max-w-6xl mx-auto w-full">
                     <a href="/" className="flex items-center shrink-0">
                         {siteData.hero.logoUrl ? 
                             <img src={siteData.hero.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" /> : 
@@ -328,9 +291,6 @@
                     </a>
                     {patientData && (
                         <div className="flex items-center gap-3 ml-auto">
-                            <button onClick={() => window.print()} className="bg-slate-100 text-navy font-bold px-4 py-1.5 rounded-full text-sm hover:bg-slate-200 transition flex items-center gap-1.5">
-                                <i className="ph-bold ph-printer text-lg"></i> Print All
-                            </button>
                             <button onClick={handleLogout} className="text-slate-500 hover:text-red-500 transition font-bold text-sm">Logout</button>
                         </div>
                     )}
@@ -344,8 +304,8 @@
 
             const renderMenu = () => (
                 <>
-                    <div className={`overlay ${isMenuOpen ? 'active' : ''} print-hidden`} onClick={() => setIsMenuOpen(false)}></div>
-                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''} print-hidden`}>
+                    <div className={`overlay ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}></div>
+                    <aside className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
                         <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
                             <h2 className="text-lg font-black text-navy m-0">Menu</h2>
                             <button className="close-menu" onClick={() => setIsMenuOpen(false)}><i className="ph-bold ph-x"></i></button>
@@ -363,6 +323,7 @@
                 </>
             );
 
+            // Login Screen
             if (!patientData) {
                 return (
                     <div className="min-h-screen bg-appbg font-sans">
@@ -402,343 +363,178 @@
             const prescribedExData = (patientData.prescribedExercises || []).map(id => siteData.exercises.find(e => e.id === id)).filter(Boolean);
             const formattedDate = patientData.date ? new Date(patientData.date).toLocaleDateString('en-GB') : '';
 
+            // Dashboard Screen
             return (
-                <div className="min-h-screen bg-appbg font-sans print:bg-white print:m-0 print:p-0">
+                <div className="min-h-screen bg-appbg font-sans">
                     {renderHeader()}
                     {renderMenu()}
                     
-                    <main className="max-w-5xl mx-auto px-4 pt-24 pb-12 animate-in fade-in print:p-0 print:m-0 print:max-w-none">
+                    <main className="max-w-5xl mx-auto px-4 pt-24 pb-12 animate-in fade-in">
                         
-                        {/* ======================= WEB UI ======================= */}
-                        <div className="print-hidden">
-                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden mb-6">
-                                <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-4">
-                                    <div>
-                                        <h1 className="text-2xl font-black text-navy">{patientData.name}</h1>
-                                        <p className="text-sm font-bold text-slate-500 mt-1">UPID: #{patientData.ipId} • {patientData.age} Yrs • {patientData.gender}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</div>
-                                        <div className="font-bold text-navy">{formattedDate}</div>
-                                    </div>
+                        <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden mb-6">
+                            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-4">
+                                <div>
+                                    <h1 className="text-2xl font-black text-navy">{patientData.name}</h1>
+                                    <p className="text-sm font-bold text-slate-500 mt-1">UPID: #{patientData.ipId} • {patientData.age} Yrs • {patientData.gender}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</div>
+                                    <div className="font-bold text-navy">{formattedDate}</div>
                                 </div>
                             </div>
-
-                            {prescribedExData.length > 0 && (
-                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6 mb-6">
-                                    <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-                                        <i className="ph-fill ph-barbell text-azure"></i> Prescribed Exercises
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {prescribedExData.map(ex => {
-                                            const params = patientData.exerciseParams?.[ex.id] || {};
-                                            return (
-                                                <a key={ex.id} href={`/?view=exercise&id=${slugify(ex.name)}`} target="_blank" className="border border-slate-200 rounded-xl overflow-hidden group hover:border-azure transition hover:shadow-md flex flex-col cursor-pointer bg-white">
-                                                    <div className="w-full h-56 bg-slate-50 flex items-center justify-center p-3 border-b border-slate-100 relative">
-                                                        <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-300" />
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 backdrop-blur-sm">
-                                                            <span className="bg-white text-navy font-bold text-sm px-4 py-2 rounded-full shadow-sm">View Full Instructions</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-4 flex-1 flex flex-col">
-                                                        <h4 className="font-bold text-navy text-base mb-2 leading-tight">{ex.name}</h4>
-                                                        <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-500 mb-2">
-                                                            {params.reps && <span className="bg-slate-100 px-2 py-1 rounded">Reps: <span className="text-navy">{params.reps}</span></span>}
-                                                            {params.sets && <span className="bg-slate-100 px-2 py-1 rounded">Sets: <span className="text-navy">{params.sets}</span></span>}
-                                                            {params.freq && <span className="bg-slate-100 px-2 py-1 rounded">Freq: <span className="text-navy">{params.freq}</span></span>}
-                                                        </div>
-                                                        {params.note && <p className="text-xs text-slate-600 italic bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 mt-auto">{params.note}</p>}
-                                                    </div>
-                                                </a>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {!isPhoneVerified ? (
-                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-8 text-center relative">
-                                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000)', backgroundPosition: '0 0, 10px 10px', backgroundSize: '20px 20px' }}></div>
-                                    <i className="ph-fill ph-lock-key text-5xl text-slate-300 mb-3 relative z-10"></i>
-                                    <h3 className="text-xl font-black text-navy relative z-10">Clinical Notes Locked</h3>
-                                    <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto relative z-10">For your privacy, please verify your registered mobile number to view your full medical history, diagnosis, and progression tracking.</p>
-                                    
-                                    <form onSubmit={handleUnlock} className="mt-6 max-w-xs mx-auto relative z-10">
-                                        {verifyError && <div className="p-2 mb-3 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100">{verifyError}</div>}
-                                        <input type="tel" required value={verifyPhoneInput} onChange={e => setVerifyPhoneInput(e.target.value)} placeholder="Enter 10-digit mobile number" className="w-full p-3 text-center text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure mb-3" />
-                                        <button type="submit" className="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-azure shadow-md transition-all flex items-center justify-center gap-2">
-                                            <i className="ph-bold ph-unlock"></i> Unlock Records
-                                        </button>
-                                    </form>
-                                </div>
-                            ) : (
-                                <div className="space-y-6 animate-in slide-in-from-bottom-4">
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
-                                        <div className="p-6 space-y-6">
-                                            {(patientData.chiefComplaints || patientData.history) && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {patientData.chiefComplaints && (
-                                                        <div>
-                                                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chief Complaints</h3>
-                                                            <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.chiefComplaints)} />
-                                                        </div>
-                                                    )}
-                                                    {patientData.history && (
-                                                        <div>
-                                                            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Medical History</h3>
-                                                            <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.history)} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {patientData.assessmentNote && (
-                                                <div className="border-t border-slate-100 pt-6">
-                                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment</h3>
-                                                    <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.assessmentNote)} />
-                                                </div>
-                                            )}
-                                            {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (
-                                                <div className="flex flex-wrap gap-4">
-                                                    {patientData.customTables.filter(t => t.section === 'assessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                                </div>
-                                            )}
-
-                                            {patientData.diagnosis && (
-                                                <div className="border-t border-slate-100 pt-6">
-                                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</h3>
-                                                    <p className="text-lg font-bold text-azure">{patientData.diagnosis}</p>
-                                                </div>
-                                            )}
-
-                                            {patientData.treatmentNote && (
-                                                <div className="border-t border-slate-100 pt-6">
-                                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Treatment Plan / Advice</h3>
-                                                    <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.treatmentNote)} />
-                                                </div>
-                                            )}
-                                            {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (
-                                                <div className="flex flex-wrap gap-4">
-                                                    {patientData.customTables.filter(t => t.section === 'treatment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {(patientData.reassessmentTables?.length > 0 && patientData.reassessmentTables[0].records?.length > 0) && (
-                                        <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
-                                            <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Tracking & Reassessment</h3>
-                                            <div className="space-y-6">
-                                                {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (
-                                                    <div className="flex flex-wrap gap-4">
-                                                        {patientData.customTables.filter(t => t.section === 'reassessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
-                                                    </div>
-                                                )}
-
-                                                {patientData.reassessmentTables.map(rtable => rtable.trackedMetrics?.length > 0 && rtable.records?.length > 0 ? (
-                                                    <div key={rtable.id} className="border border-slate-200 rounded-xl overflow-hidden">
-                                                        <div className="bg-slate-50 px-4 py-3 font-bold text-base text-navy border-b border-slate-200">{rtable.title}</div>
-                                                        <div className="overflow-x-auto p-2">
-                                                            <table className="w-full table-auto border-collapse text-sm border border-slate-200 bg-white">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th className="p-2 text-left font-bold text-navy border border-slate-200 bg-slate-50 w-24">Date</th>
-                                                                        {rtable.trackedMetrics.map(m => (
-                                                                            <th key={m.id} className="p-0 border border-slate-200 bg-slate-50">
-                                                                                <div className="p-2 text-center font-bold text-navy">
-                                                                                    <span className="text-[10px] text-slate-400 uppercase block">{m.type}</span>
-                                                                                    {m.title}
-                                                                                </div>
-                                                                                {m.isBilateral && <div className="flex w-full border-t border-slate-200 text-xs"><div className="flex-1 py-1.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-1.5 text-center">L</div></div>}
-                                                                            </th>
-                                                                        ))}
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {rtable.records.map(rec => (
-                                                                        <tr key={rec.id}>
-                                                                            <td className="p-2 border border-slate-200 font-bold">{rec.date ? new Date(rec.date).toLocaleDateString('en-GB') : ''}</td>
-                                                                            {rtable.trackedMetrics.map(m => {
-                                                                                const v = rec.values[m.id];
-                                                                                if (m.isBilateral) return <td key={m.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[40px]"><div className="flex-1 border-r border-slate-200 flex items-center justify-center p-2">{v?.r||'-'}</div><div className="flex-1 flex items-center justify-center p-2">{v?.l||'-'}</div></div></td>;
-                                                                                return <td key={m.id} className="p-2 border border-slate-200 text-center">{v||'-'}</td>;
-                                                                            })}
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                ) : null)}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </div>
 
-                        {/* ======================= PRINT LAYOUT ======================= */}
-                        <div className="hidden print:block bg-white text-[#1e40af] font-sans h-full w-full relative">
-                            
-                            <div className="flex justify-between items-start pb-2 text-left">
-                                <div>
-                                    <h1 className="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style={{ textShadow: "0px 0px 1px #1e40af", lineHeight: "1" }}>
-                                        {patientData.doctorName || 'Dr. Arpan Das (PT)'}
-                                    </h1>
-                                    <p className="text-[18px] mt-2 font-bold text-[#1e40af]">
-                                        {patientData.doctorQual || 'BPT (KPC Medical College and Hospital)'}
-                                    </p>
-                                    <p className="text-[18px] font-bold text-[#1e40af]">
-                                        {patientData.doctorDesignation || 'Consultant Physiotherapist'}
-                                    </p>
-                                    {(patientData.doctorReg || !patientData.doctorName) && (
-                                        <p className="text-[14px] font-bold text-slate-600 mt-1">
-                                            {patientData.doctorReg || 'Reg. No 202105633 (WBUHS)'}
-                                        </p>
-                                    )}
-                                </div>
-                                
-                                <div className="flex flex-col items-center justify-center pt-2 px-6">
-                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/prescription.html#/' + patientData.id)}`} alt="QR Code" className="w-[85px] h-[85px]" />
-                                    <span className="text-[11px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
-                                </div>
-
-                                <div className="text-right flex flex-col items-end text-[#1e40af] pt-1">
-                                    <div className="flex items-center gap-2 font-black text-[26px] mb-6">
-                                        <i className="ph-fill ph-phone-call text-[32px]"></i> +91 {patientData.doctorPhone || '9641568109'}
-                                    </div>
-                                    <div className="text-[18px] flex items-center gap-2 font-semibold">
-                                        <span>Date:</span> <span className="border-b border-[#1e40af] w-32 text-center text-slate-800 font-bold pb-0.5">{formattedDate}</span>
-                                    </div>
+                        {prescribedExData.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6 mb-6">
+                                <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                                    <i className="ph-fill ph-barbell text-azure"></i> Prescribed Exercises
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {prescribedExData.map(ex => {
+                                        const params = patientData.exerciseParams?.[ex.id] || {};
+                                        return (
+                                            <a key={ex.id} href={`/?view=exercise&id=${slugify(ex.name)}`} target="_blank" className="border border-slate-200 rounded-xl overflow-hidden group hover:border-azure transition hover:shadow-md flex flex-col cursor-pointer bg-white">
+                                                <div className="w-full h-56 bg-slate-50 flex items-center justify-center p-3 border-b border-slate-100 relative">
+                                                    <img src={ex.imageUrl} className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition duration-300" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 backdrop-blur-sm">
+                                                        <span className="bg-white text-navy font-bold text-sm px-4 py-2 rounded-full shadow-sm">View Full Instructions</span>
+                                                    </div>
+                                                </div>
+                                                <div className="p-4 flex-1 flex flex-col">
+                                                    <h4 className="font-bold text-navy text-base mb-2 leading-tight">{ex.name}</h4>
+                                                    <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-500 mb-2">
+                                                        {params.reps && <span className="bg-slate-100 px-2 py-1 rounded">Reps: <span className="text-navy">{params.reps}</span></span>}
+                                                        {params.sets && <span className="bg-slate-100 px-2 py-1 rounded">Sets: <span className="text-navy">{params.sets}</span></span>}
+                                                        {params.freq && <span className="bg-slate-100 px-2 py-1 rounded">Freq: <span className="text-navy">{params.freq}</span></span>}
+                                                    </div>
+                                                    {params.note && <p className="text-xs text-slate-600 italic bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 mt-auto">{params.note}</p>}
+                                                </div>
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             </div>
-                            
-                            <div className="border-b-2 border-[#1e40af] mb-2"></div>
-                            
-                            <table className="main-print-table">
-                                <thead className="print-table-header">
-                                    <tr><td className="pb-5 pt-3">
-                                        <div className="flex justify-between items-end pb-3 text-[18px] font-bold text-[#1e40af]">
-                                            <div className="flex-1 flex items-end"><span className="whitespace-nowrap">Patient's name:</span> <span className="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">{patientData.name}</span></div>
-                                            <div className="w-28 flex items-end"><span className="whitespace-nowrap">Age:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.age}</span></div>
-                                            <div className="w-40 flex items-end"><span className="whitespace-nowrap">Gender:</span> <span className="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.gender}</span></div>
-                                            <div className="w-36 flex items-end"><span className="whitespace-nowrap">UPID:</span> <span className="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">{patientData.ipId}</span></div>
-                                        </div>
-                                        <div className="border-b border-[#1e40af]"></div>
-                                    </td></tr>
-                                </thead>
-                                <tbody>
-                                    
-                                    {isPhoneVerified && (
-                                        <>
-                                            {(patientData.chiefComplaints || patientData.history) && (
-                                                <tr className="main-print-row"><td className="pt-2 px-2 pb-5">
-                                                    {patientData.chiefComplaints && <div className="text-[#1e40af] mb-5"><span className="font-bold text-[22px]">Chief Complaint :-</span><div className="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.chiefComplaints)} /></div>}
-                                                    {patientData.history && <div className="text-[#1e40af]"><span className="font-bold text-[22px]">Medical History :-</span><div className="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.history)} /></div>}
-                                                </td></tr>
-                                            )}
-                                            
-                                            {(patientData.assessmentNote || patientData.customTables?.some(t => t.section === 'assessment')) && (
-                                                <tr className="main-print-row-allow-break"><td className="px-2 pb-6">
-                                                    <div className="text-[#1e40af]"><span className="font-bold text-[22px] block mb-3">Assessment :-</span>
-                                                        {patientData.assessmentNote && <div className="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.assessmentNote)} />}
-                                                        {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-5 pl-5 pr-2">{patientData.customTables.filter(t => t.section === 'assessment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div>)}
+                        )}
+
+                        {!isPhoneVerified ? (
+                            <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-8 text-center relative">
+                                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000)', backgroundPosition: '0 0, 10px 10px', backgroundSize: '20px 20px' }}></div>
+                                <i className="ph-fill ph-lock-key text-5xl text-slate-300 mb-3 relative z-10"></i>
+                                <h3 className="text-xl font-black text-navy relative z-10">Clinical Notes Locked</h3>
+                                <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto relative z-10">For your privacy, please verify your registered mobile number to view your full medical history, diagnosis, and progression tracking.</p>
+                                
+                                <form onSubmit={handleUnlock} className="mt-6 max-w-xs mx-auto relative z-10">
+                                    {verifyError && <div className="p-2 mb-3 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100">{verifyError}</div>}
+                                    <input type="tel" required value={verifyPhoneInput} onChange={e => setVerifyPhoneInput(e.target.value)} placeholder="Enter 10-digit mobile number" className="w-full p-3 text-center text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-azure focus:ring-1 focus:ring-azure mb-3" />
+                                    <button type="submit" className="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-azure shadow-md transition-all flex items-center justify-center gap-2">
+                                        <i className="ph-bold ph-unlock"></i> Unlock Records
+                                    </button>
+                                </form>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 animate-in slide-in-from-bottom-4">
+                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
+                                    <div className="p-6 space-y-6">
+                                        {(patientData.chiefComplaints || patientData.history) && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {patientData.chiefComplaints && (
+                                                    <div>
+                                                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chief Complaints</h3>
+                                                        <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.chiefComplaints)} />
                                                     </div>
-                                                </td></tr>
-                                            )}
-                                            
-                                            {patientData.diagnosis && (<tr className="main-print-row"><td className="px-2 pb-6"><div className="text-[#1e40af]"><span className="font-bold text-[22px]">Diagnosis:</span><span className="ml-3 text-slate-900 font-bold text-[22px]">{patientData.diagnosis}</span></div></td></tr>)}
-                                            
-                                            {(patientData.treatmentNote || patientData.customTables?.some(t => t.section === 'treatment')) && (
-                                                <tr className="main-print-row-allow-break"><td className="px-2 pb-8">
-                                                    <div className="text-[#1e40af]"><span className="font-bold text-[22px] block mb-3">Treatment Plan / Advice :-</span>
-                                                        {patientData.treatmentNote && <div className="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content leading-relaxed" dangerouslySetInnerHTML={renderRichText(patientData.treatmentNote)} />}
-                                                        {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (<div className="flex flex-wrap items-start gap-4 mt-5 pl-5 pr-2">{patientData.customTables.filter(t => t.section === 'treatment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div>)}
+                                                )}
+                                                {patientData.history && (
+                                                    <div>
+                                                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Medical History</h3>
+                                                        <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.history)} />
                                                     </div>
-                                                </td></tr>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {patientData.assessmentNote && (
+                                            <div className="border-t border-slate-100 pt-6">
+                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment</h3>
+                                                <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.assessmentNote)} />
+                                            </div>
+                                        )}
+                                        {patientData.customTables?.filter(t => t.section === 'assessment').length > 0 && (
+                                            <div className="flex flex-wrap gap-4">
+                                                {patientData.customTables.filter(t => t.section === 'assessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
+                                            </div>
+                                        )}
+
+                                        {patientData.diagnosis && (
+                                            <div className="border-t border-slate-100 pt-6">
+                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</h3>
+                                                <p className="text-lg font-bold text-azure">{patientData.diagnosis}</p>
+                                            </div>
+                                        )}
+
+                                        {patientData.treatmentNote && (
+                                            <div className="border-t border-slate-100 pt-6">
+                                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Treatment Plan / Advice</h3>
+                                                <div className="text-sm text-slate-700 rich-text-content" dangerouslySetInnerHTML={renderRichText(patientData.treatmentNote)} />
+                                            </div>
+                                        )}
+                                        {patientData.customTables?.filter(t => t.section === 'treatment').length > 0 && (
+                                            <div className="flex flex-wrap gap-4">
+                                                {patientData.customTables.filter(t => t.section === 'treatment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {(patientData.reassessmentTables?.length > 0 && patientData.reassessmentTables[0].records?.length > 0) && (
+                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden p-6">
+                                        <h3 className="text-lg font-black text-navy mb-4 border-b border-slate-100 pb-2">Tracking & Reassessment</h3>
+                                        <div className="space-y-6">
+                                            {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (
+                                                <div className="flex flex-wrap gap-4">
+                                                    {patientData.customTables.filter(t => t.section === 'reassessment').map(t => <ReadOnlyCustomTable key={t.id} table={t} />)}
+                                                </div>
                                             )}
-                                            
-                                            {patientData.customTables?.filter(t => t.section === 'reassessment').length > 0 && (<tr className="main-print-row"><td className="px-2 pb-6 text-[#1e40af]"><span className="font-bold text-[22px] block mb-3">Reassessment Data :-</span><div className="flex flex-wrap items-start gap-4 pl-5 pr-2">{patientData.customTables.filter(t => t.section === 'reassessment').map(table => (<ReadOnlyCustomTable key={table.id} table={table} />))}</div></td></tr>)}
-                                            
-                                            {patientData.reassessmentTables?.map((rtable) => {
-                                                if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0) return null;
-                                                return (
-                                                <tr key={rtable.id} className="main-print-row"><td className="px-2 pb-8 text-[#1e40af]">
-                                                    <span className="font-bold text-[22px] block mb-4">{rtable.title}</span>
-                                                    <div className="pl-5 pr-2 w-full">
-                                                        <table className="w-full table-auto border-collapse text-[14px] text-slate-900 border border-[#1e40af] print-break-inside-avoid">
+
+                                            {patientData.reassessmentTables.map(rtable => rtable.trackedMetrics?.length > 0 && rtable.records?.length > 0 ? (
+                                                <div key={rtable.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                                                    <div className="bg-slate-50 px-4 py-3 font-bold text-base text-navy border-b border-slate-200">{rtable.title}</div>
+                                                    <div className="overflow-x-auto p-2">
+                                                        <table className="w-full table-auto border-collapse text-sm border border-slate-200 bg-white">
                                                             <thead>
                                                                 <tr>
-                                                                    <th className="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold text-[16px]">Date</th>
-                                                                    {rtable.trackedMetrics.map(metric => (
-                                                                        <th key={metric.id} className="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top">
-                                                                            <div className="flex flex-col h-full justify-between">
-                                                                                <span className="leading-tight px-1 mb-2 pt-2 text-[15px]">{metric.title}</span>
-                                                                                {metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT') && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div className="flex-1 py-1 font-bold">L</div></div> )}
-                                                                                {metric.type === 'ROM with VAS' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div className="flex-1 py-1 font-bold">{metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div> )}
-                                                                                {metric.type === 'Custom 2-Column' && ( <div className="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div className="flex-1 py-1 border-r border-[#1e40af] font-bold">{metric.col1}</div><div className="flex-1 py-1 font-bold">{metric.col2}</div></div> )}
+                                                                    <th className="p-2 text-left font-bold text-navy border border-slate-200 bg-slate-50 w-24">Date</th>
+                                                                    {rtable.trackedMetrics.map(m => (
+                                                                        <th key={m.id} className="p-0 border border-slate-200 bg-slate-50">
+                                                                            <div className="p-2 text-center font-bold text-navy">
+                                                                                <span className="text-[10px] text-slate-400 uppercase block">{m.type}</span>
+                                                                                {m.title}
                                                                             </div>
+                                                                            {m.isBilateral && <div className="flex w-full border-t border-slate-200 text-xs"><div className="flex-1 py-1.5 text-center border-r border-slate-200">R</div><div className="flex-1 py-1.5 text-center">L</div></div>}
                                                                         </th>
                                                                     ))}
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {rtable.records?.map(record => (
-                                                                    <tr key={record.id} className="print-break-inside-avoid">
-                                                                        <td className="p-2 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[14px]">{record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>
-                                                                        {rtable.trackedMetrics.map(metric => { 
-                                                                            const cellValue = record.values[metric.id]; 
-                                                                            if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) return ( <td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.r || '-'}</div><div className="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.l || '-'}</div></div></td> ); 
-                                                                            if (metric.type === 'ROM with VAS') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.vas || '-'}</div><div className="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.rom || '-'}</div></div></td>); 
-                                                                            if (metric.type === 'Custom 2-Column') return (<td key={metric.id} className="p-0 border border-[#1e40af] align-top"><div className="flex h-full"><div className="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.c1 || '-'}</div><div className="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">{cellValue?.c2 || '-'}</div></div></td>); 
-                                                                            return ( <td key={metric.id} className="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">{cellValue || '-'}</td> ); 
+                                                                {rtable.records.map(rec => (
+                                                                    <tr key={rec.id}>
+                                                                        <td className="p-2 border border-slate-200 font-bold">{rec.date ? new Date(rec.date).toLocaleDateString('en-GB') : ''}</td>
+                                                                        {rtable.trackedMetrics.map(m => {
+                                                                            const v = rec.values[m.id];
+                                                                            if (m.isBilateral) return <td key={m.id} className="p-0 border border-slate-200"><div className="flex h-full min-h-[40px]"><div className="flex-1 border-r border-slate-200 flex items-center justify-center p-2">{v?.r||'-'}</div><div className="flex-1 flex items-center justify-center p-2">{v?.l||'-'}</div></div></td>;
+                                                                            return <td key={m.id} className="p-2 border border-slate-200 text-center">{v||'-'}</td>;
                                                                         })}
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                </td></tr>
-                                                );
-                                            })}
-                                        </>
-                                    )}
-
-                                    {/* Exercises Rescaled to 2 columns for Print! */}
-                                    {prescribedExData.length > 0 && (
-                                        <>
-                                            {isPhoneVerified && <tr className="print-break-after-always"><td></td></tr>}
-                                            <tr className="main-print-row-allow-break"><td className="pt-8 px-0 pb-6">
-                                                <div className="text-[#1e40af] mb-8 border-b-2 border-[#1e40af] inline-block pr-8"><span className="font-bold text-[26px]">Prescribed Exercises</span></div>
-                                                <div className="flex-1 w-full">
-                                                    <div className="grid grid-cols-2 gap-x-8 gap-y-12 w-full">
-                                                        {prescribedExData.map((ex) => {
-                                                            const params = patientData.exerciseParams?.[ex.id] || {};
-                                                            return (
-                                                                <div key={ex.id} className="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-4 rounded-xl">
-                                                                    <div className="h-56 w-full flex items-center justify-center mb-4 bg-slate-50 rounded-lg">
-                                                                        <img src={ex.imageUrl} alt={ex.name} className="max-w-full max-h-full object-contain mix-blend-multiply" />
-                                                                    </div>
-                                                                    <div className="w-full text-left">
-                                                                        <h4 className="font-bold text-slate-800 text-[18px] mb-2 text-left leading-tight">{ex.name}</h4>
-                                                                        <div className="flex justify-start items-center space-x-3 text-[14px] font-bold text-[#1e3a8a] mb-2 flex-wrap bg-blue-50/50 p-2 rounded">
-                                                                            {params.reps && <span>Reps: <span className="text-black">{params.reps}</span></span>}
-                                                                            {params.sets && <span>Sets: <span className="text-black">{params.sets}</span></span>}
-                                                                            {params.freq && <span>Freq: <span className="text-black">{params.freq}</span></span>}
-                                                                        </div>
-                                                                        {params.note && <p className="text-[15px] text-slate-600 leading-tight font-medium text-left mt-1 italic">{params.note}</p>}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
                                                 </div>
-                                            </td></tr>
-                                        </>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                            ) : null)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </main>
                 </div>
             );
