@@ -46,6 +46,28 @@
         .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: #ffffff; }
         
         .hidden { display: none !important; }
+
+        /* RICH TEXT FORMATTING */
+        .rich-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.5rem; }
+        .rich-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
+        .rich-text-content li { margin-bottom: 0.25rem; }
+        .rich-text-content strong, .rich-text-content b { font-weight: 800; color: #1e3a8a; }
+
+        /* PRINT STYLES */
+        @page { size: A4; margin: 10mm; }
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; margin: 0 !important; overflow: visible !important;}
+            .print-hidden, #view-loading, #view-login, #view-dashboard, #toast { display: none !important; }
+            #print-container { display: block !important; position: static; width: 100%; background: white; }
+            
+            .print-shadow-none { box-shadow: none !important; border: none !important; }
+            .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+            .print-break-after-always { page-break-after: always; }
+            thead.print-table-header { display: table-header-group; }
+            table.main-print-table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
+            tr.main-print-row { page-break-inside: avoid; page-break-after: auto; }
+            tr.main-print-row-allow-break { page-break-inside: auto; page-break-after: auto; }
+        }
     </style>
 </head>
 <body>
@@ -58,13 +80,13 @@
     </div>
 
     <!-- VIEW 1: LOADING -->
-    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans">
+    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans print-hidden">
         <div class="native-loader"></div>
         <div id="loading-text" class="text-lg font-black text-navy tracking-tight mt-4">Connecting to Secure Server...</div>
     </div>
 
     <!-- VIEW 2: LOGIN -->
-    <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4">
+    <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4 print-hidden">
         <div class="max-w-sm w-full bg-white rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
             <i class="ph-fill ph-stethoscope text-5xl text-azure mb-3"></i>
             <h1 class="text-2xl font-black text-navy tracking-tight mb-2">Staff Portal</h1>
@@ -80,7 +102,7 @@
     </div>
 
     <!-- VIEW 3: DASHBOARD MAIN -->
-    <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans">
+    <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg font-sans print-hidden">
         
         <!-- Sidebar -->
         <aside id="sidebar" class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col h-full z-20">
@@ -125,12 +147,15 @@
                         <h2 id="editor-title" class="font-black text-navy text-lg">Patient Record</h2>
                     </div>
                     <div class="flex items-center gap-3">
+                        <button onclick="handlePrint()" class="bg-slate-100 text-navy px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-200 transition flex items-center gap-2">
+                            <i class="ph-bold ph-printer"></i> <span class="hidden sm:inline">Print</span>
+                        </button>
                         <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
                             <input type="checkbox" id="input-published" class="accent-azure w-4 h-4" onchange="updateActiveData('isPublished', this.checked)" />
-                            <span class="text-xs font-bold text-slate-600">Published</span>
+                            <span class="text-xs font-bold text-slate-600 hidden sm:inline">Published</span>
                         </label>
                         <button id="btn-save" onclick="savePatientData()" class="bg-azure text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy transition disabled:opacity-50 flex items-center gap-2">
-                            <i class="ph-bold ph-floppy-disk"></i> Save Data
+                            <i class="ph-bold ph-floppy-disk"></i> <span class="hidden sm:inline">Save Data</span>
                         </button>
                     </div>
                 </header>
@@ -218,6 +243,11 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- PRINT CONTAINER (Hidden in Web, Displayed in Print) -->
+    <div id="print-container" class="hidden text-[#1e40af] text-[16px] font-sans h-full w-full relative">
+        <!-- Injected Dynamically on Print -->
     </div>
 
     <!-- PURE VANILLA JAVASCRIPT ENGINE -->
@@ -337,7 +367,6 @@
         function fetchData() {
             switchView('view-dashboard');
             
-            // Get Exercises
             dbSite.ref('site/exercises').once('value').then(snap => {
                 if(snap.exists()) {
                     const data = snap.val();
@@ -346,7 +375,6 @@
                 }
             });
 
-            // Get Patients
             dbRecords.collection('artifacts').doc('physiocare-tracker').collection('public').doc('data').collection('patients')
                 .orderBy('date', 'desc').limit(50).onSnapshot(snap => {
                     patients = [];
@@ -372,7 +400,7 @@
             }
 
             container.innerHTML = filtered.map(p => `
-                <div onclick="openPatient('${p.id}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group">
+                <div onclick="openPatient('${p.id}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between group ${activePatient && activePatient.id === p.id ? 'bg-blue-50' : ''}">
                     <div>
                         <h4 class="font-bold text-slate-800 text-sm">${p.name || 'Unnamed Patient'}</h4>
                         <p class="text-[11px] font-semibold text-slate-500 mt-0.5">UPID: #${p.ipId || '--'} • ${p.contact || '--'}</p>
@@ -410,7 +438,7 @@
         function openPatient(id) {
             const p = patients.find(x => x.id === id);
             if(p) {
-                activePatient = JSON.parse(JSON.stringify(p)); // Deep copy to prevent accidental live editing
+                activePatient = JSON.parse(JSON.stringify(p)); 
                 if(!activePatient.prescribedExercises) activePatient.prescribedExercises = [];
                 if(!activePatient.exerciseParams) activePatient.exerciseParams = {};
                 loadEditorUI();
@@ -423,12 +451,12 @@
 
         function loadEditorUI() {
             initQuillEditors();
+            renderPatientList(); // Refresh list to show active highlight
             
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('active-editor').classList.remove('hidden');
             document.getElementById('active-editor').classList.add('flex');
             
-            // Mobile handling
             if(window.innerWidth < 768) {
                 document.getElementById('sidebar').classList.add('hidden');
                 document.getElementById('editor-area').classList.remove('hidden');
@@ -446,7 +474,7 @@
             document.getElementById('input-phone').value = activePatient.contact || '';
             document.getElementById('input-diagnosis').value = activePatient.diagnosis || '';
 
-            // Populate Quills
+            // Populate Quills (Safely)
             qCC.root.innerHTML = activePatient.chiefComplaints || '';
             qMH.root.innerHTML = activePatient.history || '';
             qPA.root.innerHTML = activePatient.assessmentNote || '';
@@ -467,7 +495,6 @@
                 return;
             }
 
-            // Render Library
             libContainer.innerHTML = siteExercises.map(ex => {
                 const isChecked = activePatient.prescribedExercises.includes(ex.id);
                 return `
@@ -479,7 +506,6 @@
                 `;
             }).join('');
 
-            // Render Configs
             if (activePatient.prescribedExercises.length > 0) {
                 confArea.classList.remove('hidden');
                 confList.innerHTML = activePatient.prescribedExercises.map(exId => {
@@ -526,7 +552,7 @@
             }
 
             const btn = document.getElementById('btn-save');
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saving...`;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> <span class="hidden sm:inline">Saving...</span>`;
             btn.disabled = true;
 
             try {
@@ -549,7 +575,7 @@
                     const newRef = coll.doc();
                     dataToSave.id = newRef.id;
                     await newRef.set(dataToSave);
-                    activePatient.id = newRef.id; // update local state so subsequent saves are edits
+                    activePatient.id = newRef.id; 
                 }
                 
                 showToast("Patient record saved securely!");
@@ -557,9 +583,175 @@
                 console.error(e);
                 showToast("Save Error: Ensure you are authorized.", true);
             } finally {
-                btn.innerHTML = `<i class="ph-bold ph-floppy-disk"></i> Save Data`;
+                btn.innerHTML = `<i class="ph-bold ph-floppy-disk"></i> <span class="hidden sm:inline">Save Data</span>`;
                 btn.disabled = false;
             }
+        }
+
+        // 10. PRINT ENGINE
+        function handlePrint() {
+            if (!activePatient) return;
+            
+            const pc = document.getElementById('print-container');
+            const dateStr = activePatient.date ? new Date(activePatient.date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/prescription.html#/' + activePatient.id)}`;
+            
+            let html = `
+                <div class="flex justify-between items-start pb-2 text-left">
+                    <div>
+                        <h1 class="text-[42px] font-bold italic tracking-wide text-[#1e40af]" style="text-shadow: 0px 0px 1px #1e40af; line-height: 1;">${doctorProfile.name || 'Doctor'}</h1>
+                        <p class="text-[18px] mt-2 font-bold text-[#1e40af]">${doctorProfile.qualification || ''}</p>
+                        <p class="text-[18px] font-bold text-[#1e40af]">${doctorProfile.designation || ''}</p>
+                        ${doctorProfile.regNumber ? `<p class="text-[14px] font-bold text-slate-600 mt-1">${doctorProfile.regNumber}</p>` : ''}
+                    </div>
+                    ${activePatient.id ? `
+                    <div class="flex flex-col items-center justify-center pt-2 px-6">
+                        <img src="${qrUrl}" alt="QR Code" class="w-[85px] h-[85px]" />
+                        <span class="text-[11px] font-bold mt-1 text-[#1e40af] text-center leading-tight">Scan for<br/>digital records</span>
+                    </div>` : ''}
+                    <div class="text-right flex flex-col items-end text-[#1e40af] pt-1">
+                        <div class="flex items-center gap-2 font-black text-[26px] mb-6">
+                            <i class="ph-fill ph-phone-call text-[32px]"></i> +91 ${doctorProfile.phone || ''}
+                        </div>
+                        <div class="text-[18px] flex items-center gap-2 font-semibold">
+                            <span>Date:</span> <span class="border-b border-[#1e40af] w-32 text-center text-slate-800 font-bold pb-0.5">${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-b-2 border-[#1e40af] mb-2"></div>
+                
+                <table class="main-print-table">
+                    <thead class="print-table-header">
+                        <tr><td class="pb-5 pt-3">
+                            <div class="flex justify-between items-end pb-3 text-[18px] font-bold text-[#1e40af]">
+                                <div class="flex-1 flex items-end"><span class="whitespace-nowrap">Patient's name:</span> <span class="flex-1 ml-2 mr-4 px-2 text-slate-800 font-bold pb-0.5">${activePatient.name || ''}</span></div>
+                                <div class="w-28 flex items-end"><span class="whitespace-nowrap">Age:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.age || ''}</span></div>
+                                <div class="w-40 flex items-end"><span class="whitespace-nowrap">Gender:</span> <span class="flex-1 ml-2 mr-4 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.gender || ''}</span></div>
+                                <div class="w-36 flex items-end"><span class="whitespace-nowrap">UPID:</span> <span class="flex-1 ml-2 px-2 text-center text-slate-800 font-bold pb-0.5">${activePatient.ipId || ''}</span></div>
+                            </div>
+                            <div class="border-b border-[#1e40af]"></div>
+                        </td></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // Clinical Notes Render
+            if (activePatient.chiefComplaints || activePatient.history) {
+                html += `<tr class="main-print-row"><td class="pt-2 px-2 pb-5">`;
+                if(activePatient.chiefComplaints) html += `<div class="text-[#1e40af] mb-5"><span class="font-bold text-[22px]">Chief Complaint :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.chiefComplaints}</div></div>`;
+                if(activePatient.history) html += `<div class="text-[#1e40af]"><span class="font-bold text-[22px]">Medical History :-</span><div class="mt-2 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.history}</div></div>`;
+                html += `</td></tr>`;
+            }
+
+            // Custom Tables Helper
+            const buildCustomTables = (section) => {
+                const tables = (activePatient.customTables || []).filter(t => t.section === section);
+                if(tables.length === 0) return '';
+                let tHtml = '<div class="flex flex-wrap items-start gap-4 mt-5 pl-5 pr-2">';
+                tables.forEach(t => {
+                    tHtml += `<div class="w-fit max-w-full"><div class="font-bold text-[20px] text-[#1e40af] mb-2">${t.title||''}</div><table class="border-collapse border border-[#1e40af]"><thead><tr>`;
+                    (t.headers||[]).forEach(h => tHtml += `<th class="border border-[#1e40af] p-2 bg-blue-50/30 text-[18px]">${h}</th>`);
+                    tHtml += `</tr></thead><tbody>`;
+                    let rows = t.rows || [];
+                    if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch(e) { rows = []; } }
+                    rows.forEach(r => {
+                        tHtml += `<tr class="print-break-inside-avoid">`;
+                        r.forEach(c => tHtml += `<td class="border border-[#1e40af] p-2 text-[18px] align-top whitespace-pre-wrap">${c}</td>`);
+                        tHtml += `</tr>`;
+                    });
+                    tHtml += `</tbody></table></div>`;
+                });
+                tHtml += '</div>';
+                return tHtml;
+            };
+
+            if (activePatient.assessmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'assessment'))) {
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Assessment :-</span>`;
+                if(activePatient.assessmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content">${activePatient.assessmentNote}</div>`;
+                html += buildCustomTables('assessment');
+                html += `</div></td></tr>`;
+            }
+
+            if (activePatient.diagnosis) {
+                html += `<tr class="main-print-row"><td class="px-2 pb-6"><div class="text-[#1e40af]"><span class="font-bold text-[22px]">Diagnosis:</span><span class="ml-3 text-slate-900 font-bold text-[22px]">${activePatient.diagnosis}</span></div></td></tr>`;
+            }
+
+            if (activePatient.treatmentNote || (activePatient.customTables && activePatient.customTables.some(t => t.section === 'treatment'))) {
+                html += `<tr class="main-print-row-allow-break"><td class="px-2 pb-8"><div class="text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Treatment Plan / Advice :-</span>`;
+                if(activePatient.treatmentNote) html += `<div class="mt-1 ml-5 text-slate-900 text-[20px] rich-text-content leading-relaxed">${activePatient.treatmentNote}</div>`;
+                html += buildCustomTables('treatment');
+                html += `</div></td></tr>`;
+            }
+
+            // Reassessment Builder
+            const rTablesHtml = buildCustomTables('reassessment');
+            if (rTablesHtml) html += `<tr class="main-print-row"><td class="px-2 pb-6 text-[#1e40af]"><span class="font-bold text-[22px] block mb-3">Reassessment Data :-</span>${rTablesHtml}</td></tr>`;
+
+            (activePatient.reassessmentTables || []).forEach(rtable => {
+                if (!rtable.trackedMetrics || rtable.trackedMetrics.length === 0) return;
+                html += `<tr class="main-print-row"><td class="px-2 pb-8 text-[#1e40af]"><span class="font-bold text-[22px] block mb-4">${rtable.title}</span><div class="pl-5 pr-2 w-full"><table class="w-full table-auto border-collapse text-[14px] text-slate-900 border border-[#1e40af] print-break-inside-avoid"><thead><tr>`;
+                html += `<th class="p-2 text-left border border-[#1e40af] w-28 text-[#1e40af] font-bold text-[16px]">Date</th>`;
+                
+                rtable.trackedMetrics.forEach(metric => {
+                    html += `<th class="p-0 border border-[#1e40af] text-[#1e40af] font-bold text-center align-top"><div class="flex flex-col h-full justify-between"><span class="leading-tight px-1 mb-2 pt-2 text-[15px]">${metric.title}</span>`;
+                    if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">R</div><div class="flex-1 py-1 font-bold">L</div></div>`;
+                    if (metric.type === 'ROM with VAS') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">VAS</div><div class="flex-1 py-1 font-bold">${metric.romMode === 'Passive' ? 'PROM' : (metric.romMode === 'Active' ? 'AROM' : 'ROM')}</div></div>`;
+                    if (metric.type === 'Custom 2-Column') html += `<div class="flex w-full border-t border-[#1e40af] text-[14px] text-[#1e40af] mt-auto"><div class="flex-1 py-1 border-r border-[#1e40af] font-bold">${metric.col1}</div><div class="flex-1 py-1 font-bold">${metric.col2}</div></div>`;
+                    html += `</div></th>`;
+                });
+                html += `</tr></thead><tbody>`;
+                
+                (rtable.records || []).forEach(record => {
+                    html += `<tr class="print-break-inside-avoid"><td class="p-2 border border-[#1e40af] whitespace-nowrap align-top font-bold text-[14px]">${record.date ? new Date(record.date).toLocaleDateString('en-GB') : ''}</td>`;
+                    rtable.trackedMetrics.forEach(metric => {
+                        const cellValue = record.values ? record.values[metric.id] : null;
+                        if (metric.isBilateral && (metric.type === 'ROM' || metric.type === 'MMT')) html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.r || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.l || '-'}</div></div></td>`;
+                        else if (metric.type === 'ROM with VAS') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.vas || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.rom || '-'}</div></div></td>`;
+                        else if (metric.type === 'Custom 2-Column') html += `<td class="p-0 border border-[#1e40af] align-top"><div class="flex h-full"><div class="flex-1 border-r border-[#1e40af] flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c1 || '-'}</div><div class="flex-1 flex items-center justify-center p-2 whitespace-pre-wrap">${cellValue?.c2 || '-'}</div></div></td>`;
+                        else html += `<td class="p-2 border border-[#1e40af] text-center align-middle whitespace-pre-wrap">${cellValue || '-'}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div></td></tr>`;
+            });
+
+            // Exercises
+            if (activePatient.prescribedExercises && activePatient.prescribedExercises.length > 0) {
+                const pExs = activePatient.prescribedExercises.map(id => siteExercises.find(e => e.id === id)).filter(Boolean);
+                if (pExs.length > 0) {
+                    html += `<tr class="print-break-after-always"><td></td></tr>`;
+                    html += `<tr class="main-print-row-allow-break"><td class="pt-8 px-0 pb-6"><div class="text-[#1e40af] mb-8 border-b-2 border-[#1e40af] inline-block pr-8"><span class="font-bold text-[26px]">Prescribed Exercises</span></div>`;
+                    html += `<div class="flex-1 w-full"><div class="grid grid-cols-2 gap-x-8 gap-y-12 w-full">`;
+                    
+                    pExs.forEach(ex => {
+                        const params = activePatient.exerciseParams?.[ex.id] || {};
+                        html += `
+                            <div class="flex flex-col items-start break-inside-avoid text-left w-full border border-slate-200 p-4 rounded-xl">
+                                <div class="h-56 w-full flex items-center justify-center mb-4 bg-slate-50 rounded-lg">
+                                    <img src="${ex.imageUrl||''}" alt="${ex.name}" class="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                </div>
+                                <div class="w-full text-left">
+                                    <h4 class="font-bold text-slate-800 text-[18px] mb-2 text-left leading-tight">${ex.name}</h4>
+                                    <div class="flex justify-start items-center space-x-3 text-[14px] font-bold text-[#1e3a8a] mb-2 flex-wrap bg-blue-50/50 p-2 rounded">
+                                        ${params.reps ? `<span>Reps: <span class="text-black">${params.reps}</span></span>` : ''}
+                                        ${params.sets ? `<span>Sets: <span class="text-black">${params.sets}</span></span>` : ''}
+                                        ${params.freq ? `<span>Freq: <span class="text-black">${params.freq}</span></span>` : ''}
+                                    </div>
+                                    ${params.note ? `<p class="text-[15px] text-slate-600 leading-tight font-medium text-left mt-1 italic">${params.note}</p>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div></div></td></tr>`;
+                }
+            }
+
+            html += `</tbody></table>`;
+            pc.innerHTML = html;
+            
+            // Trigger native print dialog
+            setTimeout(() => { window.print(); }, 200);
         }
     </script>
 </body>
