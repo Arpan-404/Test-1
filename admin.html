@@ -6,10 +6,10 @@
     <title>Admin Panel - Physio Hub</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Pure Firebase Compat Libraries (No Modules, No React, No Crashes) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     
     <!-- Tailwind & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,6 +22,14 @@
     <script>window.Quill = Quill;</script>
     <!-- Quill Image Resize Module -->
     <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+
+    <!-- Global Crash Preventer & Catcher -->
+    <script>
+        window.addEventListener('error', function(event) {
+            const root = document.getElementById('root');
+            if(root && event.message) root.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: monospace; text-align: center; margin-top: 50px;"><b>System Error:</b><br/>' + event.message + '</div>';
+        });
+    </script>
 
     <script>
       tailwind.config = {
@@ -55,54 +63,383 @@
         /* Clean Quill Container */
         .ql-editor { min-height: 250px; font-size: 16px; font-family: inherit; line-height: 1.6; }
         .ql-toolbar { background: #f8fafc; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
-        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; }
+        .ql-container { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-color: #e2e8f0 !important; background: white; }
 
         /* --- MOBILE TOUCH-FRIENDLY RESIZE HANDLES --- */
         .ql-container div[style*="cursor: nwse-resize"],
         .ql-container div[style*="cursor: nesw-resize"] {
             width: 32px !important;
             height: 32px !important;
-            background-color: #1d4ed8 !important; /* Azure Blue */
+            background-color: #1d4ed8 !important; 
             border: 3px solid #ffffff !important;
             border-radius: 50% !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
             margin-top: -16px !important;
             margin-left: -16px !important;
-            opacity: 1 !important; /* Force visibility */
+            opacity: 1 !important; 
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1e3a8a;">
-            <div class="native-loader"></div>
-            <div style="font-weight: bold;">Loading Admin...</div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none">
+        <div id="toast-content" class="text-white px-4 py-2.5 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 bg-slate-800">
+            <i id="toast-icon" class="ph-bold ph-check-circle text-emerald-400"></i> <span id="toast-msg">Success</span>
         </div>
     </div>
 
-    <script type="text/babel" data-type="module">
-        const { useState, useEffect, useRef } = React;
+    <!-- VIEW 1: LOADING -->
+    <div id="view-loading" class="min-h-screen bg-appbg flex flex-col items-center justify-center font-sans">
+        <div class="native-loader"></div>
+        <div class="text-lg font-black text-navy tracking-tight mt-4">Loading Admin...</div>
+    </div>
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    <!-- VIEW 2: LOGIN -->
+    <div id="view-login" class="hidden min-h-screen bg-appbg flex flex-col items-center justify-center font-sans p-4">
+        <div class="max-w-sm w-full bg-surface rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
+            <i class="ph-bold ph-shield-check text-5xl text-azure mb-3"></i>
+            <h1 class="text-2xl font-bold text-navy mb-6">Admin Login</h1>
+            <button onclick="handleLogin()" class="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Continue with Google
+            </button>
+        </div>
+    </div>
 
-        // --- SINGLE FIREBASE CONFIG (PUBLIC DATA ONLY) ---
+    <!-- VIEW 3: DASHBOARD -->
+    <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-appbg">
+        
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-navy/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0">
+            <div class="h-16 border-b border-slate-200 flex items-center px-6 shrink-0">
+                <h2 class="text-navy font-black text-lg flex items-center gap-2"><i class="ph-fill ph-shield-check text-azure text-2xl"></i> Admin Hub</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4">
+                <nav class="space-y-1 px-3" id="nav-links">
+                    <a href="#/overview" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-squares-four text-lg text-slate-400"></i> Overview</a>
+                    <a href="#/clinic" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-buildings text-lg text-slate-400"></i> Website Details</a>
+                    <a href="#/doctors" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-stethoscope text-lg text-slate-400"></i> Doctors</a>
+                    <a href="#/services" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-first-aid text-lg text-slate-400"></i> Services</a>
+                    <a href="#/products" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-shopping-bag text-lg text-slate-400"></i> Products</a>
+                    <a href="#/articles" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-article text-lg text-slate-400"></i> Articles</a>
+                    <a href="#/exercises" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-slate-600 hover:bg-slate-50"><i class="ph-bold ph-person-simple-walk text-lg text-slate-400"></i> Exercises</a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-200">
+                <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-600 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-200 transition"><i class="ph-bold ph-sign-out"></i> Logout</button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all h-full">
+            <header class="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30">
+                <h1 class="font-black text-navy flex items-center gap-2"><i class="ph-fill ph-shield-check text-azure"></i> Admin Hub</h1>
+                <button onclick="toggleSidebar()" class="p-1 text-slate-600"><i class="ph-bold ph-list text-2xl"></i></button>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-3 sm:p-6 relative" id="main-content">
+                
+                <!-- PANEL: OVERVIEW -->
+                <div id="panel-overview" class="hidden animate-in fade-in space-y-4">
+                    <h2 class="text-xl font-black text-navy mb-4">Overview</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <a href="#/exercises" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-person-simple-walk text-3xl text-blue-500 mb-1"></i>
+                            <span id="stat-exercises" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Exercises</span>
+                        </a>
+                        <a href="#/doctors" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-stethoscope text-3xl text-emerald-500 mb-1"></i>
+                            <span id="stat-doctors" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Doctors</span>
+                        </a>
+                        <a href="#/products" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-shopping-bag text-3xl text-purple-500 mb-1"></i>
+                            <span id="stat-products" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Products</span>
+                        </a>
+                        <a href="#/articles" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-article text-3xl text-orange-500 mb-1"></i>
+                            <span id="stat-articles" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Articles</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PANEL: CLINIC INFO VIEW -->
+                <div id="panel-clinic" class="hidden animate-in fade-in">
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <h2 class="text-xl font-black text-navy">Website Details</h2>
+                        <button onclick="openForm('clinicInfo', null)" class="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy flex items-center gap-1"><i class="ph-bold ph-pencil-simple"></i> Edit Info</button>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-soft border border-slate-200 space-y-4">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                            <img id="view-clinic-logo" src="/favicon.png" class="w-12 h-12 rounded bg-slate-50 object-contain p-1 border border-slate-200" /> 
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</p><p id="view-clinic-name" class="font-bold text-navy">Not Set</p></div>
+                        </div>
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</p><p id="view-clinic-wa" class="text-sm font-medium text-slate-800">Not Set</p></div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Main Banner Slider</p>
+                            <div id="view-clinic-sliders" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: LIST MANAGER -->
+                <div id="panel-list" class="hidden animate-in fade-in flex-col h-full">
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <h2 id="list-title" class="text-xl font-black text-navy">Items</h2>
+                        <button onclick="openForm(activeCategory, null)" class="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy transition flex items-center gap-1"><i class="ph-bold ph-plus"></i> Add New</button>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-soft border border-slate-200 flex flex-col flex-1 min-h-[300px]">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                            <div class="relative">
+                                <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                                <input type="text" id="list-search" placeholder="Search..." onkeyup="renderActiveList()" class="w-full bg-white border border-slate-200 rounded-md py-2 pl-9 pr-4 outline-none focus:border-azure text-sm" />
+                            </div>
+                        </div>
+                        <div id="list-container" class="overflow-y-auto flex-1">
+                            <!-- Injected rows -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: ISOLATED FORM EDITOR -->
+                <div id="panel-form" class="hidden bg-white form-edge rounded-xl shadow-soft border border-slate-200 flex-col h-[calc(100vh-80px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 relative z-20">
+                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                        <h2 id="form-title" class="text-base font-black text-navy flex items-center gap-2"><button onclick="closeForm()" class="text-slate-400 hover:text-navy mr-1"><i class="ph-bold ph-arrow-left"></i></button> Edit Item</h2>
+                        <button onclick="saveForm()" class="bg-azure text-white px-5 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-navy flex items-center gap-1.5"><i class="ph-bold ph-floppy-disk"></i> Save</button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-4 field-pad bg-slate-50/30 space-y-5">
+                        
+                        <!-- Form: DOCTOR -->
+                        <div id="form-doctor" class="hidden space-y-5">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Profile Photo</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('doc-photo-upload').click()">
+                                    <img id="doc-photo-preview" class="hidden w-full h-full object-cover" />
+                                    <div id="doc-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="doc-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'docPhotoUrl', 'doc-photo-preview', 'doc-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Full Name (Print Format, e.g. Dr. John Doe (PT))</label><input type="text" id="doc-name" placeholder="Dr. Arpan Das (PT)" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Login Gmail</label><input type="email" id="doc-gmail" placeholder="doctor@gmail.com" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Contact Number</label><input type="text" id="doc-phone" placeholder="9876543210" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" id="doc-qual" placeholder="BPT (KPC Medical College...)" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Designation</label><input type="text" id="doc-desig" placeholder="Orthopaedic Surgeon" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Registration No.</label><input type="text" id="doc-reg" placeholder="Reg. No 202105633" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i class="ph-bold ph-list-plus text-azure"></i> Custom Booking Options & Fees</label>
+                                        <button onclick="addPricingOption()" class="text-[10px] font-bold bg-azure text-white px-2 py-1 rounded shadow-sm hover:bg-navy">Add Option</button>
+                                    </div>
+                                    <div id="doc-pricing-list"></div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mt-2">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Online Booking Portal URL</label><input type="url" id="doc-book" placeholder="https://practo.com/..." class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Exercise Chart App URL</label><input type="url" id="doc-chart" placeholder="https://..." class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea id="doc-bio" rows="4" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
+                            </div>
+                        </div>
+
+                        <!-- Form: SERVICE -->
+                        <div id="form-service" class="hidden space-y-5">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Banner Image</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('srv-photo-upload').click()">
+                                    <img id="srv-photo-preview" class="hidden w-full h-full object-cover" />
+                                    <div id="srv-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="srv-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'srvBannerUrl', 'srv-photo-preview', 'srv-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Title</label><input type="text" id="srv-title" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" id="srv-icon" placeholder="⚕️" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea id="srv-desc" rows="3" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
+                                <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                                    <label class="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i class="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
+                                    <p class="text-[9px] text-green-600 mb-2 leading-tight">Default message. Use tag: {service_title}</p>
+                                    <textarea id="srv-wa" rows="2" placeholder="Hello, I need consultation for {service_title}..." class="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form: PRODUCT -->
+                        <div id="form-product" class="hidden space-y-5">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Photo</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('prd-photo-upload').click()">
+                                    <img id="prd-photo-preview" class="hidden w-full h-full object-cover" />
+                                    <div id="prd-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="prd-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'prdPhotoUrl', 'prd-photo-preview', 'prd-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" id="prd-name" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" id="prd-price" placeholder="₹500" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea id="prd-desc" rows="3" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
+                                <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                                    <label class="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i class="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
+                                    <p class="text-[9px] text-green-600 mb-2 leading-tight">Use tags: {product_name}, {price}</p>
+                                    <textarea id="prd-wa" rows="2" placeholder="Hello, I want to buy {product_name} at {price}..." class="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form: EXERCISE -->
+                        <div id="form-exercise" class="hidden space-y-5">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Illustration / Image</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('exe-photo-upload').click()">
+                                    <img id="exe-photo-preview" class="hidden w-full h-full object-contain p-1" />
+                                    <div id="exe-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="exe-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'exeImageUrl', 'exe-photo-preview', 'exe-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" id="exe-name" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" id="exe-tags" placeholder="knee, stretch" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Video Link</label><input type="url" id="exe-video" placeholder="YouTube URL" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Rich Description</label>
+                                        <span class="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to link!</span>
+                                    </div>
+                                    <div class="mobile-edge-quill w-full bg-white"><div id="quill-exercise"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form: ARTICLE -->
+                        <div id="form-article" class="hidden space-y-5">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Cover Image</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-full h-32" onclick="document.getElementById('art-photo-upload').click()">
+                                    <img id="art-photo-preview" class="hidden w-full h-full object-cover" />
+                                    <div id="art-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="art-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'artImageUrl', 'art-photo-preview', 'art-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+                                    <input type="text" id="art-title" oninput="if(!currentFormData.id) document.getElementById('art-slug').value = slugify(this.value);" class="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Slug</label>
+                                    <input type="text" id="art-slug" class="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded outline-none" />
+                                </div>
+                                <div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Article Body</label>
+                                        <span class="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to link!</span>
+                                    </div>
+                                    <div class="mobile-edge-quill w-full bg-white"><div id="quill-article"></div></div>
+                                </div>
+                                
+                                <div class="pt-4 mt-4 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2"><i class="ph-bold ph-first-aid text-azure"></i> Link Related Services</label>
+                                        <div id="art-services-list" class="h-32 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-white space-y-1"></div>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2"><i class="ph-bold ph-shopping-bag text-azure"></i> Link Related Products</label>
+                                        <div id="art-products-list" class="h-32 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-white space-y-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form: CLINIC INFO -->
+                        <div id="form-clinicInfo" class="hidden space-y-5">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Clinic Logo</label>
+                                <div class="relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer w-20 h-20" onclick="document.getElementById('cln-photo-upload').click()">
+                                    <img id="cln-photo-preview" class="hidden w-full h-full object-contain p-1" />
+                                    <div id="cln-photo-icon" class="flex flex-col items-center text-slate-400"><i class="ph-bold ph-image text-xl mb-1"></i><span class="text-[10px] font-bold">Upload</span></div>
+                                    <input type="file" id="cln-photo-upload" accept="image/*" onchange="handleImageUpload(event, 'clnLogoUrl', 'cln-photo-preview', 'cln-photo-icon')" class="hidden" />
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Hero Slider Images</label>
+                                <div id="cln-sliders-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                                <p class="text-[10px] text-slate-400 mt-2 italic">Images will slide automatically every 3.5 seconds on the home page.</p>
+                                <input type="file" id="cln-slider-upload" accept="image/*" onchange="addSliderImage(event)" class="hidden" />
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</label><input type="text" id="cln-name" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Primary WhatsApp Number</label><input type="text" id="cln-wa" placeholder="+919876543210" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="bg-green-50 p-3 rounded-lg border border-green-100 mt-4">
+                                    <label class="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i class="ph-bold ph-whatsapp-logo"></i> Global Default WhatsApp Message</label>
+                                    <p class="text-[9px] text-green-600 mb-2 leading-tight">Fallback message used when clicking general contact buttons.</p>
+                                    <textarea id="cln-wa-msg" rows="2" placeholder="Hello, I want to book a general consultation..." class="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- PURE VANILLA JAVASCRIPT ENGINE -->
+    <script>
+        // --- FIREBASE SETUP ---
         const siteConfig = {
             apiKey: "AIzaSyAuk3feAZjoHF2VwdWtA0F4lhQKarU0w-4", 
-            authDomain: "clinic-bdf92.firebaseapp.com",
             databaseURL: "https://clinic-bdf92-default-rtdb.firebaseio.com", 
             projectId: "clinic-bdf92"
         };
+        const appSite = firebase.initializeApp(siteConfig);
+        const auth = appSite.auth();
+        const dbSite = appSite.database();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-        const appSite = initializeApp(siteConfig);
-        const auth = getAuth(appSite);
-        const dbSite = getDatabase(appSite);
-        const googleProvider = new GoogleAuthProvider();
+        // --- GLOBAL STATE ---
+        let siteData = { hero: {}, doctors: [], services: [], products: [], articles: [], exercises: [] };
+        let currentUser = null;
+        let activeHash = '#/overview';
+        let activeCategory = '';
+        
+        // Form State
+        let currentFormData = {};
+        let formType = null;
+        let qArticle, qExercise;
 
-        const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        // --- HELPERS ---
+        const slugify = (text) => text ? text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
 
-        // --- CLOUDINARY UPLOAD HELPER ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                t.classList.remove('opacity-100', 'translate-y-0');
+                t.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+
         const uploadToCloudinary = async (file, type = 'image') => {
             const formData = new FormData(); 
             formData.append('file', file); 
@@ -118,779 +455,546 @@
             return null;
         };
 
+        // --- UI TOGGLES ---
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sb.classList.contains('-translate-x-full')) {
+                sb.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden', 'opacity-0');
+                setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            } else {
+                sb.classList.add('-translate-x-full');
+                overlay.classList.remove('opacity-100');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
 
-        // --- COMPONENT: QUILL EDITOR WITH MOBILE TOUCH PATCHES ---
-        function QuillEditor({ value, onChange, placeholder }) {
-            const editorRef = useRef(null);
-            const quillInstance = useRef(null);
+        function switchView(viewId) {
+            document.getElementById('view-loading').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
 
-            useEffect(() => {
-                if (!quillInstance.current && editorRef.current) {
-                    quillInstance.current = new Quill(editorRef.current, {
-                        theme: 'snow',
-                        placeholder: placeholder || 'Write content here...',
-                        modules: {
-                            imageResize: {
-                                displaySize: true, 
-                                modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
-                            },
-                            toolbar: {
-                                container: [
-                                    [{ 'header': [2, 3, false] }],
-                                    ['bold', 'italic', 'underline', 'strike'],
-                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                    ['link', 'image', 'video'],
-                                    ['clean']
-                                ],
-                                handlers: {
-                                    image: function() {
-                                        const input = document.createElement('input');
-                                        input.setAttribute('type', 'file');
-                                        input.setAttribute('accept', 'image/*');
-                                        input.click();
-                                        input.onchange = async () => {
-                                            const file = input.files[0];
-                                            if (file) {
-                                                const range = this.quill.getSelection(true);
-                                                this.quill.insertText(range.index, 'Uploading image...', 'user');
-                                                const url = await uploadToCloudinary(file);
-                                                this.quill.deleteText(range.index, 18); 
-                                                if (url) {
-                                                    this.quill.insertEmbed(range.index, 'image', url);
-                                                }
-                                            }
-                                        };
-                                    }
-                                }
-                            }
-                        }
-                    });
+        // --- AUTH & DATA FETCHING ---
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                fetchData();
+            } else {
+                currentUser = null;
+                switchView('view-login');
+            }
+        });
 
-                    if (value) quillInstance.current.root.innerHTML = value;
+        function handleLogin() { auth.signInWithPopup(googleProvider).catch(e => alert("Login Failed")); }
+        function handleLogout() { auth.signOut(); }
 
-                    quillInstance.current.on('text-change', () => {
-                        onChange(quillInstance.current.root.innerHTML);
-                    });
-
-                    // --- MOBILE PATCH IMPLEMENTATION ---
-                    const editorRoot = quillInstance.current.container.parentElement;
-                    
-                    // 1. Touch Polyfill for Resize Handles
-                    const handleTouch = (e) => {
-                        if (e.target && e.target.style && e.target.style.cursor && e.target.style.cursor.includes('resize')) {
-                            const touch = e.changedTouches[0];
-                            const type = e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup';
-                            const mouseEvent = new MouseEvent(type, {
-                                bubbles: true, cancelable: true, view: window,
-                                clientX: touch.clientX, clientY: touch.clientY,
-                                screenX: touch.screenX, screenY: touch.screenY
-                            });
-                            e.target.dispatchEvent(mouseEvent);
-                            // Prevent scrolling while dragging the handle
-                            if (e.type === 'touchmove') e.preventDefault(); 
-                        }
+        function fetchData() {
+            dbSite.ref('site').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    siteData = {
+                        hero: data.hero || {},
+                        doctors: Array.isArray(data.doctors) ? data.doctors.filter(Boolean) : Object.values(data.doctors || {}).filter(Boolean),
+                        services: Array.isArray(data.services) ? data.services.filter(Boolean) : Object.values(data.services || {}).filter(Boolean),
+                        products: Array.isArray(data.products) ? data.products.filter(Boolean) : Object.values(data.products || {}).filter(Boolean),
+                        articles: Array.isArray(data.articles) ? data.articles.filter(Boolean) : Object.values(data.articles || {}).filter(Boolean),
+                        exercises: Array.isArray(data.exercises) ? data.exercises.filter(Boolean) : Object.values(data.exercises || {}).filter(Boolean)
                     };
-
-                    editorRoot.addEventListener('touchstart', handleTouch, { passive: false });
-                    editorRoot.addEventListener('touchmove', handleTouch, { passive: false });
-                    editorRoot.addEventListener('touchend', handleTouch, { passive: false });
-
-                    // 2. Double-Tap / Double-Click to Link Image Function
-                    const promptImageLink = (imgNode) => {
-                        const parent = imgNode.closest('a');
-                        const currentLink = parent ? parent.href : '';
-                        const newLink = prompt("🔗 Enter URL to make this image clickable\n(Leave blank to remove existing link):", currentLink);
-                        
-                        if (newLink !== null) {
-                            const blot = Quill.find(imgNode);
-                            if (blot) {
-                                const index = quillInstance.current.getIndex(blot);
-                                quillInstance.current.setSelection(index, 1);
-                                if (newLink.trim()) {
-                                    quillInstance.current.format('link', newLink.trim());
-                                } else {
-                                    quillInstance.current.format('link', false); // removes link
-                                }
-                            }
-                        }
-                    };
-
-                    // Double-tap detector for mobile
-                    let lastTap = 0;
-                    const handleDoubleTap = (e) => {
-                        if(e.target.tagName === 'IMG') {
-                            const now = new Date().getTime();
-                            if(now - lastTap < 400 && now - lastTap > 0) {
-                                promptImageLink(e.target);
-                                e.preventDefault(); // Stop zoom
-                            }
-                            lastTap = now;
-                        }
-                    };
-
-                    // Double-click detector for desktop
-                    const handleDblClick = (e) => {
-                        if(e.target.tagName === 'IMG') {
-                            promptImageLink(e.target);
-                        }
-                    };
-
-                    editorRoot.addEventListener('touchend', handleDoubleTap, { passive: false });
-                    editorRoot.addEventListener('dblclick', handleDblClick);
+                    renderRoute();
                 }
-            // eslint-disable-next-line
-            }, []);
-
-            return <div className="mobile-edge-quill w-full bg-white"><div ref={editorRef}></div></div>;
+            });
         }
 
-        // --- COMPONENT: MULTIPLE IMAGE SLIDER MANAGER ---
-        function MultiImageManager({ images = [], onChange, label }) {
-            const [isUploading, setIsUploading] = useState(false);
-
-            const handleUpload = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                setIsUploading(true);
-                const url = await uploadToCloudinary(file, 'image');
-                if (url) {
-                    onChange([...images, url]);
-                }
-                setIsUploading(false);
-                e.target.value = ''; 
-            };
-
-            const removeImage = (idx) => {
-                const newImages = [...images];
-                newImages.splice(idx, 1);
-                onChange(newImages);
-            };
-
-            return (
-                <div className="w-full">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">{label}</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {images.map((url, idx) => (
-                            <div key={idx} className="relative aspect-[16/9] rounded-lg border border-slate-200 overflow-hidden group bg-slate-50 shadow-sm">
-                                <img src={url} className="w-full h-full object-cover" />
-                                <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-white text-red-500 w-7 h-7 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50" title="Remove Image">
-                                    <i className="ph-bold ph-trash text-sm"></i>
-                                </button>
-                                <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">Slide {idx + 1}</div>
-                            </div>
-                        ))}
-                        
-                        <div className="relative aspect-[16/9] rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center hover:bg-slate-100 transition cursor-pointer">
-                            {isUploading ? (
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="w-5 h-5 border-2 border-slate-200 border-t-azure rounded-full animate-spin"></div>
-                                    <span className="text-[9px] font-bold text-slate-500">Uploading...</span>
-                                </div>
-                            ) : (
-                                <>
-                                    <i className="ph-bold ph-plus text-2xl text-slate-400 mb-1"></i>
-                                    <span className="text-[10px] font-bold text-slate-500">Add Slide Image</span>
-                                </>
-                            )}
-                            <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={isUploading} />
-                        </div>
-                    </div>
-                    <p className="text-[10px] text-slate-400 mt-2 italic">Images will slide automatically every 3.5 seconds on the home page.</p>
-                </div>
-            );
-        }
-
-        // --- COMPONENT: SINGLE IMAGE UPLOADER ---
-        function ImageUploader({ url, onUploadComplete, label, isIcon = false }) {
-            const [isUploading, setIsUploading] = useState(false);
-            const handleUpload = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                setIsUploading(true);
-                const finalUrl = await uploadToCloudinary(file);
-                if (finalUrl) onUploadComplete(finalUrl);
-                setIsUploading(false);
-            };
-
-            return (
-                <div className="w-full">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">{label}</label>
-                    <div className={`relative border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-slate-100 transition cursor-pointer ${isIcon ? 'w-20 h-20' : 'w-full h-32'}`}>
-                        {isUploading ? (
-                            <div className="flex flex-col items-center"><div className="w-5 h-5 border-2 border-slate-200 border-t-azure rounded-full animate-spin"></div></div>
-                        ) : url ? (
-                            <>
-                                <img src={url} alt="Preview" className="w-full h-full object-contain p-1" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center">
-                                    <span className="text-white text-[10px] font-bold bg-black/50 px-2 py-1 rounded">Change</span>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center text-slate-400">
-                                <i className="ph-bold ph-image text-xl mb-1"></i>
-                                <span className="text-[10px] font-bold">Upload</span>
-                            </div>
-                        )}
-                        <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                    </div>
-                </div>
-            );
-        }
-
-        // --- MAIN ADMIN APP ---
-        function AdminApp() {
-            const [user, setUser] = useState(null);
-            const [isConnecting, setIsConnecting] = useState(true);
-            const [activeHash, setActiveHash] = useState(window.location.hash || '#/overview');
-            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+        // --- ROUTING ---
+        function handleHashChange() {
+            activeHash = window.location.hash || '#/overview';
+            closeForm(); // Resets to base panel
             
-            // Single Database State
-            const [siteData, setSiteData] = useState({ hero: {}, doctors: [], services: [], products: [], articles: [], exercises: [] });
-
-            // Form States
-            const [editingItem, setEditingItem] = useState(null); 
-            const [formType, setFormType] = useState(null); 
-            const [searchQuery, setSearchQuery] = useState("");
-
-            // Toast
-            const [toast, setToast] = useState({ show: false, msg: '' });
-            const showToast = (msg) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: '' }), 3000); };
-
-            // Handle Hash Routing
-            useEffect(() => {
-                const handleHashChange = () => {
-                    const hash = window.location.hash || '#/overview';
-                    setActiveHash(hash);
-                    setEditingItem(null); 
-                    setSearchQuery("");
-                    setIsSidebarOpen(false);
-                };
-                window.addEventListener('hashchange', handleHashChange);
-                return () => window.removeEventListener('hashchange', handleHashChange);
-            }, []);
-
-            // Auth Listener
-            useEffect(() => {
-                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                    setUser(currentUser);
-                    setIsConnecting(false);
-                });
-                return () => unsubscribe();
-            }, []);
-
-            // Single Data Fetcher
-            useEffect(() => {
-                if (!user) return;
-                const unsubSite = onValue(ref(dbSite, 'site'), (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        setSiteData({
-                            hero: data.hero || {},
-                            doctors: data.doctors || [],
-                            services: data.services || [],
-                            products: data.products || [],
-                            articles: data.articles || [],
-                            exercises: data.exercises || [] 
-                        });
-                    }
-                });
-                return () => unsubSite();
-            }, [user]);
-
-            const handleLogin = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Login failed"); } };
-            const handleLogout = async () => { try { await signOut(auth); } catch (e) {} };
-
-            // --- DATA SAVING LOGIC ---
-            const saveSiteData = async (node, data) => {
-                try { 
-                    const cleanData = JSON.parse(JSON.stringify(data, (k, v) => v === undefined ? null : v));
-                    
-                    if(Array.isArray(cleanData)) {
-                        cleanData.forEach(item => {
-                            if(typeof item === 'object') {
-                                Object.keys(item).forEach(key => { if(item[key] === null) delete item[key]; });
-                            }
-                        });
-                    } else if (typeof cleanData === 'object' && cleanData !== null) {
-                        Object.keys(cleanData).forEach(key => { if(cleanData[key] === null) delete cleanData[key]; });
-                    }
-
-                    await set(ref(dbSite, `site/${node}`), cleanData); 
-                    showToast('Saved Successfully!'); 
-                    setEditingItem(null); 
-                } 
-                catch (e) { 
-                    console.error(e);
-                    alert(`Error saving ${node}: ${e.message}`); 
+            // Highlight nav
+            document.querySelectorAll('.nav-link').forEach(el => {
+                if(el.getAttribute('href') === activeHash) {
+                    el.classList.add('bg-ice', 'text-azure');
+                    el.classList.remove('text-slate-600', 'hover:bg-slate-50');
+                    el.querySelector('i').classList.replace('text-slate-400', 'text-azure');
+                } else {
+                    el.classList.remove('bg-ice', 'text-azure');
+                    el.classList.add('text-slate-600', 'hover:bg-slate-50');
+                    el.querySelector('i').classList.replace('text-azure', 'text-slate-400');
                 }
-            };
+            });
+            
+            renderRoute();
+            if(window.innerWidth < 1024) toggleSidebar();
+        }
+        window.addEventListener('hashchange', handleHashChange);
 
-            const saveListItem = (node, arr, item) => {
-                const newArr = [...arr];
-                if (!item.id) { 
-                    item.id = Date.now().toString(); 
-                    newArr.push(item); 
-                } else { 
-                    const idx = newArr.findIndex(x => x.id === item.id); 
-                    if(idx > -1) newArr[idx] = item; 
-                    else newArr.push(item);
+        function renderRoute() {
+            if(!currentUser) return;
+            switchView('view-dashboard');
+            
+            document.getElementById('panel-overview').classList.add('hidden');
+            document.getElementById('panel-clinic').classList.add('hidden');
+            document.getElementById('panel-list').classList.add('hidden');
+
+            if (activeHash === '#/overview') {
+                document.getElementById('stat-exercises').innerText = siteData.exercises.length;
+                document.getElementById('stat-doctors').innerText = siteData.doctors.length;
+                document.getElementById('stat-products').innerText = siteData.products.length;
+                document.getElementById('stat-articles').innerText = siteData.articles.length;
+                document.getElementById('panel-overview').classList.remove('hidden');
+            } 
+            else if (activeHash === '#/clinic') {
+                document.getElementById('view-clinic-logo').src = siteData.hero.logoUrl || '/favicon.png';
+                document.getElementById('view-clinic-name').innerText = siteData.hero.clinicName || 'Not Set';
+                document.getElementById('view-clinic-wa').innerText = siteData.hero.whatsappNumber || 'Not Set';
+                
+                const sliders = siteData.hero.sliderImages || (siteData.hero.bannerImageUrl ? [siteData.hero.bannerImageUrl] : []);
+                document.getElementById('view-clinic-sliders').innerHTML = sliders.filter(Boolean).map(img => `<img src="${img}" class="w-full aspect-[16/9] object-cover rounded-lg border border-slate-200" />`).join('');
+                document.getElementById('panel-clinic').classList.remove('hidden');
+            }
+            else {
+                activeCategory = activeHash.replace('#/', '');
+                // Singularize category for formType mapping
+                const catMap = { 'doctors': 'doctor', 'services': 'service', 'products': 'product', 'articles': 'article', 'exercises': 'exercise' };
+                if (catMap[activeCategory]) {
+                    document.getElementById('list-title').innerText = activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+                    document.getElementById('panel-list').classList.remove('hidden');
+                    document.getElementById('list-search').value = '';
+                    renderActiveList();
                 }
-                saveSiteData(node, newArr);
-            };
+            }
+        }
 
-            const deleteSiteItem = async (node, arr, id) => {
-                if(confirm("Are you sure you want to delete this?")) {
-                    saveSiteData(node, arr.filter(item => item.id !== id));
-                }
-            };
+        // --- LIST RENDERER ---
+        function renderActiveList() {
+            const query = document.getElementById('list-search').value.toLowerCase();
+            const container = document.getElementById('list-container');
+            const dataArr = siteData[activeCategory] || [];
+            
+            const filtered = dataArr.filter(item => {
+                const searchStr = (item.name || item.title || "").toLowerCase();
+                return searchStr.includes(query);
+            });
 
-            if (isConnecting) return null;
-
-            if (!user) {
-                return (
-                    <div className="min-h-screen bg-appbg flex flex-col items-center justify-center p-4">
-                        <div className="max-w-sm w-full bg-surface rounded-2xl shadow-soft border border-slate-200 p-8 text-center">
-                            <i className="ph-bold ph-shield-check text-5xl text-azure mb-3"></i>
-                            <h1 className="text-2xl font-bold text-navy mb-6">Admin Login</h1>
-                            <button onClick={handleLogin} className="w-full flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                                Continue with Google
-                            </button>
-                        </div>
-                    </div>
-                );
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm font-medium">No items found.</div>`;
+                return;
             }
 
-            const navItems = [
-                { id: '#/overview', icon: 'ph-squares-four', label: 'Overview' },
-                { id: '#/clinic', icon: 'ph-buildings', label: 'Website Details' },
-                { id: '#/doctors', icon: 'ph-stethoscope', label: 'Doctors' },
-                { id: '#/services', icon: 'ph-first-aid', label: 'Services' },
-                { id: '#/products', icon: 'ph-shopping-bag', label: 'Products' },
-                { id: '#/articles', icon: 'ph-article', label: 'Articles' },
-                { id: '#/exercises', icon: 'ph-person-simple-walk', label: 'Exercises' },
-            ];
-
-            const renderSidebar = () => (
-                <>
-                    <div className={`fixed inset-0 bg-navy/40 backdrop-blur-sm z-40 lg:hidden transition-opacity ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} onClick={() => setIsSidebarOpen(false)}></div>
-                    <aside className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-                        <div className="h-16 border-b border-slate-200 flex items-center px-6 shrink-0">
-                            <h2 className="text-navy font-black text-lg flex items-center gap-2"><i className="ph-fill ph-shield-check text-azure text-2xl"></i> Admin Hub</h2>
-                        </div>
-                        <div className="flex-1 overflow-y-auto py-4">
-                            <nav className="space-y-1 px-3">
-                                {navItems.map(item => (
-                                    <a key={item.id} href={item.id} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${activeHash === item.id ? 'bg-ice text-azure' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                        <i className={`ph-bold ${item.icon} text-lg ${activeHash === item.id ? 'text-azure' : 'text-slate-400'}`}></i> {item.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                        <div className="p-4 border-t border-slate-200">
-                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-600 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-200 transition"><i className="ph-bold ph-sign-out"></i> Logout</button>
-                        </div>
-                    </aside>
-                </>
-            );
-
-            const renderInboxList = (title, data, renderRow, onAdd) => {
-                const filteredData = data.filter(item => (item.name || item.title || "").toLowerCase().includes(searchQuery.toLowerCase()));
-                return (
-                    <div className="animate-in fade-in flex flex-col h-full">
-                        <div className="flex justify-between items-center mb-4 px-1">
-                            <h2 className="text-xl font-black text-navy">{title}</h2>
-                            <button onClick={onAdd} className="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy transition flex items-center gap-1"><i className="ph-bold ph-plus"></i> Add New</button>
-                        </div>
-                        
-                        <div className="bg-white rounded-xl shadow-soft border border-slate-200 overflow-hidden flex flex-col">
-                            <div className="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
-                                <div className="relative">
-                                    <i className="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                                    <input type="text" placeholder={`Search ${title.toLowerCase()}...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border border-slate-200 rounded-md py-2 pl-9 pr-4 outline-none focus:border-azure text-sm" />
-                                </div>
-                            </div>
-                            
-                            <div className="overflow-y-auto">
-                                {filteredData.length === 0 ? (
-                                    <div className="text-center py-10 text-slate-400 text-sm font-medium">No items found.</div>
-                                ) : (
-                                    <div className="flex flex-col">
-                                        {[...filteredData].reverse().map(item => renderRow(item))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            const RowItem = ({ img, fallback, title, subtitle, onEdit, onDelete }) => (
-                <div className="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onClick={onEdit}>
-                    <div className="w-10 h-10 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                        {img ? <img src={img} className="w-full h-full object-cover" /> : <span className="text-lg">{fallback}</span>}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-slate-800 truncate leading-tight">{title}</h4>
-                        <p className="text-xs text-slate-500 truncate mt-0.5">{subtitle}</p>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0 pl-2">
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 text-slate-300 hover:text-red-500 rounded"><i className="ph-bold ph-trash"></i></button>
-                    </div>
-                </div>
-            );
-
-            // --- ISOLATED EDIT FORM WRAPPER ---
-            const IsolatedForm = ({ item, title, type, siteData, onSave, onCancel }) => {
-                const [localData, setLocalData] = useState(item || {});
+            let html = '';
+            // Render in reverse to show newest first (conceptually)
+            [...filtered].reverse().forEach(item => {
+                let title = item.name || item.title || 'Untitled';
+                let subtitle = '';
+                let img = '';
+                let fallback = '📝';
                 
-                useEffect(() => { setLocalData(item || {}); }, [item]);
+                if(activeCategory === 'doctors') { subtitle = item.qualification||''; img = item.photoUrl; fallback = '👨‍⚕️'; }
+                else if(activeCategory === 'services') { subtitle = item.description||''; img = item.bannerImageUrl; fallback = item.icon||'⚕️'; }
+                else if(activeCategory === 'products') { subtitle = item.price||''; img = item.profilePhoto; fallback = '📦'; }
+                else if(activeCategory === 'articles') { subtitle = `/${item.slug||''}`; img = item.imageUrl; fallback = '📄'; }
+                else if(activeCategory === 'exercises') { subtitle = item.tags ? (Array.isArray(item.tags)?item.tags.join(', '):item.tags) : ''; img = item.imageUrl; fallback = '🏃'; }
 
-                const updateField = (f, v) => setLocalData(prev => ({ ...prev, [f]: v }));
-                
-                // Helper functions for dynamic pricing options array
-                const handleAddPricing = () => {
-                    const newPricing = [...(localData.pricingOptions || []), { id: Date.now().toString(), title: '', price: '', buttonText: 'Book Now' }];
-                    updateField('pricingOptions', newPricing);
-                };
-                
-                const handleRemovePricing = (id) => {
-                    updateField('pricingOptions', (localData.pricingOptions || []).filter(p => p.id !== id));
-                };
-                
-                const handleUpdatePricing = (id, field, value) => {
-                    updateField('pricingOptions', (localData.pricingOptions || []).map(p => p.id === id ? { ...p, [field]: value } : p));
-                };
-
-                const handleSave = () => {
-                    if (type === 'article' && !localData.title) return alert("Title required");
-                    if (type === 'article' && !localData.slug) localData.slug = slugify(localData.title);
-                    
-                    const dataToSave = { ...localData };
-                    
-                    if (type === 'exercise') {
-                        dataToSave.tags = typeof dataToSave.tags === 'string' 
-                            ? dataToSave.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) 
-                            : (dataToSave.tags || []);
-                    }
-                    onSave(dataToSave);
-                };
-
-                return (
-                    <div className="bg-white form-edge rounded-xl shadow-soft border border-slate-200 flex flex-col h-[calc(100vh-80px)] sm:h-[calc(100vh-100px)] animate-in slide-in-from-right-4 relative z-20">
-                        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-                            <h2 className="text-base font-black text-navy flex items-center gap-2"><button onClick={onCancel} className="text-slate-400 hover:text-navy mr-1"><i className="ph-bold ph-arrow-left"></i></button> {title}</h2>
-                            <button onClick={handleSave} className="bg-azure text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-navy">Save</button>
+                html += `
+                    <div class="flex items-center gap-3 p-3 border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onclick="openForm('${activeCategory.slice(0, -1)}', '${item.id}')">
+                        <div class="w-10 h-10 rounded-full shrink-0 bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                            ${img ? `<img src="${img}" class="w-full h-full object-cover" />` : `<span class="text-lg">${fallback}</span>`}
                         </div>
-                        
-                        <div className="flex-1 overflow-y-auto p-4 field-pad bg-slate-50/30 space-y-5">
-                            
-                            {type === 'doctor' && (
-                                <>
-                                    <ImageUploader label="Profile Photo" url={localData.photoUrl} onUploadComplete={(url) => updateField('photoUrl', url)} isIcon={true} />
-                                    <div className="space-y-3">
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Full Name (Print Format, e.g. Dr. John Doe (PT))</label><input type="text" value={localData.name||''} onChange={e=>updateField('name', e.target.value)} placeholder="Dr. Arpan Das (PT)" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Login Gmail</label><input type="email" value={localData.gmail||''} onChange={e=>updateField('gmail', e.target.value)} placeholder="doctor@gmail.com" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Contact Number</label><input type="text" value={localData.phone||''} onChange={e=>updateField('phone', e.target.value)} placeholder="9876543210" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        </div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" value={localData.qualification||''} onChange={e=>updateField('qualification', e.target.value)} placeholder="BPT (KPC Medical College...)" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Designation</label><input type="text" value={localData.designation||''} onChange={e=>updateField('designation', e.target.value)} placeholder="Orthopaedic Surgeon" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Registration No.</label><input type="text" value={localData.regNumber||''} onChange={e=>updateField('regNumber', e.target.value)} placeholder="Reg. No 202105633" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        </div>
-                                        
-                                        {/* NEW: Dynamic Booking Options Array */}
-                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i className="ph-bold ph-list-plus text-azure"></i> Custom Booking Options & Fees</label>
-                                                <button onClick={handleAddPricing} className="text-[10px] font-bold bg-azure text-white px-2 py-1 rounded shadow-sm hover:bg-navy">Add Option</button>
-                                            </div>
-                                            
-                                            {(localData.pricingOptions || []).map((opt) => (
-                                                <div key={opt.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2 p-2 bg-white border border-slate-200 rounded-md relative shadow-sm">
-                                                    <div>
-                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Title</label>
-                                                        <input type="text" placeholder="e.g. Diet Chart" value={opt.title} onChange={e => handleUpdatePricing(opt.id, 'title', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Price</label>
-                                                        <input type="text" placeholder="e.g. ₹300" value={opt.price} onChange={e => handleUpdatePricing(opt.id, 'price', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Button Text</label>
-                                                        <input type="text" placeholder="e.g. Get Diet Chart" value={opt.buttonText} onChange={e => handleUpdatePricing(opt.id, 'buttonText', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" />
-                                                    </div>
-                                                    <button onClick={() => handleRemovePricing(opt.id)} className="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-200 rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-sm hover:bg-red-500 hover:text-white transition"><i className="ph-bold ph-x"></i></button>
-                                                </div>
-                                            ))}
-                                            {(localData.pricingOptions || []).length === 0 && (
-                                                <div className="text-center py-4 text-xs text-slate-400 italic">No custom pricing added. System will use default layout.</div>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-3 mt-2">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Online Booking Portal URL</label><input type="url" value={localData.onlineBookingUrl||''} onChange={e=>updateField('onlineBookingUrl', e.target.value)} placeholder="https://practo.com/..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Exercise Chart App URL</label><input type="url" value={localData.exerciseChartUrl||''} onChange={e=>updateField('exerciseChartUrl', e.target.value)} placeholder="https://..." className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        </div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Biography</label><textarea rows="5" value={localData.details||''} onChange={e=>updateField('details', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                    </div>
-                                </>
-                            )}
-
-                            {type === 'service' && (
-                                <>
-                                    <ImageUploader label="Banner Image" url={localData.bannerImageUrl} onUploadComplete={(url) => updateField('bannerImageUrl', url)} />
-                                    <div className="space-y-3">
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Title</label><input type="text" value={localData.title||''} onChange={e=>updateField('title', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" value={localData.icon||''} onChange={e=>updateField('icon', e.target.value)} placeholder="⚕️" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="2" value={localData.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                                            <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Default message. Use tag: {"{service_title}"}</p>
-                                            <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I need consultation for {service_title}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {type === 'product' && (
-                                <>
-                                    <ImageUploader label="Product Photo" url={localData.profilePhoto} onUploadComplete={(url) => updateField('profilePhoto', url)} isIcon={true} />
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" value={localData.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" value={localData.price||''} onChange={e=>updateField('price', e.target.value)} placeholder="₹500" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        </div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea rows="3" value={localData.description||''} onChange={e=>updateField('description', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                                            <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Use tags: {"{product_name}"}, {"{price}"}</p>
-                                            <textarea rows="2" value={localData.waMessage||''} onChange={e=>updateField('waMessage', e.target.value)} placeholder="Hello, I want to buy {product_name} at {price}..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {type === 'exercise' && (
-                                <>
-                                    <ImageUploader label="Illustration" url={localData.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
-                                    <div className="space-y-3">
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" value={localData.name||''} onChange={e=>updateField('name', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" value={Array.isArray(localData.tags)?localData.tags.join(', '):(localData.tags||'')} onChange={e=>updateField('tags', e.target.value)} placeholder="knee, stretch" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Video Link</label><input type="url" value={localData.videoUrl||''} onChange={e=>updateField('videoUrl', e.target.value)} placeholder="YouTube URL" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div>
-                                            <div className="flex justify-between items-end mb-1">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Rich Description</label>
-                                                <span className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to add links!</span>
-                                            </div>
-                                            <QuillEditor value={localData.description||''} onChange={val => updateField('description', val)} placeholder="Detailed exercise instructions..." />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {type === 'article' && (
-                                <>
-                                    <ImageUploader label="Cover Image" url={localData.imageUrl} onUploadComplete={(url) => updateField('imageUrl', url)} />
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Title</label>
-                                            <input type="text" value={localData.title||''} onChange={e=>{ updateField('title', e.target.value); if(!localData.id) updateField('slug', slugify(e.target.value)); }} className="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Slug</label>
-                                            <input type="text" value={localData.slug||''} onChange={e=>updateField('slug', e.target.value)} className="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded outline-none" />
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between items-end mb-1">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Article Body</label>
-                                                <span className="text-[9px] text-azure font-bold bg-blue-50 px-2 py-0.5 rounded-full">Tip: Double-tap images to add links!</span>
-                                            </div>
-                                            <QuillEditor value={localData.content||''} onChange={val => updateField('content', val)} placeholder="Write your health article here..." />
-                                        </div>
-
-                                        {/* THE NEW CHECKLISTS FOR ARTICLES */}
-                                        <div className="pt-4 mt-4 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2"><i className="ph-bold ph-first-aid text-azure"></i> Link Related Services</label>
-                                                <div className="h-32 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-white space-y-1">
-                                                    {(siteData.services || []).map(s => (
-                                                        <label key={s.id} className="flex items-center gap-2 text-sm p-1.5 hover:bg-slate-50 rounded cursor-pointer transition">
-                                                            <input type="checkbox"
-                                                                checked={(localData.linkedServices || []).includes(s.id)}
-                                                                onChange={(e) => {
-                                                                    const newArr = e.target.checked
-                                                                        ? [...(localData.linkedServices || []), s.id]
-                                                                        : (localData.linkedServices || []).filter(id => id !== s.id);
-                                                                    updateField('linkedServices', newArr);
-                                                                }}
-                                                                className="accent-azure w-4 h-4"
-                                                            />
-                                                            <span className="text-slate-700 truncate">{s.title}</span>
-                                                        </label>
-                                                    ))}
-                                                    {(siteData.services || []).length === 0 && <span className="text-xs text-slate-400 p-1">No services created yet.</span>}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2"><i className="ph-bold ph-shopping-bag text-azure"></i> Link Related Products</label>
-                                                <div className="h-32 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-white space-y-1">
-                                                    {(siteData.products || []).map(p => (
-                                                        <label key={p.id} className="flex items-center gap-2 text-sm p-1.5 hover:bg-slate-50 rounded cursor-pointer transition">
-                                                            <input type="checkbox"
-                                                                checked={(localData.linkedProducts || []).includes(p.id)}
-                                                                onChange={(e) => {
-                                                                    const newArr = e.target.checked
-                                                                        ? [...(localData.linkedProducts || []), p.id]
-                                                                        : (localData.linkedProducts || []).filter(id => id !== p.id);
-                                                                    updateField('linkedProducts', newArr);
-                                                                }}
-                                                                className="accent-azure w-4 h-4"
-                                                            />
-                                                            <span className="text-slate-700 truncate">{p.name}</span>
-                                                        </label>
-                                                    ))}
-                                                    {(siteData.products || []).length === 0 && <span className="text-xs text-slate-400 p-1">No products created yet.</span>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {type === 'clinicInfo' && (() => {
-                                const currentSliderImages = localData.sliderImages || (localData.bannerImageUrl ? [localData.bannerImageUrl] : []);
-                                
-                                return (
-                                <div className="space-y-5">
-                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
-                                        <ImageUploader label="Clinic Logo" url={localData.logoUrl} onUploadComplete={(url) => updateField('logoUrl', url)} isIcon={true} />
-                                    </div>
-
-                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
-                                        <MultiImageManager 
-                                            label="Hero Slider Images" 
-                                            images={currentSliderImages} 
-                                            onChange={(newImages) => {
-                                                updateField('sliderImages', newImages);
-                                                if (newImages.length > 0) updateField('bannerImageUrl', newImages[0]);
-                                                else updateField('bannerImageUrl', '');
-                                            }} 
-                                        />
-                                    </div>
-
-                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</label><input type="text" value={localData.clinicName||''} onChange={e=>updateField('clinicName', e.target.value)} className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase">Primary WhatsApp Number</label><input type="text" value={localData.whatsappNumber||''} onChange={e=>updateField('whatsappNumber', e.target.value)} placeholder="+919876543210" className="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                        <div className="bg-green-50 p-3 rounded-lg border border-green-100 mt-4">
-                                            <label className="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i className="ph-bold ph-whatsapp-logo"></i> Global Default WhatsApp Message</label>
-                                            <p className="text-[9px] text-green-600 mb-2 leading-tight">Fallback message used when clicking general contact buttons.</p>
-                                            <textarea rows="2" value={localData.waDefaultMessage||''} onChange={e=>updateField('waDefaultMessage', e.target.value)} placeholder="Hello, I want to book a general consultation..." className="w-full p-2 text-sm bg-white border border-green-200 rounded outline-none focus:border-green-500" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )})()}
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-sm text-slate-800 truncate leading-tight">${title}</h4>
+                            <p class="text-xs text-slate-500 truncate mt-0.5">${subtitle}</p>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0 pl-2">
+                            <button onclick="event.stopPropagation(); deleteItem('${activeCategory}', '${item.id}')" class="p-2 text-slate-300 hover:text-red-500 rounded transition"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     </div>
-                );
-            };
-
-            return (
-                <div className="flex h-screen overflow-hidden bg-appbg">
-                    
-                    {/* Toast */}
-                    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-                        <div className="bg-slate-800 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2"><i className="ph-bold ph-check-circle text-emerald-400"></i> {toast.msg}</div>
-                    </div>
-
-                    {renderSidebar()}
-
-                    <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
-                        <header className="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 lg:hidden shrink-0 z-30">
-                            <h1 className="font-black text-navy flex items-center gap-2"><i className="ph-fill ph-shield-check text-azure"></i> Admin Hub</h1>
-                            <button onClick={() => setIsSidebarOpen(true)} className="p-1 text-slate-600"><i className="ph-bold ph-list text-2xl"></i></button>
-                        </header>
-
-                        <main className="flex-1 overflow-y-auto p-3 sm:p-6 relative">
-                            {editingItem ? (
-                                <IsolatedForm 
-                                    item={editingItem} 
-                                    title={editingItem.id ? `Edit Item` : `Create New`} 
-                                    type={formType} 
-                                    siteData={siteData}
-                                    onCancel={() => setEditingItem(null)} 
-                                    onSave={(data) => {
-                                        if(formType === 'doctor') saveListItem('doctors', siteData.doctors, data);
-                                        else if(formType === 'service') saveListItem('services', siteData.services, data);
-                                        else if(formType === 'product') saveListItem('products', siteData.products, data);
-                                        else if(formType === 'article') { if(!data.date) data.date = new Date().toISOString(); saveListItem('articles', siteData.articles, data); }
-                                        else if(formType === 'exercise') saveListItem('exercises', siteData.exercises, data); 
-                                        else if(formType === 'clinicInfo') saveSiteData('hero', data);
-                                    }} 
-                                />
-                            ) : (
-                                <>
-                                    {activeHash === '#/overview' && (
-                                        <div className="animate-in fade-in space-y-4">
-                                            <h2 className="text-xl font-black text-navy mb-4">Overview</h2>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                {[
-                                                    { h: '#/exercises', i: 'ph-person-simple-walk', c: 'text-blue-500', num: siteData.exercises.length, label: 'Exercises' },
-                                                    { h: '#/doctors', i: 'ph-stethoscope', c: 'text-emerald-500', num: siteData.doctors.length, label: 'Doctors' },
-                                                    { h: '#/products', i: 'ph-shopping-bag', c: 'text-purple-500', num: siteData.products.length, label: 'Products' },
-                                                    { h: '#/articles', i: 'ph-article', c: 'text-orange-500', num: siteData.articles.length, label: 'Articles' }
-                                                ].map((stat, idx) => (
-                                                    <a key={idx} href={stat.h} className="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
-                                                        <i className={`ph-fill ${stat.i} text-3xl ${stat.c} mb-1`}></i>
-                                                        <span className="text-2xl font-black text-navy leading-none">{stat.num}</span>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">{stat.label}</span>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {activeHash === '#/clinic' && (
-                                        <div className="animate-in fade-in">
-                                            <div className="flex justify-between items-center mb-4 px-1">
-                                                <h2 className="text-xl font-black text-navy">Website Details</h2>
-                                                <button onClick={() => {setEditingItem(siteData.hero || {}); setFormType('clinicInfo');}} className="bg-azure text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-navy flex items-center gap-1"><i className="ph-bold ph-pencil-simple"></i> Edit Info</button>
-                                            </div>
-                                            <div className="bg-white p-5 rounded-xl shadow-soft border border-slate-200 space-y-4">
-                                                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                                                    <img src={siteData.hero.logoUrl || '/favicon.png'} className="w-12 h-12 rounded bg-slate-50 object-contain p-1 border border-slate-200" /> 
-                                                    <div><p className="text-[10px] font-bold text-slate-400 uppercase">Clinic Name</p><p className="font-bold text-navy">{siteData.hero.clinicName || 'Not Set'}</p></div>
-                                                </div>
-                                                <div><p className="text-[10px] font-bold text-slate-400 uppercase">WhatsApp Number</p><p className="text-sm font-medium text-slate-800">{siteData.hero.whatsappNumber || 'Not Set'}</p></div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Main Banner Slider</p>
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        {(siteData.hero.sliderImages || [siteData.hero.bannerImageUrl]).filter(Boolean).map((img, i) => (
-                                                            <img key={i} src={img} className="w-full aspect-[16/9] object-cover rounded-lg border border-slate-200" />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {activeHash === '#/doctors' && renderInboxList("Team", siteData.doctors, d => <RowItem key={d.id} img={d.photoUrl} fallback="👨‍⚕️" title={d.name} subtitle={d.qualification} onEdit={()=>{setEditingItem(d); setFormType('doctor');}} onDelete={()=>deleteSiteItem('doctors', siteData.doctors, d.id)} />, () => {setEditingItem({name:''}); setFormType('doctor');})}
-                                    {activeHash === '#/services' && renderInboxList("Services", siteData.services, s => <RowItem key={s.id} img={s.bannerImageUrl} fallback={s.icon||"⚕️"} title={s.title} subtitle={s.description} onEdit={()=>{setEditingItem(s); setFormType('service');}} onDelete={()=>deleteSiteItem('services', siteData.services, s.id)} />, () => {setEditingItem({title:''}); setFormType('service');})}
-                                    {activeHash === '#/products' && renderInboxList("Products", siteData.products, p => <RowItem key={p.id} img={p.profilePhoto} fallback="📦" title={p.name} subtitle={p.price} onEdit={()=>{setEditingItem(p); setFormType('product');}} onDelete={()=>deleteSiteItem('products', siteData.products, p.id)} />, () => {setEditingItem({name:'', price:''}); setFormType('product');})}
-                                    {activeHash === '#/articles' && renderInboxList("Articles", siteData.articles, a => <RowItem key={a.id||a.slug} img={a.imageUrl} fallback="📄" title={a.title} subtitle={`/${a.slug}`} onEdit={()=>{setEditingItem(a); setFormType('article');}} onDelete={()=>deleteSiteItem('articles', siteData.articles, a.id)} />, () => {setEditingItem({title:''}); setFormType('article');})}
-                                    {activeHash === '#/exercises' && renderInboxList("Exercises", siteData.exercises, ex => <RowItem key={ex.id} img={ex.imageUrl} fallback="🏃" title={ex.name} subtitle={ex.tags ? ex.tags.join(', ') : ''} onEdit={()=>{setEditingItem(ex); setFormType('exercise');}} onDelete={()=>deleteSiteItem('exercises', siteData.exercises, ex.id)} />, () => {setEditingItem({name:'', tags:''}); setFormType('exercise');})}
-                                </>
-                            )}
-                        </main>
-                    </div>
-                </div>
-            );
+                `;
+            });
+            container.innerHTML = html;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<AdminApp />);
+        // --- EDITOR / FORM MANAGEMENT ---
+        function initQuillForAdmin() {
+            const setupQuill = (id) => {
+                const el = document.getElementById(id);
+                if(!el || el.classList.contains('ql-container')) return null; // already initialized
+                
+                const q = new Quill(`#${id}`, {
+                    theme: 'snow',
+                    modules: {
+                        imageResize: { displaySize: true, modules: [ 'Resize', 'DisplaySize', 'Toolbar' ] },
+                        toolbar: {
+                            container: [ [{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image', 'video'], ['clean'] ],
+                            handlers: {
+                                image: function() {
+                                    const input = document.createElement('input');
+                                    input.setAttribute('type', 'file');
+                                    input.setAttribute('accept', 'image/*');
+                                    input.click();
+                                    input.onchange = async () => {
+                                        const file = input.files[0];
+                                        if (file) {
+                                            const range = this.quill.getSelection(true);
+                                            this.quill.insertText(range.index, 'Uploading...', 'user');
+                                            const url = await uploadToCloudinary(file);
+                                            this.quill.deleteText(range.index, 12); 
+                                            if (url) this.quill.insertEmbed(range.index, 'image', url);
+                                        }
+                                    };
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Apply Mobile Patches
+                const editorRoot = q.container.parentElement;
+                const handleTouch = (e) => {
+                    if (e.target && e.target.style && e.target.style.cursor && e.target.style.cursor.includes('resize')) {
+                        const touch = e.changedTouches[0];
+                        const type = e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup';
+                        const mouseEvent = new MouseEvent(type, { bubbles: true, cancelable: true, view: window, clientX: touch.clientX, clientY: touch.clientY, screenX: touch.screenX, screenY: touch.screenY });
+                        e.target.dispatchEvent(mouseEvent);
+                        if (e.type === 'touchmove') e.preventDefault(); 
+                    }
+                };
+                editorRoot.addEventListener('touchstart', handleTouch, { passive: false });
+                editorRoot.addEventListener('touchmove', handleTouch, { passive: false });
+                editorRoot.addEventListener('touchend', handleTouch, { passive: false });
+
+                const promptLink = (imgNode) => {
+                    const parent = imgNode.closest('a');
+                    const currentLink = parent ? parent.href : '';
+                    const newLink = prompt("🔗 Enter URL to make this image clickable:", currentLink);
+                    if (newLink !== null) {
+                        const blot = Quill.find(imgNode);
+                        if (blot) {
+                            const index = q.getIndex(blot);
+                            q.setSelection(index, 1);
+                            if (newLink.trim()) q.format('link', newLink.trim());
+                            else q.format('link', false);
+                        }
+                    }
+                };
+
+                let lastTap = 0;
+                editorRoot.addEventListener('touchend', (e) => {
+                    if(e.target.tagName === 'IMG') {
+                        const now = new Date().getTime();
+                        if(now - lastTap < 400 && now - lastTap > 0) { promptLink(e.target); e.preventDefault(); }
+                        lastTap = now;
+                    }
+                }, { passive: false });
+                editorRoot.addEventListener('dblclick', (e) => { if(e.target.tagName === 'IMG') promptLink(e.target); });
+
+                return q;
+            };
+
+            if(!qArticle) qArticle = setupQuill('quill-article');
+            if(!qExercise) qExercise = setupQuill('quill-exercise');
+        }
+
+        function setPreviewImage(previewId, iconId, url) {
+            const p = document.getElementById(previewId);
+            const i = document.getElementById(iconId);
+            if(url) {
+                p.src = url;
+                p.classList.remove('hidden');
+                i.classList.add('hidden');
+            } else {
+                p.src = '';
+                p.classList.add('hidden');
+                i.classList.remove('hidden');
+            }
+        }
+
+        async function handleImageUpload(event, dataKey, previewId, iconId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = await uploadToCloudinary(file);
+            if (url) {
+                currentFormData[dataKey] = url;
+                setPreviewImage(previewId, iconId, url);
+            }
+            event.target.value = ''; // reset input
+        }
+
+        function closeForm() {
+            document.getElementById('panel-form').classList.add('hidden');
+            document.getElementById('form-doctor').classList.add('hidden');
+            document.getElementById('form-service').classList.add('hidden');
+            document.getElementById('form-product').classList.add('hidden');
+            document.getElementById('form-exercise').classList.add('hidden');
+            document.getElementById('form-article').classList.add('hidden');
+            document.getElementById('form-clinicInfo').classList.add('hidden');
+            currentFormData = {};
+        }
+
+        function openForm(type, itemId) {
+            closeForm();
+            formType = type;
+            
+            // Find item data
+            if(type === 'clinicInfo') {
+                currentFormData = JSON.parse(JSON.stringify(siteData.hero || {}));
+            } else {
+                const category = type + 's';
+                const item = itemId ? siteData[category].find(x => x.id === itemId) : null;
+                currentFormData = item ? JSON.parse(JSON.stringify(item)) : {};
+            }
+
+            document.getElementById('form-title').innerText = currentFormData.id ? 'Edit Item' : 'Create New';
+            
+            initQuills();
+
+            // Populate Forms based on type
+            if (type === 'doctor') {
+                if (!currentFormData.pricingOptions) currentFormData.pricingOptions = [];
+                setPreviewImage('doc-photo-preview', 'doc-photo-icon', currentFormData.photoUrl);
+                document.getElementById('doc-name').value = currentFormData.name || '';
+                document.getElementById('doc-gmail').value = currentFormData.gmail || '';
+                document.getElementById('doc-phone').value = currentFormData.phone || '';
+                document.getElementById('doc-qual').value = currentFormData.qualification || '';
+                document.getElementById('doc-desig').value = currentFormData.designation || '';
+                document.getElementById('doc-reg').value = currentFormData.regNumber || '';
+                document.getElementById('doc-book').value = currentFormData.onlineBookingUrl || '';
+                document.getElementById('doc-chart').value = currentFormData.exerciseChartUrl || '';
+                document.getElementById('doc-bio').value = currentFormData.details || '';
+                renderPricingOptions();
+                document.getElementById('form-doctor').classList.remove('hidden');
+            } 
+            else if (type === 'service') {
+                setPreviewImage('srv-photo-preview', 'srv-photo-icon', currentFormData.bannerImageUrl);
+                document.getElementById('srv-title').value = currentFormData.title || '';
+                document.getElementById('srv-icon').value = currentFormData.icon || '';
+                document.getElementById('srv-desc').value = currentFormData.description || '';
+                document.getElementById('srv-wa').value = currentFormData.waMessage || '';
+                document.getElementById('form-service').classList.remove('hidden');
+            }
+            else if (type === 'product') {
+                setPreviewImage('prd-photo-preview', 'prd-photo-icon', currentFormData.profilePhoto);
+                document.getElementById('prd-name').value = currentFormData.name || '';
+                document.getElementById('prd-price').value = currentFormData.price || '';
+                document.getElementById('prd-desc').value = currentFormData.description || '';
+                document.getElementById('prd-wa').value = currentFormData.waMessage || '';
+                document.getElementById('form-product').classList.remove('hidden');
+            }
+            else if (type === 'exercise') {
+                setPreviewImage('exe-photo-preview', 'exe-photo-icon', currentFormData.imageUrl);
+                document.getElementById('exe-name').value = currentFormData.name || '';
+                document.getElementById('exe-tags').value = Array.isArray(currentFormData.tags) ? currentFormData.tags.join(', ') : (currentFormData.tags || '');
+                document.getElementById('exe-video').value = currentFormData.videoUrl || '';
+                if(qExercise) qExercise.root.innerHTML = currentFormData.description || '';
+                document.getElementById('form-exercise').classList.remove('hidden');
+            }
+            else if (type === 'article') {
+                if(!currentFormData.linkedServices) currentFormData.linkedServices = [];
+                if(!currentFormData.linkedProducts) currentFormData.linkedProducts = [];
+                setPreviewImage('art-photo-preview', 'art-photo-icon', currentFormData.imageUrl);
+                document.getElementById('art-title').value = currentFormData.title || '';
+                document.getElementById('art-slug').value = currentFormData.slug || '';
+                if(qArticle) qArticle.root.innerHTML = currentFormData.content || '';
+                renderArticleCheckboxes();
+                document.getElementById('form-article').classList.remove('hidden');
+            }
+            else if (type === 'clinicInfo') {
+                if (!currentFormData.sliderImages) currentFormData.sliderImages = currentFormData.bannerImageUrl ? [currentFormData.bannerImageUrl] : [];
+                setPreviewImage('cln-photo-preview', 'cln-photo-icon', currentFormData.logoUrl);
+                document.getElementById('cln-name').value = currentFormData.clinicName || '';
+                document.getElementById('cln-wa').value = currentFormData.whatsappNumber || '';
+                document.getElementById('cln-wa-msg').value = currentFormData.waDefaultMessage || '';
+                renderClinicSliders();
+                document.getElementById('form-clinicInfo').classList.remove('hidden');
+            }
+
+            document.getElementById('panel-form').classList.remove('hidden');
+            document.getElementById('panel-form').classList.add('flex');
+        }
+
+        // --- DYNAMIC ARRAYS LOGIC ---
+        function renderPricingOptions() {
+            const c = document.getElementById('doc-pricing-list');
+            if(currentFormData.pricingOptions.length === 0) {
+                c.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 italic">No custom pricing added. System will use default layout.</div>`;
+                return;
+            }
+            c.innerHTML = currentFormData.pricingOptions.map(opt => `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2 p-2 bg-white border border-slate-200 rounded-md relative shadow-sm">
+                    <div><label class="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Title</label><input type="text" value="${opt.title||''}" oninput="updatePricing('${opt.id}', 'title', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" placeholder="e.g. Diet Chart"/></div>
+                    <div><label class="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Price</label><input type="text" value="${opt.price||''}" oninput="updatePricing('${opt.id}', 'price', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" placeholder="e.g. ₹300"/></div>
+                    <div><label class="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Button Text</label><input type="text" value="${opt.buttonText||''}" oninput="updatePricing('${opt.id}', 'buttonText', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" placeholder="e.g. Book Now"/></div>
+                    <button onclick="removePricing('${opt.id}')" class="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-200 rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-sm hover:bg-red-500 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
+                </div>
+            `).join('');
+        }
+        window.addPricingOption = function() {
+            currentFormData.pricingOptions.push({ id: Date.now().toString(), title: '', price: '', buttonText: 'Book Now' });
+            renderPricingOptions();
+        };
+        window.updatePricing = function(id, field, val) {
+            const opt = currentFormData.pricingOptions.find(o => o.id === id);
+            if(opt) opt[field] = val;
+        };
+        window.removePricing = function(id) {
+            currentFormData.pricingOptions = currentFormData.pricingOptions.filter(o => o.id !== id);
+            renderPricingOptions();
+        };
+
+        function renderClinicSliders() {
+            const c = document.getElementById('cln-sliders-list');
+            let html = currentFormData.sliderImages.map((img, idx) => `
+                <div class="relative aspect-[16/9] rounded-lg border border-slate-200 overflow-hidden group bg-slate-50 shadow-sm">
+                    <img src="${img}" class="w-full h-full object-cover" />
+                    <button onclick="removeSliderImage(${idx})" class="absolute top-1 right-1 bg-white text-red-500 w-7 h-7 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50"><i class="ph-bold ph-trash text-sm"></i></button>
+                    <div class="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">Slide ${idx + 1}</div>
+                </div>
+            `).join('');
+            
+            html += `
+                <div onclick="document.getElementById('cln-slider-upload').click()" class="relative aspect-[16/9] rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center hover:bg-slate-100 transition cursor-pointer">
+                    <i class="ph-bold ph-plus text-2xl text-slate-400 mb-1"></i><span class="text-[10px] font-bold text-slate-500">Add Slide Image</span>
+                </div>
+            `;
+            c.innerHTML = html;
+        }
+        window.addSliderImage = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = await uploadToCloudinary(file);
+            if (url) {
+                currentFormData.sliderImages.push(url);
+                if (currentFormData.sliderImages.length > 0) currentFormData.bannerImageUrl = currentFormData.sliderImages[0];
+                renderClinicSliders();
+            }
+            event.target.value = '';
+        };
+        window.removeSliderImage = function(idx) {
+            currentFormData.sliderImages.splice(idx, 1);
+            if (currentFormData.sliderImages.length > 0) currentFormData.bannerImageUrl = currentFormData.sliderImages[0];
+            else currentFormData.bannerImageUrl = '';
+            renderClinicSliders();
+        };
+
+        function renderArticleCheckboxes() {
+            const sList = document.getElementById('art-services-list');
+            const pList = document.getElementById('art-products-list');
+
+            if(siteData.services.length === 0) sList.innerHTML = `<span class="text-xs text-slate-400 p-1">No services created yet.</span>`;
+            else sList.innerHTML = siteData.services.map(s => `
+                <label class="flex items-center gap-2 text-sm p-1.5 hover:bg-slate-50 rounded cursor-pointer transition">
+                    <input type="checkbox" ${currentFormData.linkedServices.includes(s.id) ? 'checked' : ''} onchange="toggleLinkArray('linkedServices', '${s.id}', this.checked)" class="accent-azure w-4 h-4" />
+                    <span class="text-slate-700 truncate">${s.title}</span>
+                </label>
+            `).join('');
+
+            if(siteData.products.length === 0) pList.innerHTML = `<span class="text-xs text-slate-400 p-1">No products created yet.</span>`;
+            else pList.innerHTML = siteData.products.map(p => `
+                <label class="flex items-center gap-2 text-sm p-1.5 hover:bg-slate-50 rounded cursor-pointer transition">
+                    <input type="checkbox" ${currentFormData.linkedProducts.includes(p.id) ? 'checked' : ''} onchange="toggleLinkArray('linkedProducts', '${p.id}', this.checked)" class="accent-azure w-4 h-4" />
+                    <span class="text-slate-700 truncate">${p.name}</span>
+                </label>
+            `).join('');
+        }
+        window.toggleLinkArray = function(arrName, id, isChecked) {
+            if(isChecked) {
+                if(!currentFormData[arrName].includes(id)) currentFormData[arrName].push(id);
+            } else {
+                currentFormData[arrName] = currentFormData[arrName].filter(x => x !== id);
+            }
+        };
+
+        // --- SAVING ---
+        async function saveForm() {
+            // Read inputs into currentFormData based on type
+            if (formType === 'doctor') {
+                currentFormData.name = document.getElementById('doc-name').value;
+                currentFormData.gmail = document.getElementById('doc-gmail').value;
+                currentFormData.phone = document.getElementById('doc-phone').value;
+                currentFormData.qualification = document.getElementById('doc-qual').value;
+                currentFormData.designation = document.getElementById('doc-desig').value;
+                currentFormData.regNumber = document.getElementById('doc-reg').value;
+                currentFormData.onlineBookingUrl = document.getElementById('doc-book').value;
+                currentFormData.exerciseChartUrl = document.getElementById('doc-chart').value;
+                currentFormData.details = document.getElementById('doc-bio').value;
+            } 
+            else if (formType === 'service') {
+                currentFormData.title = document.getElementById('srv-title').value;
+                currentFormData.icon = document.getElementById('srv-icon').value;
+                currentFormData.description = document.getElementById('srv-desc').value;
+                currentFormData.waMessage = document.getElementById('srv-wa').value;
+            }
+            else if (formType === 'product') {
+                currentFormData.name = document.getElementById('prd-name').value;
+                currentFormData.price = document.getElementById('prd-price').value;
+                currentFormData.description = document.getElementById('prd-desc').value;
+                currentFormData.waMessage = document.getElementById('prd-wa').value;
+            }
+            else if (formType === 'exercise') {
+                currentFormData.name = document.getElementById('exe-name').value;
+                currentFormData.tags = document.getElementById('exe-tags').value.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+                currentFormData.videoUrl = document.getElementById('exe-video').value;
+                if(qExercise) currentFormData.description = qExercise.root.innerHTML;
+            }
+            else if (formType === 'article') {
+                currentFormData.title = document.getElementById('art-title').value;
+                currentFormData.slug = document.getElementById('art-slug').value || slugify(currentFormData.title);
+                if(qArticle) currentFormData.content = qArticle.root.innerHTML;
+                if(!currentFormData.date) currentFormData.date = new Date().toISOString();
+                if(!currentFormData.title) return alert("Title required");
+            }
+            else if (formType === 'clinicInfo') {
+                currentFormData.clinicName = document.getElementById('cln-name').value;
+                currentFormData.whatsappNumber = document.getElementById('cln-wa').value;
+                currentFormData.waDefaultMessage = document.getElementById('cln-wa-msg').value;
+            }
+
+            // Save to Firebase
+            try {
+                // Clean data
+                const cleanData = JSON.parse(JSON.stringify(currentFormData, (k, v) => v === undefined ? null : v));
+                Object.keys(cleanData).forEach(key => { if(cleanData[key] === null || cleanData[key] === '') delete cleanData[key]; });
+
+                if (formType === 'clinicInfo') {
+                    await dbSite.ref('site/hero').set(cleanData);
+                } else {
+                    const nodeMap = { 'doctor':'doctors', 'service':'services', 'product':'products', 'article':'articles', 'exercise':'exercises' };
+                    const node = nodeMap[formType];
+                    const arr = siteData[node];
+                    const newArr = [...arr];
+                    
+                    if (!cleanData.id) { 
+                        cleanData.id = Date.now().toString(); 
+                        newArr.push(cleanData); 
+                    } else { 
+                        const idx = newArr.findIndex(x => x.id === cleanData.id); 
+                        if(idx > -1) newArr[idx] = cleanData; 
+                        else newArr.push(cleanData);
+                    }
+                    await dbSite.ref(`site/${node}`).set(newArr);
+                }
+                
+                showToast('Saved Successfully!');
+                handleHashChange(); // return to list
+            } catch (e) {
+                console.error(e);
+                alert(`Error saving: ${e.message}`);
+            }
+        }
+
+        window.deleteItem = async function(category, id) {
+            if(confirm("Are you sure you want to delete this?")) {
+                const arr = siteData[category].filter(item => item.id !== id);
+                await dbSite.ref(`site/${category}`).set(arr);
+                showToast('Deleted Successfully!');
+            }
+        };
+
+        // Initialize App manually once loaded
+        handleHashChange();
+
     </script>
 </body>
 </html>
