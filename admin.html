@@ -272,8 +272,23 @@
                             </div>
                             <div class="space-y-3">
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Title</label><input type="text" id="srv-title" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" id="srv-icon" placeholder="⚕️" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" id="srv-icon" placeholder="⚕️" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Base Price / Starting At</label><input type="text" id="srv-price" placeholder="e.g. ₹500 or Free" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea id="srv-desc" rows="3" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
+                                
+                                <!-- SUBSERVICES MANAGER -->
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i class="ph-bold ph-list-plus text-azure"></i> Sub-Services & Pricing</label>
+                                        <button onclick="addSubserviceOption()" class="text-[10px] font-bold bg-azure text-white px-2 py-1 rounded shadow-sm hover:bg-navy">Add Sub-service</button>
+                                    </div>
+                                    <div id="srv-subservices-list"></div>
+                                </div>
+
                                 <div class="bg-green-50 p-3 rounded-lg border border-green-100">
                                     <label class="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i class="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
                                     <p class="text-[9px] text-green-600 mb-2 leading-tight">Default message. Use tag: {service_title}</p>
@@ -647,7 +662,7 @@
                 let fallback = '📝';
                 
                 if(activeCategory === 'doctors') { subtitle = item.qualification||''; img = item.photoUrl; fallback = '👨‍⚕️'; }
-                else if(activeCategory === 'services') { subtitle = item.description||''; img = item.bannerImageUrl; fallback = item.icon||'⚕️'; }
+                else if(activeCategory === 'services') { subtitle = item.price || item.description || ''; img = item.bannerImageUrl; fallback = item.icon||'⚕️'; }
                 else if(activeCategory === 'products') { subtitle = item.price||''; img = item.profilePhoto; fallback = '📦'; }
                 else if(activeCategory === 'articles') { subtitle = `/${item.slug||''}`; img = item.imageUrl; fallback = '📄'; }
                 else if(activeCategory === 'exercises') { subtitle = item.tags ? (Array.isArray(item.tags)?item.tags.join(', '):item.tags) : ''; img = item.imageUrl; fallback = '🏃'; }
@@ -839,11 +854,16 @@
                 document.getElementById('form-doctor').classList.remove('hidden');
             } 
             else if (type === 'service') {
+                // Ensure subservices array exists (fallback to tests for older data)
+                if (!currentFormData.subservices) currentFormData.subservices = currentFormData.tests || [];
+                
                 setPreviewImage('srv-photo-preview', 'srv-photo-icon', currentFormData.bannerImageUrl);
                 document.getElementById('srv-title').value = currentFormData.title || '';
+                document.getElementById('srv-price').value = currentFormData.price || '';
                 document.getElementById('srv-icon').value = currentFormData.icon || '';
                 document.getElementById('srv-desc').value = currentFormData.description || '';
                 document.getElementById('srv-wa').value = currentFormData.waMessage || '';
+                renderSubservices();
                 document.getElementById('form-service').classList.remove('hidden');
             }
             else if (type === 'branch') {
@@ -924,6 +944,34 @@
             renderPricingOptions();
         };
 
+        // Service Subservices Logic
+        function renderSubservices() {
+            const c = document.getElementById('srv-subservices-list');
+            if(currentFormData.subservices.length === 0) {
+                c.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 italic">No sub-services added.</div>`;
+                return;
+            }
+            c.innerHTML = currentFormData.subservices.map(opt => `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2 p-2 bg-white border border-slate-200 rounded-md relative shadow-sm">
+                    <div><label class="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Sub-service Name</label><input type="text" value="${opt.name||''}" oninput="updateSubservice('${opt.id}', 'name', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" placeholder="e.g. Laser Therapy"/></div>
+                    <div><label class="text-[9px] text-slate-400 uppercase font-bold mb-1 block">Price / Text</label><input type="text" value="${opt.price||''}" oninput="updateSubservice('${opt.id}', 'price', this.value)" class="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-azure" placeholder="e.g. ₹300 or Contact Us"/></div>
+                    <button onclick="removeSubservice('${opt.id}')" class="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-200 rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-sm hover:bg-red-500 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
+                </div>
+            `).join('');
+        }
+        window.addSubserviceOption = function() {
+            currentFormData.subservices.push({ id: Date.now().toString(), name: '', price: '' });
+            renderSubservices();
+        };
+        window.updateSubservice = function(id, field, val) {
+            const opt = currentFormData.subservices.find(o => o.id === id);
+            if(opt) opt[field] = val;
+        };
+        window.removeSubservice = function(id) {
+            currentFormData.subservices = currentFormData.subservices.filter(o => o.id !== id);
+            renderSubservices();
+        };
+
         function renderClinicSliders() {
             const c = document.getElementById('cln-sliders-list');
             let html = currentFormData.sliderImages.map((img, idx) => `
@@ -1002,9 +1050,11 @@
             } 
             else if (formType === 'service') {
                 currentFormData.title = document.getElementById('srv-title').value;
+                currentFormData.price = document.getElementById('srv-price').value;
                 currentFormData.icon = document.getElementById('srv-icon').value;
                 currentFormData.description = document.getElementById('srv-desc').value;
                 currentFormData.waMessage = document.getElementById('srv-wa').value;
+                // subservices array is updated dynamically via window.updateSubservice
             }
             else if (formType === 'branch') {
                 currentFormData.displayName = document.getElementById('brn-name').value;
