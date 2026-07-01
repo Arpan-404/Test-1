@@ -233,17 +233,35 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Full Name (Print Format, e.g. Dr. John Doe (PT))</label><input type="text" id="doc-name" placeholder="Dr. Arpan Das (PT)" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Login Gmail</label><input type="email" id="doc-gmail" placeholder="doctor@gmail.com" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Contact Number</label><input type="text" id="doc-phone" placeholder="9876543210" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Full Name (Print Format, e.g. Dr. John Doe (PT))</label>
+                                    <input type="text" id="doc-name" oninput="if(!document.getElementById('doc-slug').value) document.getElementById('doc-slug').value = slugify(this.value);" placeholder="Dr. Arpan Das (PT)" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
                                 </div>
-                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" id="doc-qual" placeholder="BPT (KPC Medical College...)" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug</label>
+                                        <input type="text" id="doc-slug" placeholder="e.g. dr-arpan-das" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Login Gmail</label><input type="email" id="doc-gmail" placeholder="doctor@gmail.com" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Contact Number</label><input type="text" id="doc-phone" placeholder="9876543210" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Qualifications</label><input type="text" id="doc-qual" placeholder="BPT..." class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                </div>
+                                
                                 <div class="grid grid-cols-2 gap-3">
                                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">Designation</label><input type="text" id="doc-desig" placeholder="Orthopaedic Surgeon" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">Registration No.</label><input type="text" id="doc-reg" placeholder="Reg. No 202105633" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 </div>
                                 
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this doctor rank on Google (e.g. best physiotherapist, sports injury expert).</p>
+                                    <textarea id="doc-seo" rows="2" class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
+                                </div>
+
                                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
                                     <div class="flex justify-between items-center mb-3">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i class="ph-bold ph-list-plus text-azure"></i> Custom Booking Options & Fees</label>
@@ -271,13 +289,28 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Title</label><input type="text" id="srv-title" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+                                        <input type="text" id="srv-title" oninput="if(!document.getElementById('srv-slug').value) document.getElementById('srv-slug').value = slugify(this.value);" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug</label>
+                                        <input type="text" id="srv-slug" placeholder="e.g. laser-therapy" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                </div>
                                 
                                 <div class="grid grid-cols-2 gap-3">
                                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">Icon (Emoji)</label><input type="text" id="srv-icon" placeholder="⚕️" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">Base Price / Starting At</label><input type="text" id="srv-price" placeholder="e.g. ₹500 or Free" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 </div>
                                 
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this service rank on Google.</p>
+                                    <textarea id="srv-seo" rows="2" class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
+                                </div>
+
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea id="srv-desc" rows="3" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
                                 
                                 <!-- SUBSERVICES MANAGER -->
@@ -302,13 +335,19 @@
                             <div class="space-y-3">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase">Display Name (e.g. Physiotherapeutic Hub, Jangalpara)</label>
-                                    <input type="text" id="brn-name" oninput="if(!currentFormData.id && !document.getElementById('brn-slug').value) document.getElementById('brn-slug').value = slugify(this.value);" class="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    <input type="text" id="brn-name" oninput="if(!document.getElementById('brn-slug').value) document.getElementById('brn-slug').value = slugify(this.value);" class="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug (e.g. jangalpara-branch)</label>
-                                    <input type="text" id="brn-slug" class="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded outline-none focus:border-azure" />
-                                    <p class="text-[9px] text-slate-400 mt-1">The link will be: therapeutichub.in/branch/<strong>your-slug-here</strong></p>
+                                    <input type="text" id="brn-slug" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
                                 </div>
+                                
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this branch rank in local searches.</p>
+                                    <textarea id="brn-seo" rows="2" placeholder="e.g. physiotherapist in jangalpara, nearby clinic..." class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
+                                </div>
+
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase">Physical Address</label>
                                     <textarea id="brn-address" rows="2" placeholder="123 Health Street, City, ZIP" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea>
@@ -337,10 +376,25 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" id="prd-name" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
-                                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" id="prd-price" placeholder="₹500" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Name</label>
+                                        <input type="text" id="prd-name" oninput="if(!document.getElementById('prd-slug').value) document.getElementById('prd-slug').value = slugify(this.value);" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug</label>
+                                        <input type="text" id="prd-slug" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
                                 </div>
+                                
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Price</label><input type="text" id="prd-price" placeholder="₹500" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this product rank on Google.</p>
+                                    <textarea id="prd-seo" rows="2" class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
+                                </div>
+
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Description</label><textarea id="prd-desc" rows="3" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure"></textarea></div>
                                 <div class="bg-green-50 p-3 rounded-lg border border-green-100">
                                     <label class="text-[10px] font-bold text-green-700 uppercase flex items-center gap-1"><i class="ph-bold ph-whatsapp-logo"></i> WhatsApp Message Template</label>
@@ -361,8 +415,25 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Name</label><input type="text" id="exe-name" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Name</label>
+                                        <input type="text" id="exe-name" oninput="if(!document.getElementById('exe-slug').value) document.getElementById('exe-slug').value = slugify(this.value);" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug</label>
+                                        <input type="text" id="exe-slug" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                </div>
+                                
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tags (comma separated)</label><input type="text" id="exe-tags" placeholder="knee, stretch" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
+                                
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this exercise rank on Google.</p>
+                                    <textarea id="exe-seo" rows="2" class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
+                                </div>
+
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Video Link</label><input type="url" id="exe-video" placeholder="YouTube URL" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 <div>
                                     <div class="flex justify-between items-end mb-1">
@@ -385,14 +456,23 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
-                                    <input type="text" id="art-title" oninput="if(!currentFormData.id) document.getElementById('art-slug').value = slugify(this.value);" class="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+                                        <input type="text" id="art-title" oninput="if(!document.getElementById('art-slug').value) document.getElementById('art-slug').value = slugify(this.value);" class="w-full p-2.5 text-base font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase">Custom URL Slug</label>
+                                        <input type="text" id="art-slug" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-azure" />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Slug</label>
-                                    <input type="text" id="art-slug" class="w-full p-2 text-xs bg-slate-100 border border-slate-200 rounded outline-none" />
+                                
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Tags to help this article rank on Google.</p>
+                                    <textarea id="art-seo" rows="2" class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
                                 </div>
+
                                 <div>
                                     <div class="flex justify-between items-end mb-1">
                                         <label class="text-[10px] font-bold text-slate-400 uppercase block">Article Body</label>
@@ -437,8 +517,8 @@
                                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">Primary WhatsApp Number</label><input type="text" id="cln-wa" placeholder="+919876543210" class="w-full p-2.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-azure" /></div>
                                 
                                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mt-4">
-                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> Hidden SEO Keywords</label>
-                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">Separate tags by commas. These help Google rank your site but remain invisible to patients.</p>
+                                    <label class="text-[10px] font-bold text-azure uppercase flex items-center gap-1"><i class="ph-bold ph-magnifying-glass"></i> GLOBAL Hidden SEO Keywords</label>
+                                    <p class="text-[9px] text-blue-600 mb-2 leading-tight">These tags load on the main homepage and act as a fallback for other pages.</p>
                                     <textarea id="cln-seo" rows="2" placeholder="physiotherapy clinic, ACL rehab, back pain treatment kolkata..." class="w-full p-2 text-sm bg-white border border-blue-200 rounded outline-none focus:border-blue-500"></textarea>
                                 </div>
                                 
@@ -664,7 +744,7 @@
                 if(activeCategory === 'doctors') { subtitle = item.qualification||''; img = item.photoUrl; fallback = '👨‍⚕️'; }
                 else if(activeCategory === 'services') { subtitle = item.price || item.description || ''; img = item.bannerImageUrl; fallback = item.icon||'⚕️'; }
                 else if(activeCategory === 'products') { subtitle = item.price||''; img = item.profilePhoto; fallback = '📦'; }
-                else if(activeCategory === 'articles') { subtitle = `/${item.slug||''}`; img = item.imageUrl; fallback = '📄'; }
+                else if(activeCategory === 'articles') { subtitle = `/${item.customUrl || item.slug||''}`; img = item.imageUrl; fallback = '📄'; }
                 else if(activeCategory === 'exercises') { subtitle = item.tags ? (Array.isArray(item.tags)?item.tags.join(', '):item.tags) : ''; img = item.imageUrl; fallback = '🏃'; }
                 else if(activeCategory === 'branches') { subtitle = item.address||''; img = ''; fallback = '📍'; }
 
@@ -842,11 +922,13 @@
                 if (!currentFormData.pricingOptions) currentFormData.pricingOptions = [];
                 setPreviewImage('doc-photo-preview', 'doc-photo-icon', currentFormData.photoUrl);
                 document.getElementById('doc-name').value = currentFormData.name || '';
+                document.getElementById('doc-slug').value = currentFormData.customUrl || '';
                 document.getElementById('doc-gmail').value = currentFormData.gmail || '';
                 document.getElementById('doc-phone').value = currentFormData.phone || '';
                 document.getElementById('doc-qual').value = currentFormData.qualification || '';
                 document.getElementById('doc-desig').value = currentFormData.designation || '';
                 document.getElementById('doc-reg').value = currentFormData.regNumber || '';
+                document.getElementById('doc-seo').value = currentFormData.seoKeywords || '';
                 document.getElementById('doc-book').value = currentFormData.onlineBookingUrl || '';
                 document.getElementById('doc-chart').value = currentFormData.exerciseChartUrl || '';
                 document.getElementById('doc-bio').value = currentFormData.details || '';
@@ -854,13 +936,13 @@
                 document.getElementById('form-doctor').classList.remove('hidden');
             } 
             else if (type === 'service') {
-                // Ensure subservices array exists (fallback to tests for older data)
                 if (!currentFormData.subservices) currentFormData.subservices = currentFormData.tests || [];
-                
                 setPreviewImage('srv-photo-preview', 'srv-photo-icon', currentFormData.bannerImageUrl);
                 document.getElementById('srv-title').value = currentFormData.title || '';
+                document.getElementById('srv-slug').value = currentFormData.customUrl || '';
                 document.getElementById('srv-price').value = currentFormData.price || '';
                 document.getElementById('srv-icon').value = currentFormData.icon || '';
+                document.getElementById('srv-seo').value = currentFormData.seoKeywords || '';
                 document.getElementById('srv-desc').value = currentFormData.description || '';
                 document.getElementById('srv-wa').value = currentFormData.waMessage || '';
                 renderSubservices();
@@ -869,6 +951,7 @@
             else if (type === 'branch') {
                 document.getElementById('brn-name').value = currentFormData.displayName || currentFormData.name || '';
                 document.getElementById('brn-slug').value = currentFormData.customUrl || '';
+                document.getElementById('brn-seo').value = currentFormData.seoKeywords || '';
                 document.getElementById('brn-address').value = currentFormData.address || '';
                 document.getElementById('brn-phone').value = currentFormData.phone || '';
                 document.getElementById('brn-gmaps').value = currentFormData.googleMapsUrl || '';
@@ -877,7 +960,9 @@
             else if (type === 'product') {
                 setPreviewImage('prd-photo-preview', 'prd-photo-icon', currentFormData.profilePhoto);
                 document.getElementById('prd-name').value = currentFormData.name || '';
+                document.getElementById('prd-slug').value = currentFormData.customUrl || '';
                 document.getElementById('prd-price').value = currentFormData.price || '';
+                document.getElementById('prd-seo').value = currentFormData.seoKeywords || '';
                 document.getElementById('prd-desc').value = currentFormData.description || '';
                 document.getElementById('prd-wa').value = currentFormData.waMessage || '';
                 document.getElementById('form-product').classList.remove('hidden');
@@ -885,7 +970,9 @@
             else if (type === 'exercise') {
                 setPreviewImage('exe-photo-preview', 'exe-photo-icon', currentFormData.imageUrl);
                 document.getElementById('exe-name').value = currentFormData.name || '';
+                document.getElementById('exe-slug').value = currentFormData.customUrl || '';
                 document.getElementById('exe-tags').value = Array.isArray(currentFormData.tags) ? currentFormData.tags.join(', ') : (currentFormData.tags || '');
+                document.getElementById('exe-seo').value = currentFormData.seoKeywords || '';
                 document.getElementById('exe-video').value = currentFormData.videoUrl || '';
                 if(qExercise) qExercise.root.innerHTML = currentFormData.description || '';
                 document.getElementById('form-exercise').classList.remove('hidden');
@@ -895,7 +982,8 @@
                 if(!currentFormData.linkedProducts) currentFormData.linkedProducts = [];
                 setPreviewImage('art-photo-preview', 'art-photo-icon', currentFormData.imageUrl);
                 document.getElementById('art-title').value = currentFormData.title || '';
-                document.getElementById('art-slug').value = currentFormData.slug || '';
+                document.getElementById('art-slug').value = currentFormData.customUrl || currentFormData.slug || '';
+                document.getElementById('art-seo').value = currentFormData.seoKeywords || '';
                 if(qArticle) qArticle.root.innerHTML = currentFormData.content || '';
                 renderArticleCheckboxes();
                 document.getElementById('form-article').classList.remove('hidden');
@@ -1039,6 +1127,8 @@
         window.saveForm = async function() {
             if (formType === 'doctor') {
                 currentFormData.name = document.getElementById('doc-name').value;
+                currentFormData.customUrl = document.getElementById('doc-slug').value || slugify(currentFormData.name);
+                currentFormData.seoKeywords = document.getElementById('doc-seo').value;
                 currentFormData.gmail = document.getElementById('doc-gmail').value;
                 currentFormData.phone = document.getElementById('doc-phone').value;
                 currentFormData.qualification = document.getElementById('doc-qual').value;
@@ -1050,6 +1140,8 @@
             } 
             else if (formType === 'service') {
                 currentFormData.title = document.getElementById('srv-title').value;
+                currentFormData.customUrl = document.getElementById('srv-slug').value || slugify(currentFormData.title);
+                currentFormData.seoKeywords = document.getElementById('srv-seo').value;
                 currentFormData.price = document.getElementById('srv-price').value;
                 currentFormData.icon = document.getElementById('srv-icon').value;
                 currentFormData.description = document.getElementById('srv-desc').value;
@@ -1060,25 +1152,31 @@
                 currentFormData.displayName = document.getElementById('brn-name').value;
                 currentFormData.name = document.getElementById('brn-name').value; // Keep for fallback compatibility
                 currentFormData.customUrl = document.getElementById('brn-slug').value || slugify(currentFormData.displayName);
+                currentFormData.seoKeywords = document.getElementById('brn-seo').value;
                 currentFormData.address = document.getElementById('brn-address').value;
                 currentFormData.phone = document.getElementById('brn-phone').value;
                 currentFormData.googleMapsUrl = document.getElementById('brn-gmaps').value;
             }
             else if (formType === 'product') {
                 currentFormData.name = document.getElementById('prd-name').value;
+                currentFormData.customUrl = document.getElementById('prd-slug').value || slugify(currentFormData.name);
+                currentFormData.seoKeywords = document.getElementById('prd-seo').value;
                 currentFormData.price = document.getElementById('prd-price').value;
                 currentFormData.description = document.getElementById('prd-desc').value;
                 currentFormData.waMessage = document.getElementById('prd-wa').value;
             }
             else if (formType === 'exercise') {
                 currentFormData.name = document.getElementById('exe-name').value;
+                currentFormData.customUrl = document.getElementById('exe-slug').value || slugify(currentFormData.name);
+                currentFormData.seoKeywords = document.getElementById('exe-seo').value;
                 currentFormData.tags = document.getElementById('exe-tags').value.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
                 currentFormData.videoUrl = document.getElementById('exe-video').value;
                 if(qExercise) currentFormData.description = qExercise.root.innerHTML;
             }
             else if (formType === 'article') {
                 currentFormData.title = document.getElementById('art-title').value;
-                currentFormData.slug = document.getElementById('art-slug').value || slugify(currentFormData.title);
+                currentFormData.customUrl = document.getElementById('art-slug').value || slugify(currentFormData.title);
+                currentFormData.seoKeywords = document.getElementById('art-seo').value;
                 if(qArticle) currentFormData.content = qArticle.root.innerHTML;
                 if(!currentFormData.date) currentFormData.date = new Date().toISOString();
                 if(!currentFormData.title) return alert("Title required");
