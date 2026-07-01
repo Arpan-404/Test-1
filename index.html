@@ -105,15 +105,6 @@
         .article-row { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border);}
         .article-row img { width: 75px; height: 75px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; background: #f1f5f9; }
         
-        /* THIN COMPACT FOOTER */
-        .main-footer { background: #1e293b; color: #f8fafc; padding: 1.25rem 1rem; text-align: center; margin-top: auto; display: none; }
-        .main-footer h3 { font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; color: white; letter-spacing: 0.5px;}
-        .main-footer .footer-item { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.4rem; }
-        .main-footer i { font-size: 1rem; color: #94a3b8; }
-        .footer-branches-list { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 0.75rem; font-size: 0.85rem; color: #94a3b8; }
-        .footer-branches-list a { color: #cbd5e1; transition: color 0.2s; font-weight: 600; }
-        .footer-branches-list a:hover { color: var(--primary-light); }
-        
         /* === SPECIFIC DETAIL STYLES === */
         
         /* Products */
@@ -186,6 +177,7 @@
     <main id="view-list" class="app-view">
         <h1 class="page-title" id="list-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; color: #1e293b;">Loading...</h1>
         <div id="list-grid"><div class="loader"></div></div>
+        <!-- INVISIBLE TRIGGER FOR INFINITE SCROLL -->
         <div id="load-more-trigger" style="height: 1px; width: 100%; margin-top: 10px;"></div>
     </main>
 
@@ -194,24 +186,6 @@
         <button onclick="window.history.back()" style="background:none; border:none; color:var(--text-muted); font-weight:800; margin-bottom:1rem; font-size:1rem; display:flex; align-items:center; gap:5px;"><i class="ph-bold ph-arrow-left"></i> Back</button>
         <div id="detail-content"></div>
     </main>
-
-    <!-- THIN FOOTER -->
-    <footer class="main-footer" id="mainFooter">
-        <h3 id="footer-clinic-name">Therapeutic Hub</h3>
-        <div class="footer-item" id="footer-address-wrapper" style="display:none;">
-            <i class="ph-bold ph-map-pin"></i> <span id="footer-address"></span>
-        </div>
-        <div class="footer-item" id="footer-phone-wrapper" style="display:none;">
-            <i class="ph-bold ph-phone"></i> <span id="footer-phone"></span>
-        </div>
-        
-        <!-- AUTOMATIC BRANCH LOCATIONS LIST -->
-        <div id="footer-branches" class="footer-branches-list"></div>
-
-        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.75rem; border-top: 1px solid #334155; padding-top: 0.75rem;">
-            &copy; <span id="current-year"></span> All Rights Reserved.
-        </div>
-    </footer>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
@@ -222,8 +196,6 @@
         
         window.siteData = {};
         window.exercisesData = null; 
-
-        document.getElementById('current-year').textContent = new Date().getFullYear();
 
         // --- INFINITE SCROLL STATE ---
         let currentListItems = [];
@@ -303,27 +275,6 @@
                 window.siteData = await res.json() || {};
                 
                 if (window.siteData.hero?.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
-
-                // Populate Thin Footer
-                document.getElementById('mainFooter').style.display = 'block';
-                if (window.siteData.hero?.clinicName) document.getElementById('footer-clinic-name').textContent = window.siteData.hero.clinicName;
-                if (window.siteData.hero?.address) {
-                    document.getElementById('footer-address').textContent = window.siteData.hero.address;
-                    document.getElementById('footer-address-wrapper').style.display = 'flex';
-                }
-                if (window.siteData.hero?.whatsappNumber) {
-                    document.getElementById('footer-phone').textContent = window.siteData.hero.whatsappNumber;
-                    document.getElementById('footer-phone-wrapper').style.display = 'flex';
-                }
-
-                // Inject Branches into Footer (Root URL update)
-                if (window.siteData.branches) {
-                    const branches = normalize(window.siteData.branches);
-                    if (branches.length > 0) {
-                        const branchHtml = branches.map(b => `<a href="/${getItemSlug(b)}">${b.displayName || b.name}</a>`).join(' <span style="opacity:0.3; margin: 0 4px;">•</span> ');
-                        document.getElementById('footer-branches').innerHTML = branchHtml;
-                    }
-                }
 
                 handleRoute(); 
             } catch (error) { document.getElementById('home-content').innerHTML = '<p style="text-align:center; color:red;">Connection Error.</p>'; }
