@@ -105,6 +105,15 @@
         .article-row { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border);}
         .article-row img { width: 75px; height: 75px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; background: #f1f5f9; }
         
+        /* THIN COMPACT FOOTER */
+        .main-footer { background: #1e293b; color: #f8fafc; padding: 1.25rem 1rem; text-align: center; margin-top: auto; display: none; }
+        .main-footer h3 { font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; color: white; letter-spacing: 0.5px;}
+        .main-footer .footer-item { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.4rem; }
+        .main-footer i { font-size: 1rem; color: #94a3b8; }
+        .footer-branches-list { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 0.75rem; font-size: 0.85rem; color: #94a3b8; }
+        .footer-branches-list a { color: #cbd5e1; transition: color 0.2s; font-weight: 600; }
+        .footer-branches-list a:hover { color: var(--primary-light); }
+        
         /* === SPECIFIC DETAIL STYLES === */
         
         /* Products */
@@ -187,6 +196,24 @@
         <div id="detail-content"></div>
     </main>
 
+    <!-- THIN FOOTER -->
+    <footer class="main-footer" id="mainFooter">
+        <h3 id="footer-clinic-name">Therapeutic Hub</h3>
+        <div class="footer-item" id="footer-address-wrapper" style="display:none;">
+            <i class="ph-bold ph-map-pin"></i> <span id="footer-address"></span>
+        </div>
+        <div class="footer-item" id="footer-phone-wrapper" style="display:none;">
+            <i class="ph-bold ph-phone"></i> <span id="footer-phone"></span>
+        </div>
+        
+        <!-- AUTOMATIC BRANCH LOCATIONS LIST -->
+        <div id="footer-branches" class="footer-branches-list"></div>
+
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.75rem; border-top: 1px solid #334155; padding-top: 0.75rem;">
+            &copy; <span id="current-year"></span> All Rights Reserved.
+        </div>
+    </footer>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
@@ -196,6 +223,9 @@
         
         window.siteData = {};
         window.exercisesData = null; 
+
+        // Set Current Year in Footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
 
         // --- INFINITE SCROLL STATE ---
         let currentListItems = [];
@@ -268,6 +298,29 @@
                     metaKw.content = window.siteData.hero.seoKeywords;
                 }
 
+                // Populate Thin Footer
+                document.getElementById('mainFooter').style.display = 'block';
+                if (window.siteData.hero?.clinicName) {
+                    document.getElementById('footer-clinic-name').textContent = window.siteData.hero.clinicName;
+                }
+                if (window.siteData.hero?.address) {
+                    document.getElementById('footer-address').textContent = window.siteData.hero.address;
+                    document.getElementById('footer-address-wrapper').style.display = 'flex';
+                }
+                if (window.siteData.hero?.whatsappNumber) {
+                    document.getElementById('footer-phone').textContent = window.siteData.hero.whatsappNumber;
+                    document.getElementById('footer-phone-wrapper').style.display = 'flex';
+                }
+
+                // Inject Branches into Footer
+                if (window.siteData.branches) {
+                    const branches = normalize(window.siteData.branches);
+                    if (branches.length > 0) {
+                        const branchHtml = branches.map(b => `<a href="/branch/${b.customUrl || window.slugify(b.name)}">${b.displayName || b.name}</a>`).join(' <span style="opacity:0.3; margin: 0 4px;">•</span> ');
+                        document.getElementById('footer-branches').innerHTML = branchHtml;
+                    }
+                }
+
                 handleRoute(); 
             } catch (error) { document.getElementById('home-content').innerHTML = '<p style="text-align:center; color:red;">Connection Error.</p>'; }
         }
@@ -314,12 +367,18 @@
                     </a>
                 `).join('');
             } else if (currentActiveRoute === 'services') {
-                html = nextItems.map(s => `
+                html = nextItems.map(s => {
+                    let sPrice = s.price ? (s.price.includes('₹') || s.price.toLowerCase().includes('rs') ? s.price : '₹' + s.price) : '';
+                    return `
                     <a href="/service/${window.slugify(s.title)}" class="card-compact">
                         ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
-                        <div><h4 class="card-compact-title">${s.title}</h4><p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p></div>
+                        <div>
+                            <h4 class="card-compact-title">${s.title}</h4>
+                            ${sPrice ? `<div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:2px;">${sPrice}</div>` : ''}
+                            <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p>
+                        </div>
                     </a>
-                `).join('');
+                `}).join('');
             } else if (currentActiveRoute === 'branches') {
                 html = nextItems.map(b => `
                     <a href="/branch/${b.customUrl || window.slugify(b.name)}" class="card-compact">
@@ -407,12 +466,18 @@
                     html += `
                     <div class="section-header"><h2 class="section-title">Clinical Services</h2><a href="/services" class="view-all">View All</a></div>
                     <div class="h-scroll">
-                        ${services.map(s => `
+                        ${services.map(s => {
+                            let sPrice = s.price ? (s.price.includes('₹') || s.price.toLowerCase().includes('rs') ? s.price : '₹' + s.price) : '';
+                            return `
                             <a href="/service/${window.slugify(s.title)}" class="card-compact" style="min-width: 250px;">
                                 ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
-                                <div><h4 class="card-compact-title">${s.title}</h4><p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p></div>
+                                <div>
+                                    <h4 class="card-compact-title">${s.title}</h4>
+                                    ${sPrice ? `<div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:2px;">${sPrice}</div>` : ''}
+                                    <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p>
+                                </div>
                             </a>
-                        `).join('')}
+                        `}).join('')}
                     </div>`;
                 }
 
@@ -654,15 +719,31 @@
                 }
                 else if (route === 'service') {
                     const img = item.bannerImageUrl ? `<img src="${item.bannerImageUrl}" class="entity-img">` : `<div class="entity-img">⚕️</div>`;
-                    let testsHtml = (item.tests || []).map(t => `<div class="test-item"><span style="font-weight:700;">${t.name}</span><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book the test: ${t.name}`)}')">₹${t.price.replace(/[^0-9.]/g, '')}</button></div>`).join('');
+                    
+                    // Main Price Logic
+                    let displayPrice = '';
+                    if(item.price) {
+                        displayPrice = item.price;
+                        if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) displayPrice = '₹' + displayPrice;
+                        displayPrice = `<div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-dark); text-align: center; margin-bottom: 1rem;">${displayPrice}</div>`;
+                    }
+
+                    // Sub-Services Logic (using subservices, fallback to tests)
+                    const subservices = item.subservices || item.tests || [];
+                    let subservicesHtml = subservices.map(sub => {
+                        let subPrice = sub.price || '';
+                        if(subPrice && !subPrice.includes('₹') && !subPrice.toLowerCase().includes('rs')) subPrice = '₹' + subPrice;
+                        return `<div class="test-item"><span style="font-weight:700; color: #1e293b;">${sub.name}</span><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book the sub-service: ${sub.name}`)}')">${subPrice}</button></div>`;
+                    }).join('');
                     
                     container.innerHTML = `
                         <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2rem 1.5rem;">
                             ${img}
-                            <h1 style="color: var(--text-dark); font-size: 2rem; margin-bottom: 1rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
+                            <h1 style="color: var(--text-dark); font-size: 2rem; margin-bottom: 0.5rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
+                            ${displayPrice}
                             <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;">${item.description}</p>
-                            <button class="btn" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book: ${item.title}`)}')">Book Consultation</button>
-                            ${testsHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Available Sub-Services</h3>${testsHtml}</div>` : ''}
+                            <button class="btn" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book: ${item.title}`)}')">Book Service</button>
+                            ${subservicesHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Available Sub-Services</h3>${subservicesHtml}</div>` : ''}
                         </div>
                     `;
                 }
