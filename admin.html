@@ -136,7 +136,7 @@
                 <!-- PANEL: OVERVIEW -->
                 <div id="panel-overview" class="hidden animate-in fade-in space-y-4">
                     <h2 class="text-xl font-black text-navy mb-4">Overview</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         <a href="#/exercises" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
                             <i class="ph-fill ph-person-simple-walk text-3xl text-blue-500 mb-1"></i>
                             <span id="stat-exercises" class="text-2xl font-black text-navy leading-none">0</span>
@@ -156,6 +156,21 @@
                             <i class="ph-fill ph-article text-3xl text-orange-500 mb-1"></i>
                             <span id="stat-articles" class="text-2xl font-black text-navy leading-none">0</span>
                             <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Articles</span>
+                        </a>
+                        <a href="#/services" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-first-aid text-3xl text-rose-500 mb-1"></i>
+                            <span id="stat-services" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Services</span>
+                        </a>
+                        <a href="#/branches" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-map-pin text-3xl text-teal-500 mb-1"></i>
+                            <span id="stat-branches" class="text-2xl font-black text-navy leading-none">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Locations</span>
+                        </a>
+                        <a href="#/clinic" class="bg-white p-4 rounded-xl shadow-soft border border-slate-200 flex flex-col items-center text-center hover:border-azure transition">
+                            <i class="ph-fill ph-buildings text-3xl text-indigo-500 mb-1"></i>
+                            <span class="text-2xl font-black text-navy leading-none"><i class="ph-bold ph-pencil-simple text-xl"></i></span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase mt-1">Website Details</span>
                         </a>
                     </div>
                 </div>
@@ -575,6 +590,8 @@
                 document.getElementById('stat-doctors').innerText = siteData.doctors.length;
                 document.getElementById('stat-products').innerText = siteData.products.length;
                 document.getElementById('stat-articles').innerText = siteData.articles.length;
+                document.getElementById('stat-services').innerText = siteData.services.length;
+                document.getElementById('stat-branches').innerText = siteData.branches.length;
                 document.getElementById('panel-overview').classList.remove('hidden');
             } 
             else if (activeHash === '#/clinic') {
