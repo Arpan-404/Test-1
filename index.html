@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Therapeutic Hub | Expert Physiotherapy</title>
     <meta name="description" content="Expert healthcare, physiotherapy, and rehabilitation services at Therapeutic Hub.">
+    <!-- Dynamic SEO Keywords will be injected here by the script -->
     <link rel="icon" type="image/png" href="/favicon.png">
     
     <!-- Phosphor Icons -->
@@ -20,7 +21,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; padding-bottom: 2.5rem; overflow-x: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; background: var(--app-bg); color: var(--text-dark); line-height: 1.6; padding-bottom: 0; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh;}
         a { text-decoration: none; color: inherit; cursor: pointer; }
 
         /* HEADER */
@@ -32,7 +33,7 @@
         .search-input { width: 100%; padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border); background: #f1f5f9; font-size: 0.9rem; transition: all 0.2s ease; color: var(--text-dark); }
         .search-input:focus { background: var(--surface); border-color: var(--primary); outline: none; }
         
-        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; align-items: center; gap: 12px; }
         .hamburger { padding: 4px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 36px; height: 36px; }
         .hamburger span { display: block; width: 22px; height: 2px; background: var(--text-dark); margin: 3px 0; border-radius: 2px; transition: 0.2s; }
 
@@ -53,7 +54,7 @@
         .overlay.active { visibility: visible; opacity: 1; }
 
         /* SPA VIEW LOGIC */
-        .app-view { display: none; animation: fadeIn 0.3s ease; margin-top: 75px; padding: 0 1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .app-view { display: none; animation: fadeIn 0.3s ease; margin-top: 75px; padding: 0 1rem 2.5rem; max-width: 800px; margin-left: auto; margin-right: auto; flex-grow: 1; width: 100%; }
         .app-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -81,9 +82,14 @@
         .slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease; }
         .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
         .hero-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; }
-        .hero-actions { display: flex; gap: 12px; width: 100%; align-items: center; }
-        .btn-book { flex: 2; background: #1e293b; color: white; border: none; padding: 14px 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
-        .btn-call { flex: 1; background: var(--surface); color: #334155; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.95rem; padding: 14px 16px; transition: all 0.2s; }
+        
+        /* UPDATED HERO ACTION BUTTONS */
+        .hero-actions { display: flex; gap: 10px; width: 100%; align-items: stretch; }
+        .btn-book { flex: 1; background: #1e293b; color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; min-height: 52px; white-space: nowrap; box-shadow: 0 4px 10px rgba(30, 41, 59, 0.15); }
+        .btn-icon { width: 56px; flex-shrink: 0; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.2s; text-decoration: none; min-height: 52px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .btn-icon.call { color: #059669; background: #ecfdf5; border: 1px solid #d1fae5; }
+        .btn-icon.location { color: var(--primary); background: #eff6ff; border: 1px solid #dbeafe; }
+        .btn-icon:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* CARDS */
         .card { background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 12px; text-align: center; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -94,6 +100,7 @@
 
         .card-compact { min-width: 280px; width: 100%; background: var(--surface); border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; gap: 12px; scroll-snap-align: start; box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
         .card-compact-img { width: 70px; height: 70px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .card-compact-title { font-size: 1rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: 4px; }
 
         .article-row { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); border: 1px solid var(--border);}
         .article-row img { width: 75px; height: 75px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; background: #f1f5f9; }
@@ -150,6 +157,7 @@
         </div>
         <ul onclick="window.toggleMenu()">
             <li><a href="/"><i class="ph-bold ph-house" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Home</a></li>
+            <li><a href="/branches"><i class="ph-bold ph-map-pin" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinic Branches</a></li>
             <li><a href="/services"><i class="ph-bold ph-first-aid" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Services</a></li>
             <li><a href="/doctors"><i class="ph-bold ph-stethoscope" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Clinical Team</a></li>
             <li><a href="/products"><i class="ph-bold ph-shopping-bag" style="margin-right: 12px; font-size: 1.3rem; color: var(--text-muted);"></i> Wellness Products</a></li>
@@ -167,7 +175,7 @@
 
     <!-- VIEW 2: LIST PAGES -->
     <main id="view-list" class="app-view">
-        <h1 class="page-title" id="list-title">Loading...</h1>
+        <h1 class="page-title" id="list-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; color: #1e293b;">Loading...</h1>
         <div id="list-grid"><div class="loader"></div></div>
         <!-- INVISIBLE TRIGGER FOR INFINITE SCROLL -->
         <div id="load-more-trigger" style="height: 1px; width: 100%; margin-top: 10px;"></div>
@@ -245,7 +253,21 @@
             try {
                 const res = await fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json');
                 window.siteData = await res.json() || {};
+                
+                // Set Header Logo
                 if (window.siteData.hero?.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
+                
+                // Inject Hidden SEO Tags (From Admin Panel)
+                if (window.siteData.hero?.seoKeywords) {
+                    let metaKw = document.querySelector('meta[name="keywords"]');
+                    if (!metaKw) {
+                        metaKw = document.createElement('meta');
+                        metaKw.name = "keywords";
+                        document.head.appendChild(metaKw);
+                    }
+                    metaKw.content = window.siteData.hero.seoKeywords;
+                }
+
                 handleRoute(); 
             } catch (error) { document.getElementById('home-content').innerHTML = '<p style="text-align:center; color:red;">Connection Error.</p>'; }
         }
@@ -266,7 +288,6 @@
             const trigger = document.getElementById('load-more-trigger');
             if (!trigger) return;
 
-            // Trigger loading 200px before the user hits the bottom
             listObserver = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting) {
                     renderNextChunk();
@@ -299,6 +320,16 @@
                         <div><h4 class="card-compact-title">${s.title}</h4><p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${s.description}</p></div>
                     </a>
                 `).join('');
+            } else if (currentActiveRoute === 'branches') {
+                html = nextItems.map(b => `
+                    <a href="/branch/${b.customUrl || window.slugify(b.name)}" class="card-compact">
+                        <div class="card-compact-img" style="font-size: 1.8rem; color: var(--primary);"><i class="ph-fill ph-map-pin"></i></div>
+                        <div>
+                            <h4 class="card-compact-title" style="font-size: 1.05rem; font-weight: 800; color: #1e293b;">${b.displayName || b.name}</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${b.address || ''}</p>
+                        </div>
+                    </a>
+                `).join('');
             } else {
                 html = nextItems.map(item => {
                     const title = item.title || item.name;
@@ -323,7 +354,7 @@
 
         // --- NEW CLEAN URL ROUTER ---
         async function handleRoute() {
-            if (listObserver) listObserver.disconnect(); // Stop checking scroll when page changes
+            if (listObserver) listObserver.disconnect();
 
             let path = window.location.pathname.replace(/^\/|\/$/g, '');
             if (window.location.search.startsWith('?/')) {
@@ -332,7 +363,7 @@
             }
 
             const parts = path.split('/').filter(Boolean);
-            const knownRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'doctor', 'service', 'product', 'article', 'exercise'];
+            const knownRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'branches', 'doctor', 'service', 'product', 'article', 'exercise', 'branch'];
             
             let route = 'home';
             let slug = '';
@@ -364,7 +395,8 @@
                         <div class="hero-content">
                             <div class="hero-actions">
                                 <button class="btn-book" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to book an appointment.')">Book Appointment</button>
-                                <a href="tel:${phone.replace(/[^0-9+]/g, '')}" class="btn-call">Call Clinic</a>
+                                <a href="tel:${phone.replace(/[^0-9+]/g, '')}" class="btn-icon call"><i class="ph-bold ph-phone"></i></a>
+                                <a href="/branches" class="btn-icon location"><i class="ph-bold ph-map-pin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -450,16 +482,18 @@
                     }
                 });
             } 
-            else if (['doctors', 'services', 'products', 'articles', 'exercises'].includes(route) && !slug) {
+            else if (['doctors', 'services', 'products', 'articles', 'exercises', 'branches'].includes(route) && !slug) {
                 // --- INFINITE SCROLL LIST PAGES ---
-                updateSEO(route.charAt(0).toUpperCase() + route.slice(1), `Browse our ${route}`);
+                let title = route.charAt(0).toUpperCase() + route.slice(1);
+                if (route === 'branches') title = 'Our Locations';
+                
+                updateSEO(title, `Browse our ${route}`);
                 document.getElementById('view-list').classList.add('active');
-                document.getElementById('list-title').innerText = route.charAt(0).toUpperCase() + route.slice(1);
+                document.getElementById('list-title').innerText = title;
                 
                 const grid = document.getElementById('list-grid');
                 grid.innerHTML = '<div class="loader"></div>';
                 
-                // Set Up The State For Current Page
                 currentActiveRoute = route;
                 currentVisibleCount = 0;
 
@@ -470,16 +504,16 @@
                     if (route === 'articles') currentListItems.sort((a,b) => new Date(b.date) - new Date(a.date));
                 }
 
-                grid.innerHTML = ''; // Clear loader
+                grid.innerHTML = ''; 
                 
-                if (route === 'articles' || route === 'services') grid.className = 'flex-stack';
+                if (route === 'articles' || route === 'services' || route === 'branches') grid.className = 'flex-stack';
                 else grid.className = 'grid-2-col';
 
                 if (currentListItems.length === 0) {
                     grid.innerHTML = `<p style="text-align:center; grid-column:1/-1;">No items found.</p>`;
                 } else {
-                    renderNextChunk(); // Draw first 24 items
-                    setupObserver();   // Turn on the invisible motion sensor
+                    renderNextChunk(); 
+                    setupObserver();   
                 }
             }
             else if (slug) {
@@ -490,19 +524,53 @@
                 
                 let listData = [];
                 if (route === 'exercise') { listData = await fetchExercisesLazy(); }
+                else if (route === 'branch') { listData = normalize(window.siteData.branches); }
                 else { listData = normalize(window.siteData[route + 's']); }
                 
-                const item = listData?.find(i => window.slugify(i.title || i.name || i.slug) === slug);
+                // For branches, check customUrl first, then fallback to slugified name
+                let item;
+                if (route === 'branch') {
+                    item = listData?.find(i => i.customUrl === slug || window.slugify(i.name) === slug);
+                } else {
+                    item = listData?.find(i => window.slugify(i.title || i.name || i.slug) === slug);
+                }
+                
                 if (!item) return container.innerHTML = '<p style="text-align:center;">Page not found.</p>';
 
-                const title = item.title || item.name;
-                const img = item.photoUrl || item.profilePhoto || item.bannerImageUrl || item.imageUrl;
+                const title = item.displayName || item.title || item.name;
                 const phone = window.siteData.hero?.whatsappNumber?.replace('+', '') || '';
                 
-                updateSEO(title, item.details || item.description || item.content);
+                updateSEO(title, item.address || item.details || item.description || item.content);
 
-                let extraHtml = '';
-                if (route === 'doctor') {
+                if (route === 'branch') {
+                    const branchPhone = item.phone ? item.phone.replace('+', '') : phone;
+                    container.innerHTML = `
+                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2.5rem 1.5rem; text-align: center;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;"><i class="ph-bold ph-map-pin"></i></div>
+                            <h1 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.2;">${item.displayName || item.name}</h1>
+                            
+                            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
+                                <div style="display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start;">
+                                    <i class="ph-bold ph-map-pin" style="color: var(--primary); font-size: 1.2rem; margin-top: 2px;"></i>
+                                    <span style="font-size: 1rem; color: var(--text-dark); line-height: 1.5; font-weight: 500;">${item.address || 'Address not provided'}</span>
+                                </div>
+                                ${item.phone ? `
+                                <div style="display: flex; gap: 12px; margin-bottom: 1rem; align-items: center;">
+                                    <i class="ph-bold ph-phone" style="color: var(--primary); font-size: 1.2rem;"></i>
+                                    <span style="font-size: 1rem; color: var(--text-dark); font-weight: 700;">${item.phone}</span>
+                                </div>` : ''}
+                            </div>
+
+                            <button class="btn" style="margin-top: 1rem;" onclick="window.open('https://wa.me/${branchPhone}?text=${encodeURIComponent(`Hello, I want to inquire about the ${item.displayName || item.name} branch.`)}')">Contact Branch</button>
+                            
+                            ${item.googleMapsUrl ? `
+                            <a href="${item.googleMapsUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 1.5rem; color: var(--primary); font-weight: 700; font-size: 0.95rem;">
+                                <i class="ph-bold ph-arrow-square-out"></i> Open in Google Maps
+                            </a>` : ''}
+                        </div>
+                    `;
+                }
+                else if (route === 'doctor') {
                     let detailsHtml = item.details || 'Biography coming soon.';
                     if (!detailsHtml.includes('<p>')) detailsHtml = detailsHtml.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
                     
@@ -658,6 +726,9 @@
 
             const pHtml = filterMap(normalize(window.siteData.products), ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
             if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
+            
+            const bHtml = filterMap(normalize(window.siteData.branches), ['name', 'displayName'], '/branch/', b => `<div style="color:var(--primary);font-size:1.5rem;"><i class="ph-fill ph-map-pin"></i></div>`, b=>b.displayName || b.name, b=>'Clinic Branch');
+            if(bHtml) html += `<div class="search-category-title">Locations</div>${bHtml}`;
 
             const articles = normalize(window.siteData.articles).filter(a => (a.title||'').toLowerCase().includes(query) || (a.content||'').toLowerCase().includes(query));
             if(articles.length > 0) html += `<div class="search-category-title">Articles</div>` + articles.map(a => `<a href="/article/${window.slugify(a.title||a.slug)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
