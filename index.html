@@ -83,7 +83,7 @@
         .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
         .hero-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; }
         
-        /* UPDATED HERO ACTION BUTTONS */
+        /* HERO ACTION BUTTONS */
         .hero-actions { display: flex; gap: 10px; width: 100%; align-items: stretch; }
         .btn-book { flex: 1; background: #1e293b; color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; min-height: 52px; white-space: nowrap; box-shadow: 0 4px 10px rgba(30, 41, 59, 0.15); }
         .btn-icon { width: 56px; flex-shrink: 0; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.2s; text-decoration: none; min-height: 52px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
@@ -186,7 +186,6 @@
     <main id="view-list" class="app-view">
         <h1 class="page-title" id="list-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; color: #1e293b;">Loading...</h1>
         <div id="list-grid"><div class="loader"></div></div>
-        <!-- INVISIBLE TRIGGER FOR INFINITE SCROLL -->
         <div id="load-more-trigger" style="height: 1px; width: 100%; margin-top: 10px;"></div>
     </main>
 
@@ -224,7 +223,6 @@
         window.siteData = {};
         window.exercisesData = null; 
 
-        // Set Current Year in Footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
         // --- INFINITE SCROLL STATE ---
@@ -239,13 +237,33 @@
         window.slugify = (text) => text?.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || '';
         const normalize = (data) => data ? (Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean)) : [];
         window.changeMainImg = (url) => { const mainImg = document.getElementById('mainProdImg'); if(mainImg) mainImg.src = url; };
+        
+        // Helper to get item's slug securely 
+        const getItemSlug = (item) => item.customUrl || item.slug || window.slugify(item.displayName || item.title || item.name);
 
         // DYNAMIC SEO TAG UPDATER
-        function updateSEO(title, description) {
+        function updateSEO(title, description, customKeywords) {
             document.title = title ? `${title} | Therapeutic Hub` : 'Therapeutic Hub | Expert Physiotherapy';
+            
             let metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc && description) {
                 metaDesc.content = description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+            }
+
+            // Clean old keywords and inject new ones
+            let metaKw = document.querySelector('meta[name="keywords"]');
+            const targetKeywords = customKeywords || window.siteData.hero?.seoKeywords;
+
+            if (targetKeywords) {
+                if (!metaKw) {
+                    metaKw = document.createElement('meta');
+                    metaKw.name = "keywords";
+                    document.head.appendChild(metaKw);
+                }
+                metaKw.content = targetKeywords;
+            } else if (metaKw) {
+                // If there are no keywords to set, but tag exists, clean it.
+                metaKw.content = "physiotherapy, expert healthcare";
             }
         }
 
@@ -284,25 +302,11 @@
                 const res = await fetch('https://clinic-bdf92-default-rtdb.firebaseio.com/site.json');
                 window.siteData = await res.json() || {};
                 
-                // Set Header Logo
                 if (window.siteData.hero?.logoUrl) document.getElementById('clinicLogo').src = window.siteData.hero.logoUrl;
-                
-                // Inject Hidden SEO Tags (From Admin Panel)
-                if (window.siteData.hero?.seoKeywords) {
-                    let metaKw = document.querySelector('meta[name="keywords"]');
-                    if (!metaKw) {
-                        metaKw = document.createElement('meta');
-                        metaKw.name = "keywords";
-                        document.head.appendChild(metaKw);
-                    }
-                    metaKw.content = window.siteData.hero.seoKeywords;
-                }
 
                 // Populate Thin Footer
                 document.getElementById('mainFooter').style.display = 'block';
-                if (window.siteData.hero?.clinicName) {
-                    document.getElementById('footer-clinic-name').textContent = window.siteData.hero.clinicName;
-                }
+                if (window.siteData.hero?.clinicName) document.getElementById('footer-clinic-name').textContent = window.siteData.hero.clinicName;
                 if (window.siteData.hero?.address) {
                     document.getElementById('footer-address').textContent = window.siteData.hero.address;
                     document.getElementById('footer-address-wrapper').style.display = 'flex';
@@ -312,11 +316,11 @@
                     document.getElementById('footer-phone-wrapper').style.display = 'flex';
                 }
 
-                // Inject Branches into Footer
+                // Inject Branches into Footer (Root URL update)
                 if (window.siteData.branches) {
                     const branches = normalize(window.siteData.branches);
                     if (branches.length > 0) {
-                        const branchHtml = branches.map(b => `<a href="/branch/${b.customUrl || window.slugify(b.name)}">${b.displayName || b.name}</a>`).join(' <span style="opacity:0.3; margin: 0 4px;">•</span> ');
+                        const branchHtml = branches.map(b => `<a href="/${getItemSlug(b)}">${b.displayName || b.name}</a>`).join(' <span style="opacity:0.3; margin: 0 4px;">•</span> ');
                         document.getElementById('footer-branches').innerHTML = branchHtml;
                     }
                 }
@@ -360,7 +364,7 @@
             
             if (currentActiveRoute === 'articles') {
                 html = nextItems.map(a => `
-                    <a href="/article/${window.slugify(a.title || a.slug)}" class="article-row">
+                    <a href="/${getItemSlug(a)}" class="article-row">
                         ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : `<div style="width:75px;height:75px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📄</div>`}
                         <div><h4 style="font-size:0.95rem; font-weight:800; color:#1e293b; line-height:1.2; margin-bottom:4px;">${a.title}</h4>
                         <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${a.content ? a.content.replace(/<[^>]*>?/gm, '') : ''}</p></div>
@@ -370,7 +374,7 @@
                 html = nextItems.map(s => {
                     let sPrice = s.price ? (s.price.includes('₹') || s.price.toLowerCase().includes('rs') ? s.price : '₹' + s.price) : '';
                     return `
-                    <a href="/service/${window.slugify(s.title)}" class="card-compact">
+                    <a href="/${getItemSlug(s)}" class="card-compact">
                         ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
                         <div>
                             <h4 class="card-compact-title">${s.title}</h4>
@@ -381,7 +385,7 @@
                 `}).join('');
             } else if (currentActiveRoute === 'branches') {
                 html = nextItems.map(b => `
-                    <a href="/branch/${b.customUrl || window.slugify(b.name)}" class="card-compact">
+                    <a href="/${getItemSlug(b)}" class="card-compact">
                         <div class="card-compact-img" style="font-size: 1.8rem; color: var(--primary);"><i class="ph-fill ph-map-pin"></i></div>
                         <div>
                             <h4 class="card-compact-title" style="font-size: 1.05rem; font-weight: 800; color: #1e293b;">${b.displayName || b.name}</h4>
@@ -395,10 +399,10 @@
                     const img = item.photoUrl || item.profilePhoto || item.bannerImageUrl || item.imageUrl;
                     const sub = item.qualification || item.price || '';
                     if (currentActiveRoute === 'exercises') {
-                        return `<a href="/exercise/${window.slugify(title)}" class="card" style="padding:10px;">${img ? `<img src="${img}" class="card-img-square" loading="lazy" style="mix-blend-mode:multiply; height:80px;">` : `<div class="card-img-square" style="display:flex;align-items:center;justify-content:center;font-size:2rem; height:80px;">🏃</div>`}<h4>${title}</h4></a>`;
+                        return `<a href="/${getItemSlug(item)}" class="card" style="padding:10px;">${img ? `<img src="${img}" class="card-img-square" loading="lazy" style="mix-blend-mode:multiply; height:80px;">` : `<div class="card-img-square" style="display:flex;align-items:center;justify-content:center;font-size:2rem; height:80px;">🏃</div>`}<h4>${title}</h4></a>`;
                     } else {
                         const isSquare = currentActiveRoute === 'products';
-                        return `<a href="/${currentActiveRoute.slice(0,-1)}/${window.slugify(title)}" class="card">${img ? `<img src="${img}" class="${isSquare ? 'card-img-square' : 'card-img-circle'}" loading="lazy">` : `<div class="${isSquare ? 'card-img-square' : 'card-img-circle'}" style="font-size:2rem; display:flex; align-items:center; justify-content:center;">${isSquare?'📦':'👨‍⚕️'}</div>`}<h4>${title}</h4><p>${sub}</p></a>`;
+                        return `<a href="/${getItemSlug(item)}" class="card">${img ? `<img src="${img}" class="${isSquare ? 'card-img-square' : 'card-img-circle'}" loading="lazy">` : `<div class="${isSquare ? 'card-img-square' : 'card-img-circle'}" style="font-size:2rem; display:flex; align-items:center; justify-content:center;">${isSquare?'📦':'👨‍⚕️'}</div>`}<h4>${title}</h4><p>${sub}</p></a>`;
                     }
                 }).join('');
             }
@@ -411,7 +415,7 @@
             }
         }
 
-        // --- NEW CLEAN URL ROUTER ---
+        // --- NEW UNIVERSAL ROUTER (ROOT LEVEL) ---
         async function handleRoute() {
             if (listObserver) listObserver.disconnect();
 
@@ -421,27 +425,28 @@
                 window.history.replaceState(null, null, '/' + path);
             }
 
-            const parts = path.split('/').filter(Boolean);
-            const knownRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'branches', 'doctor', 'service', 'product', 'article', 'exercise', 'branch'];
+            // Categories that have a list page
+            const listRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'branches'];
             
             let route = 'home';
             let slug = '';
+            let itemType = '';
+            let matchedItem = null;
 
-            for (let i = 0; i < parts.length; i++) {
-                if (knownRoutes.includes(parts[i])) {
-                    route = parts[i];
-                    slug = parts[i+1] || '';
-                    break;
-                }
+            if (!path || path === 'index.html') {
+                route = 'home';
+            } else if (listRoutes.includes(path)) {
+                route = path; // It's a list page
+            } else {
+                route = 'detail';
+                slug = path; // The URL itself is the unique slug (e.g. /laser-therapy)
             }
-
-            if(route === 'index.html') route = 'home';
 
             document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active'));
             window.scrollTo(0,0);
 
             if (route === 'home') {
-                updateSEO('Home', 'Expert healthcare, physiotherapy, and rehabilitation services.');
+                updateSEO('Home', 'Expert healthcare, physiotherapy, and rehabilitation services.', null);
                 document.getElementById('view-home').classList.add('active');
                 
                 const hero = window.siteData.hero || {};
@@ -469,7 +474,7 @@
                         ${services.map(s => {
                             let sPrice = s.price ? (s.price.includes('₹') || s.price.toLowerCase().includes('rs') ? s.price : '₹' + s.price) : '';
                             return `
-                            <a href="/service/${window.slugify(s.title)}" class="card-compact" style="min-width: 250px;">
+                            <a href="/${getItemSlug(s)}" class="card-compact" style="min-width: 250px;">
                                 ${s.bannerImageUrl ? `<img src="${s.bannerImageUrl}" class="card-compact-img" loading="lazy">` : `<div class="card-compact-img">${s.icon || '⚕️'}</div>`}
                                 <div>
                                     <h4 class="card-compact-title">${s.title}</h4>
@@ -487,7 +492,7 @@
                     <div class="section-header"><h2 class="section-title">Our Specialists</h2><a href="/doctors" class="view-all">View Team</a></div>
                     <div class="h-scroll">
                         ${doctors.map(d => `
-                            <a href="/doctor/${window.slugify(d.name)}" class="card" style="min-width: 140px; justify-content: start;">
+                            <a href="/${getItemSlug(d)}" class="card" style="min-width: 140px; justify-content: start;">
                                 ${d.photoUrl ? `<img src="${d.photoUrl}" class="card-img-circle" loading="lazy">` : `<div class="card-img-circle">👨‍⚕️</div>`}
                                 <h4>${d.name}</h4><p>${d.qualification || 'Specialist'}</p>
                             </a>
@@ -507,7 +512,7 @@
                         ${products.map(p => {
                             let price = p.price; if(!price.includes('₹') && !price.toLowerCase().includes('rs')) price = '₹' + price;
                             return `
-                            <a href="/product/${window.slugify(p.name)}" class="card" style="min-width: 140px; justify-content: start;">
+                            <a href="/${getItemSlug(p)}" class="card" style="min-width: 140px; justify-content: start;">
                                 ${p.profilePhoto ? `<img src="${p.profilePhoto}" class="card-img-square" loading="lazy">` : `<div class="card-img-square" style="font-size:2rem; display:flex; align-items:center; justify-content:center;">📦</div>`}
                                 <h4>${p.name}</h4><div style="font-size:0.95rem; color:#1e293b; font-weight:800; margin-top:4px;">${price}</div>
                             </a>`
@@ -521,7 +526,7 @@
                     <div class="section-header"><h2 class="section-title">Health Articles</h2><a href="/articles" class="view-all">Read All</a></div>
                     <div class="flex-stack">
                         ${articles.slice(0, 3).map(a => `
-                            <a href="/article/${window.slugify(a.title || a.slug)}" class="article-row">
+                            <a href="/${getItemSlug(a)}" class="article-row">
                                 ${a.imageUrl ? `<img src="${a.imageUrl}" loading="lazy">` : `<div style="width:75px;height:75px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📄</div>`}
                                 <div><h4 style="font-size:0.95rem; font-weight:800; color:#1e293b; line-height:1.2; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${a.title}</h4>
                                 <p style="font-size:0.8rem; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; margin:0;">${a.content ? a.content.replace(/<[^>]*>?/gm, '') : ''}</p></div>
@@ -538,7 +543,7 @@
                     if (exContainer) {
                         if (exData && exData.length > 0) {
                             exContainer.innerHTML = exData.slice(0, 6).map(ex => `
-                                <a href="/exercise/${window.slugify(ex.name)}" class="card" style="min-width: 140px; padding:10px; justify-content:start;">
+                                <a href="/${getItemSlug(ex)}" class="card" style="min-width: 140px; padding:10px; justify-content:start;">
                                     ${ex.imageUrl ? `<img src="${ex.imageUrl}" class="card-img-square" loading="lazy" style="mix-blend-mode:multiply; height:80px;">` : `<div class="card-img-square" style="display:flex;align-items:center;justify-content:center;font-size:2rem; height:80px;">🏃</div>`}
                                     <h4>${ex.name}</h4>
                                 </a>
@@ -547,12 +552,12 @@
                     }
                 });
             } 
-            else if (['doctors', 'services', 'products', 'articles', 'exercises', 'branches'].includes(route) && !slug) {
+            else if (listRoutes.includes(route)) {
                 // --- INFINITE SCROLL LIST PAGES ---
                 let title = route.charAt(0).toUpperCase() + route.slice(1);
                 if (route === 'branches') title = 'Our Locations';
                 
-                updateSEO(title, `Browse our ${route}`);
+                updateSEO(title, `Browse our ${route}`, null);
                 document.getElementById('view-list').classList.add('active');
                 document.getElementById('list-title').innerText = title;
                 
@@ -581,33 +586,45 @@
                     setupObserver();   
                 }
             }
-            else if (slug) {
-                // --- DETAIL PAGES ---
+            else if (route === 'detail') {
+                // --- UNIVERSAL DETAIL SCANNER ---
                 document.getElementById('view-detail').classList.add('active');
                 const container = document.getElementById('detail-content');
                 container.innerHTML = '<div class="loader"></div>';
                 
-                let listData = [];
-                if (route === 'exercise') { listData = await fetchExercisesLazy(); }
-                else if (route === 'branch') { listData = normalize(window.siteData.branches); }
-                else { listData = normalize(window.siteData[route + 's']); }
-                
-                // For branches, check customUrl first, then fallback to slugified name
-                let item;
-                if (route === 'branch') {
-                    item = listData?.find(i => i.customUrl === slug || window.slugify(i.name) === slug);
-                } else {
-                    item = listData?.find(i => window.slugify(i.title || i.name || i.slug) === slug);
-                }
-                
-                if (!item) return container.innerHTML = '<p style="text-align:center;">Page not found.</p>';
+                // 1. Gather all collections
+                const collections = [
+                    { type: 'doctor', data: normalize(window.siteData.doctors) },
+                    { type: 'service', data: normalize(window.siteData.services) },
+                    { type: 'product', data: normalize(window.siteData.products) },
+                    { type: 'article', data: normalize(window.siteData.articles) },
+                    { type: 'branch', data: normalize(window.siteData.branches) },
+                    { type: 'exercise', data: await fetchExercisesLazy() }
+                ];
 
+                // 2. Scan all collections to find a matching slug
+                for (let coll of collections) {
+                    const match = coll.data.find(item => getItemSlug(item) === slug);
+                    if (match) {
+                        matchedItem = match;
+                        itemType = coll.type;
+                        break;
+                    }
+                }
+
+                if (!matchedItem) {
+                    return container.innerHTML = '<p style="text-align:center; padding-top:20px;">Page not found.</p>';
+                }
+
+                const item = matchedItem;
                 const title = item.displayName || item.title || item.name;
                 const phone = window.siteData.hero?.whatsappNumber?.replace('+', '') || '';
                 
-                updateSEO(title, item.address || item.details || item.description || item.content);
+                // Trigger Item-Specific SEO update
+                updateSEO(title, item.address || item.details || item.description || item.content, item.seoKeywords);
 
-                if (route === 'branch') {
+                // --- RENDER BASED ON FOUND TYPE ---
+                if (itemType === 'branch') {
                     const branchPhone = item.phone ? item.phone.replace('+', '') : phone;
                     container.innerHTML = `
                         <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2.5rem 1.5rem; text-align: center;">
@@ -635,7 +652,7 @@
                         </div>
                     `;
                 }
-                else if (route === 'doctor') {
+                else if (itemType === 'doctor') {
                     let detailsHtml = item.details || 'Biography coming soon.';
                     if (!detailsHtml.includes('<p>')) detailsHtml = detailsHtml.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
                     
@@ -682,7 +699,7 @@
                         </div>
                     `;
                 } 
-                else if (route === 'product') {
+                else if (itemType === 'product') {
                     let allImages = [];
                     if (item.profilePhoto) allImages.push(item.profilePhoto);
                     if (item.galleryImages && Array.isArray(item.galleryImages)) allImages = allImages.concat(item.galleryImages);
@@ -717,10 +734,9 @@
                         </div>
                     `;
                 }
-                else if (route === 'service') {
+                else if (itemType === 'service') {
                     const img = item.bannerImageUrl ? `<img src="${item.bannerImageUrl}" class="entity-img">` : `<div class="entity-img">⚕️</div>`;
                     
-                    // Main Price Logic
                     let displayPrice = '';
                     if(item.price) {
                         displayPrice = item.price;
@@ -728,7 +744,6 @@
                         displayPrice = `<div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-dark); text-align: center; margin-bottom: 1rem;">${displayPrice}</div>`;
                     }
 
-                    // Sub-Services Logic (using subservices, fallback to tests)
                     const subservices = item.subservices || item.tests || [];
                     let subservicesHtml = subservices.map(sub => {
                         let subPrice = sub.price || '';
@@ -747,7 +762,7 @@
                         </div>
                     `;
                 }
-                else if (route === 'article') {
+                else if (itemType === 'article') {
                     let relatedHtml = '';
                     if(item.linkedServices && window.siteData.services) { normalize(window.siteData.services).filter(s => item.linkedServices.includes(s.id)).forEach(s => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${s.title}</div><div style="font-size:0.85rem; color:var(--text-muted);">Clinical Service</div></div><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to book: ${encodeURIComponent(s.title)}')">Book</button></div>`; }); }
                     if(item.linkedProducts && window.siteData.products) { normalize(window.siteData.products).filter(p => item.linkedProducts.includes(p.id)).forEach(p => { relatedHtml += `<div class="wiki-related-item"><div><div style="font-weight:800; color:var(--text-dark);">${p.name}</div><div style="font-size:0.85rem; color:var(--text-muted);">Wellness Product</div></div><button class="btn-small" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=Hello, I want to buy: ${encodeURIComponent(p.name)}')">Buy</button></div>`; }); }
@@ -763,7 +778,7 @@
                         </div>
                     `;
                 }
-                else if (route === 'exercise') {
+                else if (itemType === 'exercise') {
                     let videoHtml = '';
                     if (item.videoUrl) {
                         const getYtId = (url) => { const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (m && m[2].length===11)?m[2]:null; };
@@ -786,37 +801,37 @@
             }
         }
 
-        // SEARCH
+        // SEARCH (Updated for Root URL linking)
         window.handleSearch = async function() {
             const query = document.getElementById('globalSearch').value.toLowerCase();
             const res = document.getElementById('searchResults');
             if (!query) { res.classList.remove('active'); return; }
 
             let html = '';
-            const filterMap = (arr, fields, linkPrefix, imgFn, titleFn, subFn) => {
+            const filterMap = (arr, fields, imgFn, titleFn, subFn) => {
                 const filtered = arr.filter(item => fields.some(f => (item[f]||'').toLowerCase().includes(query)));
                 if(filtered.length === 0) return '';
-                return filtered.map(item => `<a href="${linkPrefix}${window.slugify(titleFn(item))}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">${imgFn(item)} <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
+                return filtered.map(item => `<a href="/${getItemSlug(item)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">${imgFn(item)} <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${titleFn(item)}</div><div style="font-size:0.8rem;color:var(--text-muted);">${subFn(item)}</div></div></a>`).join('');
             };
 
-            const sHtml = filterMap(normalize(window.siteData.services), ['title'], '/service/', s => s.icon?`<div style="font-size:1.2rem">${s.icon}</div>`:`⚕️`, s=>s.title, s=>'Service');
+            const sHtml = filterMap(normalize(window.siteData.services), ['title'], s => s.icon?`<div style="font-size:1.2rem">${s.icon}</div>`:`⚕️`, s=>s.title, s=>'Service');
             if(sHtml) html += `<div class="search-category-title">Services</div>${sHtml}`;
 
-            const dHtml = filterMap(normalize(window.siteData.doctors), ['name', 'qualification'], '/doctor/', d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
+            const dHtml = filterMap(normalize(window.siteData.doctors), ['name', 'qualification'], d => d.photoUrl?`<img src="${d.photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`:`👨‍⚕️`, d=>d.name, d=>d.qualification);
             if(dHtml) html += `<div class="search-category-title">Doctors</div>${dHtml}`;
 
-            const pHtml = filterMap(normalize(window.siteData.products), ['name'], '/product/', p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
+            const pHtml = filterMap(normalize(window.siteData.products), ['name'], p => p.profilePhoto?`<img src="${p.profilePhoto}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">`:`📦`, p=>p.name, p=>`<span style="color:var(--primary);font-weight:700">${p.price}</span>`);
             if(pHtml) html += `<div class="search-category-title">Products</div>${pHtml}`;
             
-            const bHtml = filterMap(normalize(window.siteData.branches), ['name', 'displayName'], '/branch/', b => `<div style="color:var(--primary);font-size:1.5rem;"><i class="ph-fill ph-map-pin"></i></div>`, b=>b.displayName || b.name, b=>'Clinic Branch');
+            const bHtml = filterMap(normalize(window.siteData.branches), ['name', 'displayName'], b => `<div style="color:var(--primary);font-size:1.5rem;"><i class="ph-fill ph-map-pin"></i></div>`, b=>b.displayName || b.name, b=>'Clinic Branch');
             if(bHtml) html += `<div class="search-category-title">Locations</div>${bHtml}`;
 
             const articles = normalize(window.siteData.articles).filter(a => (a.title||'').toLowerCase().includes(query) || (a.content||'').toLowerCase().includes(query));
-            if(articles.length > 0) html += `<div class="search-category-title">Articles</div>` + articles.map(a => `<a href="/article/${window.slugify(a.title||a.slug)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
+            if(articles.length > 0) html += `<div class="search-category-title">Articles</div>` + articles.map(a => `<a href="/${getItemSlug(a)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item">📄 <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${a.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">Article</div></div></a>`).join('');
 
             const exData = await fetchExercisesLazy();
             const exMatches = exData.filter(ex => (ex.name||'').toLowerCase().includes(query) || (ex.tags||[]).some(t => t.toLowerCase().includes(query)));
-            if(exMatches.length > 0) html += `<div class="search-category-title">Exercises</div>` + exMatches.slice(0,5).map(e => `<a href="/exercise/${window.slugify(e.name)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item"><img src="${e.imageUrl}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;"> <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${e.name}</div><div style="font-size:0.8rem;color:var(--text-muted);">Rehabilitation Exercise</div></div></a>`).join('');
+            if(exMatches.length > 0) html += `<div class="search-category-title">Exercises</div>` + exMatches.slice(0,5).map(e => `<a href="/${getItemSlug(e)}" onclick="document.getElementById('searchResults').classList.remove('active');" class="search-result-item"><img src="${e.imageUrl}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;"> <div><div style="font-weight:800;font-size:0.95rem;color:#1e293b;">${e.name}</div><div style="font-size:0.8rem;color:var(--text-muted);">Rehabilitation Exercise</div></div></a>`).join('');
 
             res.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); padding:1rem;">No results found.</p>';
             res.classList.add('active');
