@@ -163,7 +163,13 @@
                     const data = [];
                     snap.forEach(doc => {
                         const p = doc.data();
-                        if (p.customTables) p.customTables = p.customTables.map(t => ({ ...t, rows: typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows }));
+                        if (p.customTables) {
+                            p.customTables = p.customTables.map(t => {
+                                let parsedRows = [['', '']];
+                                try { parsedRows = typeof t.rows === 'string' ? JSON.parse(t.rows) : t.rows; } catch(e) {}
+                                return { ...t, rows: parsedRows };
+                            });
+                        }
                         data.push({ id: doc.id, ...p });
                     });
                     state.allPatients = data;
@@ -183,7 +189,7 @@
                         if(match) { state.authRole = 'doctor'; state.currentDoctor = match; if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) state.viewMode = 'home'; }
                         else { await signOut(auth); state.loginError = `Access Denied: Email (${mail}) not registered.`; state.viewMode = 'patient_login_form'; }
                     } catch(e){}
-                    state.isCheckingSession = false; app.handleHashChange(); app.render(); return;
+                    state.isCheckingSession = false; app.handleHashChange(); return;
                 }
                 
                 try {
@@ -197,20 +203,24 @@
                                 if(pat) window.location.hash = `#/reports/${pat.ipId}`;
                                 state.viewMode = 'patient';
                             }
-                            state.isCheckingSession = false; app.handleHashChange(); app.render(); return;
+                            state.isCheckingSession = false; app.handleHashChange(); return;
                         }
                     }
                 } catch(e){}
                 
                 if(!window.location.hash.startsWith('#/reports/')) state.viewMode = 'patient_login_form';
-                state.isCheckingSession = false; app.handleHashChange(); app.render();
+                state.isCheckingSession = false; app.handleHashChange();
             },
 
             handleHashChange: () => {
                 const hash = window.location.hash;
                 if (hash.startsWith('#/reports/')) {
                     const upid = hash.replace('#/reports/', '');
-                    if (state.draftPatient && state.draftPatient.ipId === upid) return;
+                    // Render form immediately for draft/new patients!
+                    if (state.draftPatient && state.draftPatient.ipId === upid) { 
+                        app.render(); 
+                        return; 
+                    }
                     if (state.allPatients.length > 0) {
                         const match = state.allPatients.find(p => p.ipId === upid);
                         if (match) {
@@ -220,7 +230,7 @@
                         } else { window.location.hash = ''; }
                     }
                 } else if (hash === '' || hash === '#/') {
-                    if (state.authRole === 'doctor' && state.viewMode === 'patient') { state.viewMode = 'home'; state.activePatientId = null; state.draftPatient = null; }
+                    if (state.authRole === 'doctor') { state.viewMode = 'home'; state.activePatientId = null; state.draftPatient = null; }
                 }
                 app.render();
             },
@@ -252,7 +262,16 @@
                     const match = dArr.find(d => d && d.gmail && d.gmail.toLowerCase().trim() === mail);
                     
                     if(!match) { await signOut(auth); state.loginError = `Access Denied: Email (${mail}) not registered.`; }
-                    else { state.currentDoctor = match; state.authRole = 'doctor'; }
+                    else { 
+                        state.currentDoctor = match; 
+                        state.authRole = 'doctor'; 
+                        if(window.location.hash === '' || !window.location.hash.startsWith('#/reports/')) {
+                            state.viewMode = 'home';
+                        } else {
+                            app.handleHashChange();
+                            return;
+                        }
+                    }
                     app.render();
                 } catch(e) { state.loginError = "Staff login failed."; app.render(); }
             },
@@ -271,6 +290,7 @@
                     state.authRole = 'patient'; state.activePatientId = match.id; state.viewMode = 'patient';
                     window.location.hash = `#/reports/${match.ipId}`;
                     if(state.user) { try { await setDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'preferences', 'loginState'), { role: 'patient', patientId: match.id }); } catch(err){} }
+                    app.render();
                 } else { state.loginError = "Record not found."; app.render(); }
             },
 
@@ -290,7 +310,10 @@
                     doctorReg: state.currentDoctor?.regNumber || 'Reg. No 202105633', date: new Date().toISOString().split('T')[0], 
                     name: '', age: '', gender: '', contact: '', chiefComplaints: '', history: '', assessmentNote: '', diagnosis: '', treatmentNote: '', customTables: [], reassessmentTables: [], reports: [], isPublished: false, prescribedExercises: [], exerciseParams: {}
                 };
-                state.activePatientId = state.draftPatient.id; state.viewMode = 'patient'; app.initPatientData();
+                state.activePatientId = state.draftPatient.id; 
+                state.viewMode = 'patient'; 
+                app.initPatientData();
+                app.render(); // Instantly update view without waiting for hash delay
                 window.location.hash = `#/reports/${nid}`;
             },
 
@@ -368,7 +391,7 @@
                 const idx = state.formData.prescribedExercises.indexOf(id);
                 if(idx > -1) { state.formData.prescribedExercises.splice(idx,1); delete state.formData.exerciseParams[id]; }
                 else { state.formData.prescribedExercises.push(id); state.formData.exerciseParams[id] = { reps:'10', sets:'3', freq:'2x/Day', note:'' }; }
-                app.render(); // Need full re-render for both panels
+                app.render(); 
             },
             updExParam: (id, f, v) => { if(state.formData.exerciseParams[id]) state.formData.exerciseParams[id][f] = v; },
 
@@ -770,4 +793,3 @@
     </script>
 </body>
 </html>
-
