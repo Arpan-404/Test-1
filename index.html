@@ -565,13 +565,13 @@
                 
                 updateSEO(title, item.address || item.details || item.description || item.content, item.seoKeywords);
 
-                // --- RENDER BASED ON FOUND TYPE (Flat, Cardless Layouts) ---
+                // --- TITLE ON TOP RENDERER (Clean Mobile Layout) ---
                 if (itemType === 'branch') {
                     const branchPhone = item.phone ? item.phone.replace('+', '') : phone;
                     container.innerHTML = `
                         <div style="padding: 1rem 0; text-align: center;">
+                            <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2;">${item.displayName || item.name}</h1>
                             <div style="width: 80px; height: 80px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;"><i class="ph-bold ph-map-pin"></i></div>
-                            <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.2;">${item.displayName || item.name}</h1>
                             
                             <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
                                 <div style="display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start;">
@@ -622,9 +622,9 @@
                     container.innerHTML = `
                         <div style="padding: 1rem 0;">
                             <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
-                                ${item.photoUrl ? `<img src="${item.photoUrl}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1.2rem;">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
-                                <h2 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${item.name}</h2>
-                                <div style="font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${item.designation || 'Consultant Physiotherapist'}</div>
+                                <h2 style="font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${item.name}</h2>
+                                <div style="font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: 1.5rem;">${item.designation || 'Consultant Physiotherapist'}</div>
+                                ${item.photoUrl ? `<img src="${item.photoUrl}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1rem;">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
                                 <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">${item.qualification}</div>
                                 ${item.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #e2e8f0; padding: 4px 12px; border-radius: 100px;">${item.regNumber}</div>` : ''}
                             </div>
@@ -661,12 +661,12 @@
 
                     container.innerHTML = `
                         <div class="prod-detail-main">
-                            <div class="prod-image-section">${mainImgHtml}${galleryHtml}</div>
-                            <div style="padding: 1rem 0;">
-                                <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">${item.name}</h2>
-                                <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary-dark);">${displayPrice}</div>
+                            <div style="padding: 1rem 0; text-align: center;">
+                                <h2 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">${item.name}</h2>
+                                <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">${displayPrice}</div>
                                 <div class="prod-freedel">Free Delivery</div>
                             </div>
+                            <div class="prod-image-section">${mainImgHtml}${galleryHtml}</div>
                             <div style="padding: 1.5rem 0; border-top: 1px solid var(--border);">
                                 <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: #1e293b;">Product Details</div>
                                 <div style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; white-space: pre-wrap;">${item.description}</div>
@@ -683,7 +683,7 @@
                     if(item.price) {
                         displayPrice = item.price;
                         if(!displayPrice.includes('₹') && !displayPrice.toLowerCase().includes('rs')) displayPrice = '₹' + displayPrice;
-                        displayPrice = `<div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-dark); text-align: center; margin-bottom: 1rem;">${displayPrice}</div>`;
+                        displayPrice = `<div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-dark); text-align: center; margin-bottom: 1.5rem;">${displayPrice}</div>`;
                     }
 
                     const subservices = item.subservices || item.tests || [];
@@ -695,9 +695,9 @@
                     
                     container.innerHTML = `
                         <div style="padding: 1rem 0;">
-                            ${img}
                             <h1 style="color: var(--text-dark); font-size: 2.2rem; margin-bottom: 0.5rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
                             ${displayPrice}
+                            ${img}
                             <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;">${item.description}</p>
                             <button class="btn" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book: ${item.title}`)}')">Book Service</button>
                             ${subservicesHtml ? `<div class="test-list"><h3 style="color:var(--text-dark); margin-bottom:1rem; font-weight:800;">Available Sub-Services</h3>${subservicesHtml}</div>` : ''}
@@ -733,8 +733,8 @@
                     }
                     container.innerHTML = `
                         <div class="wiki-article-container">
+                            <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: block;">${item.name}</h1>
                             ${item.imageUrl ? `<div style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center; background: transparent; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;"><img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;"></div>` : ''}
-                            <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: inline-block;">${item.name}</h1>
                             <div class="detail-html" style="color: #334155;">${item.description || '<p>No description provided.</p>'}</div>
                             ${videoHtml}
                         </div>
