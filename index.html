@@ -108,27 +108,27 @@
         /* === SPECIFIC DETAIL STYLES === */
         
         /* Products */
-        .prod-detail-main { background: var(--app-bg); margin: -1rem -1rem 0 -1rem; padding-bottom: 80px; }
-        .prod-image-section { background: var(--surface); padding: 1.5rem 0; border-bottom: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .prod-main-img { width: 100%; height: 300px; object-fit: contain; }
-        .gallery-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 1.5rem; scrollbar-width: none; }
+        .prod-detail-main { padding-bottom: 80px; }
+        .prod-image-section { padding: 1rem 0; margin-bottom: 1rem; }
+        .prod-main-img { width: 100%; height: 300px; object-fit: contain; border-radius: var(--radius-md); background: transparent; }
+        .gallery-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 0; scrollbar-width: none; }
         .gallery-thumb { width: 65px; height: 65px; border-radius: var(--radius-sm); object-fit: contain; border: 2px solid transparent; cursor: pointer; padding: 4px; background: #f1f5f9; transition: 0.2s; }
         .gallery-thumb:hover { border-color: var(--primary-light); }
         .prod-freedel { color: #10b981; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; background: #ecfdf5; padding: 4px 10px; border-radius: 100px; margin-top: 8px;}
-        .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); display: flex; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 999; border-top: 1px solid var(--border); }
+        .sticky-buy-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); display: flex; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid var(--border); }
         .btn-buy-now { flex: 1; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 100px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
 
         /* Services */
-        .entity-img { width: 100%; height: 250px; object-fit: contain; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 5rem; border: 1px solid var(--border); }
+        .entity-img { width: 100%; height: 250px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1.5rem; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
         .test-list { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
-        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .test-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: transparent; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); }
 
         /* Articles / Wiki */
-        .wiki-article-container { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-soft); border: 1px solid var(--border); }
-        .wiki-article-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
-        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
-        .wiki-related-box { margin-top: 2.5rem; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
-        .wiki-related-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px;}
+        .wiki-article-container { padding: 1rem 0; }
+        .wiki-article-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; line-height: 1.2; letter-spacing: -0.5px;}
+        .wiki-article-cover { width: 100%; max-width: 350px; float: right; margin: 0 0 1.5rem 1.5rem; border-radius: var(--radius-md); }
+        .wiki-related-box { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+        .wiki-related-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px;}
         
         .video-container { width: 100%; aspect-ratio: 16/9; background: #0f172a; border-radius: var(--radius-md); overflow: hidden; margin-top: 1rem; margin-bottom: 1.5rem; }
         .video-container iframe, .video-container video { width: 100%; height: 100%; border: none; outline: none; }
@@ -177,13 +177,12 @@
     <main id="view-list" class="app-view">
         <h1 class="page-title" id="list-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; color: #1e293b;">Loading...</h1>
         <div id="list-grid"><div class="loader"></div></div>
-        <!-- INVISIBLE TRIGGER FOR INFINITE SCROLL -->
         <div id="load-more-trigger" style="height: 1px; width: 100%; margin-top: 10px;"></div>
     </main>
 
     <!-- VIEW 3: SPECIFIC DETAILS -->
     <main id="view-detail" class="app-view">
-        <button onclick="window.history.back()" style="background:none; border:none; color:var(--text-muted); font-weight:800; margin-bottom:1rem; font-size:1rem; display:flex; align-items:center; gap:5px;"><i class="ph-bold ph-arrow-left"></i> Back</button>
+        <button onclick="window.history.back()" style="background:none; border:none; color:var(--text-muted); font-weight:800; margin-bottom:0.5rem; font-size:1rem; display:flex; align-items:center; gap:5px; padding: 0;"><i class="ph-bold ph-arrow-left"></i> Back</button>
         <div id="detail-content"></div>
     </main>
 
@@ -222,7 +221,6 @@
                 metaDesc.content = description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
             }
 
-            // Clean old keywords and inject new ones
             let metaKw = document.querySelector('meta[name="keywords"]');
             const targetKeywords = customKeywords || window.siteData.hero?.seoKeywords;
 
@@ -234,7 +232,6 @@
                 }
                 metaKw.content = targetKeywords;
             } else if (metaKw) {
-                // If there are no keywords to set, but tag exists, clean it.
                 metaKw.content = "physiotherapy, expert healthcare";
             }
         }
@@ -376,7 +373,6 @@
                 window.history.replaceState(null, null, '/' + path);
             }
 
-            // Categories that have a list page
             const listRoutes = ['doctors', 'services', 'products', 'articles', 'exercises', 'branches'];
             
             let route = 'home';
@@ -387,10 +383,10 @@
             if (!path || path === 'index.html') {
                 route = 'home';
             } else if (listRoutes.includes(path)) {
-                route = path; // It's a list page
+                route = path; 
             } else {
                 route = 'detail';
-                slug = path; // The URL itself is the unique slug (e.g. /laser-therapy)
+                slug = path; 
             }
 
             document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active'));
@@ -504,7 +500,6 @@
                 });
             } 
             else if (listRoutes.includes(route)) {
-                // --- INFINITE SCROLL LIST PAGES ---
                 let title = route.charAt(0).toUpperCase() + route.slice(1);
                 if (route === 'branches') title = 'Our Locations';
                 
@@ -538,12 +533,10 @@
                 }
             }
             else if (route === 'detail') {
-                // --- UNIVERSAL DETAIL SCANNER ---
                 document.getElementById('view-detail').classList.add('active');
                 const container = document.getElementById('detail-content');
                 container.innerHTML = '<div class="loader"></div>';
                 
-                // 1. Gather all collections
                 const collections = [
                     { type: 'doctor', data: normalize(window.siteData.doctors) },
                     { type: 'service', data: normalize(window.siteData.services) },
@@ -553,7 +546,6 @@
                     { type: 'exercise', data: await fetchExercisesLazy() }
                 ];
 
-                // 2. Scan all collections to find a matching slug
                 for (let coll of collections) {
                     const match = coll.data.find(item => getItemSlug(item) === slug);
                     if (match) {
@@ -571,26 +563,25 @@
                 const title = item.displayName || item.title || item.name;
                 const phone = window.siteData.hero?.whatsappNumber?.replace('+', '') || '';
                 
-                // Trigger Item-Specific SEO update
                 updateSEO(title, item.address || item.details || item.description || item.content, item.seoKeywords);
 
-                // --- RENDER BASED ON FOUND TYPE ---
+                // --- RENDER BASED ON FOUND TYPE (Flat, Cardless Layouts) ---
                 if (itemType === 'branch') {
                     const branchPhone = item.phone ? item.phone.replace('+', '') : phone;
                     container.innerHTML = `
-                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2.5rem 1.5rem; text-align: center;">
+                        <div style="padding: 1rem 0; text-align: center;">
                             <div style="width: 80px; height: 80px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;"><i class="ph-bold ph-map-pin"></i></div>
-                            <h1 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.2;">${item.displayName || item.name}</h1>
+                            <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.2;">${item.displayName || item.name}</h1>
                             
                             <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
                                 <div style="display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start;">
                                     <i class="ph-bold ph-map-pin" style="color: var(--primary); font-size: 1.2rem; margin-top: 2px;"></i>
-                                    <span style="font-size: 1rem; color: var(--text-dark); line-height: 1.5; font-weight: 500;">${item.address || 'Address not provided'}</span>
+                                    <span style="font-size: 1.05rem; color: var(--text-dark); line-height: 1.5; font-weight: 500;">${item.address || 'Address not provided'}</span>
                                 </div>
                                 ${item.phone ? `
                                 <div style="display: flex; gap: 12px; margin-bottom: 1rem; align-items: center;">
                                     <i class="ph-bold ph-phone" style="color: var(--primary); font-size: 1.2rem;"></i>
-                                    <span style="font-size: 1rem; color: var(--text-dark); font-weight: 700;">${item.phone}</span>
+                                    <span style="font-size: 1.05rem; color: var(--text-dark); font-weight: 700;">${item.phone}</span>
                                 </div>` : ''}
                             </div>
 
@@ -613,39 +604,39 @@
                     let pricingHtml = '';
                     if (item.pricingOptions && item.pricingOptions.length > 0) {
                         pricingHtml = item.pricingOptions.map(opt => `
-                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-soft);">
+                            <div style="padding: 1.25rem; background: transparent; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
                                     <div><div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">${opt.title || 'Consultation'}</div><div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${opt.price || 'Contact for price'}</div></div>
                                 </div>
-                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to request: ${opt.title} with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%;">${opt.buttonText || 'Book Now'}</button>
+                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to request: ${opt.title} with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: transparent; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%;">${opt.buttonText || 'Book Now'}</button>
                             </div>`).join('');
                     } else {
                         const fallbackFee = item.fees ? (item.fees.includes('₹') || item.fees.toLowerCase().includes('rs') ? item.fees : '₹' + item.fees) : 'Contact for pricing';
                         pricingHtml = `
-                            <div style="padding: 1.25rem; background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem; box-shadow: var(--shadow-soft);">
+                            <div style="padding: 1.25rem; background: transparent; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; gap: 1rem;">
                                 <div><div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Consultation Fee</div><div style="font-size: 1.4rem; font-weight: 800; color: var(--text-dark);">${fallbackFee}</div></div>
-                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to book an appointment with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: white; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; width: 100%;">Book Consultation</button>
+                                <button onclick="window.open('https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hello, I want to book an appointment with ${item.name}`)}')"" style="font-size: 0.95rem; font-weight: 700; padding: 10px 20px; background: transparent; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; width: 100%;">Book Consultation</button>
                             </div>`;
                     }
 
                     container.innerHTML = `
-                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2rem 1.5rem;">
+                        <div style="padding: 1rem 0;">
                             <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
                                 ${item.photoUrl ? `<img src="${item.photoUrl}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light); box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 1.2rem;">` : `<div style="width: 130px; height: 130px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1rem;">👨‍⚕️</div>`}
-                                <h2 style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${item.name}</h2>
-                                <div style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${item.designation || 'Consultant Physiotherapist'}</div>
-                                <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${item.qualification}</div>
-                                ${item.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #f8fafc; padding: 4px 12px; border-radius: 100px;">${item.regNumber}</div>` : ''}
+                                <h2 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; line-height: 1.2;">${item.name}</h2>
+                                <div style="font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">${item.designation || 'Consultant Physiotherapist'}</div>
+                                <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">${item.qualification}</div>
+                                ${item.regNumber ? `<div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 0.5rem; background: #e2e8f0; padding: 4px 12px; border-radius: 100px;">${item.regNumber}</div>` : ''}
                             </div>
                             <div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">${detailsHtml}</div>
-                            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; background: #f8fafc; margin: 0 -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
-                                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; text-align: center;">Booking Options</h3>
+                            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem;">Booking Options</h3>
                                 ${pricingHtml}
                             </div>
                             ${(item.onlineBookingUrl || item.exerciseChartUrl) ? `
                             <div style="margin-top: 1rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; gap: 10px;">
-                                ${item.onlineBookingUrl ? `<button onclick="window.open('${item.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; width: 100%;">Online Booking Portal</button>` : ''}
-                                ${item.exerciseChartUrl ? `<button onclick="window.open('${item.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: #f1f5f9; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; width: 100%;">View Exercise Chart</button>` : ''}
+                                ${item.onlineBookingUrl ? `<button onclick="window.open('${item.onlineBookingUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: transparent; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; width: 100%;">Online Booking Portal</button>` : ''}
+                                ${item.exerciseChartUrl ? `<button onclick="window.open('${item.exerciseChartUrl}')" style="font-size: 0.95rem; font-weight: 700; padding: 12px; background: transparent; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 8px; width: 100%;">View Exercise Chart</button>` : ''}
                             </div>` : ''}
                         </div>
                     `;
@@ -656,7 +647,7 @@
                     if (item.galleryImages && Array.isArray(item.galleryImages)) allImages = allImages.concat(item.galleryImages);
                     const uniqueImages = [...new Set(allImages)]; 
                     let galleryHtml = uniqueImages.length > 1 ? `<div class="gallery-scroll">` + uniqueImages.map(url => `<img src="${url}" class="gallery-thumb" onclick="window.changeMainImg('${url}')">`).join('') + `</div>` : '';
-                    let mainImgHtml = uniqueImages.length > 0 ? `<img src="${uniqueImages[0]}" class="prod-main-img" id="mainProdImg">` : `<div class="prod-main-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:#f9f9f9;">📦</div>`;
+                    let mainImgHtml = uniqueImages.length > 0 ? `<img src="${uniqueImages[0]}" class="prod-main-img" id="mainProdImg">` : `<div class="prod-main-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:transparent;">📦</div>`;
                     
                     let videoHtml = '';
                     if (item.videoUrl) {
@@ -671,12 +662,12 @@
                     container.innerHTML = `
                         <div class="prod-detail-main">
                             <div class="prod-image-section">${mainImgHtml}${galleryHtml}</div>
-                            <div style="background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-                                <h2 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">${item.name}</h2>
+                            <div style="padding: 1rem 0;">
+                                <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">${item.name}</h2>
                                 <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary-dark);">${displayPrice}</div>
                                 <div class="prod-freedel">Free Delivery</div>
                             </div>
-                            <div style="background: var(--surface); padding: 1.5rem; margin-top: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+                            <div style="padding: 1.5rem 0; border-top: 1px solid var(--border);">
                                 <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: #1e293b;">Product Details</div>
                                 <div style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; white-space: pre-wrap;">${item.description}</div>
                                 ${videoHtml}
@@ -703,9 +694,9 @@
                     }).join('');
                     
                     container.innerHTML = `
-                        <div style="background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid var(--border); padding: 2rem 1.5rem;">
+                        <div style="padding: 1rem 0;">
                             ${img}
-                            <h1 style="color: var(--text-dark); font-size: 2rem; margin-bottom: 0.5rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
+                            <h1 style="color: var(--text-dark); font-size: 2.2rem; margin-bottom: 0.5rem; line-height: 1.2; text-align: center; font-weight: 800; letter-spacing: -0.5px;">${item.title}</h1>
                             ${displayPrice}
                             <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; text-align: center;">${item.description}</p>
                             <button class="btn" onclick="window.open('https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(`Hello, I want to book: ${item.title}`)}')">Book Service</button>
@@ -742,7 +733,7 @@
                     }
                     container.innerHTML = `
                         <div class="wiki-article-container">
-                            ${item.imageUrl ? `<div style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;"><img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;"></div>` : ''}
+                            ${item.imageUrl ? `<div style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center; background: transparent; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;"><img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;"></div>` : ''}
                             <h1 style="font-size: 2.2rem; font-weight: 900; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #1d4ed8; padding-bottom: 0.5rem; display: inline-block;">${item.name}</h1>
                             <div class="detail-html" style="color: #334155;">${item.description || '<p>No description provided.</p>'}</div>
                             ${videoHtml}
@@ -794,3 +785,5 @@
     </script>
 </body>
 </html>
+
+
